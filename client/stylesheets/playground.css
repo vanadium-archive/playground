@@ -1,0 +1,76 @@
+/* Temporary, for testing. */
+.vanilla-editor {
+  width: 600px;
+  height: 200px;
+}
+
+/* CSS rules for elements inside EmbeddedPlayground instances. */
+
+/* TODO(sadovsky): Make this reactive. */
+.pg {
+  width: 600px;
+}
+
+.pg .tab {
+  background-color: #bbb;
+  cursor: pointer;
+  display: inline-block;
+  padding: 8px;
+}
+
+.pg .tab:not(:first-child) {
+  border-left: 2px solid #fff;
+}
+
+.pg .tab.active {
+  background-color: #ddd;
+}
+
+/* TODO(sadovsky): Make this reactive. */
+.pg .editors {
+  position: relative;
+  border-top: 4px solid #ddd;
+  height: 200px;
+}
+
+.pg .editor {
+  position: absolute;  /* stack editors one on top of the other */
+  width: 100%;
+  height: 100%;
+}
+
+.pg .ace_editor {
+  width: 100%;
+  height: 100%;
+}
+
+.pg .console {
+  background-color: #ddd;
+  font-size: 15px;
+  font-family: "Monaco", "Menlo", monospace;
+  padding: 4px;
+  width: 100%;
+  height: 80px;
+}
+
+.pg .btn {
+  background-color: #0277bd;
+  color: #fff;
+  float: right;
+  margin-left: 4px;
+  outline: 0 !important;  /* disable Chrome border */
+}
+
+.pg .btn:hover {
+  background-color: #01579b;
+}
+
+.pg .btn:hover, .pg .btn:active, .pg .btn:focus {
+  color: #fff;  /* override Bootstrap */
+}
+
+.clearfix {
+  display: table;
+  clear: both;
+  content: "";
+}
