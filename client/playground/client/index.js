@@ -1,4 +1,6 @@
 var _ = require('lodash');
+var path = require('path');
+var request = require('superagent');
 
 var editor = require('./editor');
 var EmbeddedPlayground = require('./embedded');
@@ -10,23 +12,35 @@ var EmbeddedPlayground = require('./embedded');
 _.forEach(document.querySelectorAll('.playground'), function(el) {
   var srcdir = el.getAttribute('data-srcdir');
   console.log('Creating playground', srcdir);
-  var files;
-  if (srcdir === 'foo') {
-    files = [
-      {name: 'hello.go', text: 'fmt.Println("Hello ' + srcdir + '")'},
-      {name: 'goodbye.go', text: 'fmt.Println("Goodbye ' + srcdir + '")'}
-    ];
-  } else {
-    files = [
-      {name: 'hello.js', text: 'console.log(\'Hello ' + srcdir + '\')'},
-      {name: 'goodbye.js', text: 'console.log(\'Goodbye ' + srcdir + '\')'}
-    ];
-  }
-  var pg = new EmbeddedPlayground(el, files);  // jshint ignore:line
-  return;
+
+  fetchBundle(srcdir, function(err, bundle) {
+    if (err) {
+      el.innerText = 'ERROR! Bundle not found: ' + srcdir;
+      return;
+    }
+
+    var pg = new EmbeddedPlayground(el, bundle.files);  // jshint ignore:line
+  });
 });
 
 // Temporary, for testing.
 _.forEach(document.querySelectorAll('.vanilla-editor'), function(el) {
   editor.mount(el, 'go', 'fmt.Println("Hello normal editor")');
 });
+
+function fetchBundle(loc, cb) {
+  var basePath = '/guides/code/';
+  console.log('Fetching bundle', loc);
+  request
+    .get(path.join(basePath, loc, 'bundle.json'))
+    .accept('json')
+    .end(function(err, res) {
+      if (err) {
+        return cb(err);
+      }
+      if (res.error) {
+        return cb(res.error);
+      }
+      cb(null, res.body);
+    });
+}

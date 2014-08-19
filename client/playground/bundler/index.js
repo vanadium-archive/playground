@@ -53,7 +53,7 @@ function run(){
       var fullFilePath = path.resolve(dir, fileName);
       out.files.push({
         name: fileName,
-        body: fs.readFileSync(fullFilePath, { encoding: 'utf8' })
+        text: fs.readFileSync(fullFilePath, { encoding: 'utf8' })
       });
     });
 
