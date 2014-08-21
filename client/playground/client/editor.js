@@ -22,15 +22,19 @@ function Editor(type, text) {
 // internals.
 Editor.prototype.type = 'Widget';
 
-Editor.prototype.init = function(){
+Editor.prototype.init = function() {
   console.log('EditorWidget.init');
   var el = document.createElement('div');
   this.mount(el, this.type_, this.text_);
   return el;
 };
 
-Editor.prototype.update = function(){
+Editor.prototype.update = function() {
   console.log('EditorWidget.update');
+};
+
+Editor.prototype.getText = function() {
+  return this.aceEditor_.getSession().getValue();
 };
 
 // Creates a new Ace editor instance and mounts it on a DOM node.

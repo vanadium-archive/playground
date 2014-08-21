@@ -17,6 +17,9 @@ function EmbeddedPlayground(el, files) {
     var type = file.name.substr(file.name.indexOf('.') + 1);
     return _.assign({}, file, {type: type});
   });
+  this.editors_ = _.map(this.files_, function(file) {
+    return new Editor(file.type, file.text);
+  });
   this.state_ = m.struct({
     activeTab: m.value(0),
     consoleText: m.value('')
@@ -53,9 +56,8 @@ EmbeddedPlayground.prototype.renderConsole_ = function(text) {
 // convention.
 EmbeddedPlayground.prototype.render_ = function(state) {
   var that = this;
-  var files = this.files_;
 
-  var tabs = _.map(files, function(file, i) {
+  var tabs = _.map(this.files_, function(file, i) {
     var selector = 'div.tab';
     if (i === state.activeTab) {
       selector += '.active';
@@ -66,7 +68,7 @@ EmbeddedPlayground.prototype.render_ = function(state) {
       }
     }, file.name);
   });
-  var editors = _.map(files, function(file, i) {
+  var editors = _.map(this.editors_, function(editor, i) {
     var properties = {};
     if (i !== state.activeTab) {
       // Use "visibility: hidden" rather than "display: none" because the latter
@@ -74,7 +76,7 @@ EmbeddedPlayground.prototype.render_ = function(state) {
       // opened.
       properties['style'] = {visibility: 'hidden'};
     }
-    return h('div.editor', properties, new Editor(file.type, file.text));
+    return h('div.editor', properties, editor);
   });
   // TODO(sadovsky): Make the console a proper component with its own render
   // method?
@@ -86,6 +88,8 @@ EmbeddedPlayground.prototype.render_ = function(state) {
 
 // Sends the files to the backend, then injects the response in the console.
 EmbeddedPlayground.prototype.run = function() {
+  var that = this;
+
   var compileUrl = 'http://playground.envyor.com:8181/compile';
 
   // Uncomment the following line for testing. Instructions for how to run the
@@ -93,10 +97,11 @@ EmbeddedPlayground.prototype.run = function() {
   //compileUrl = 'http://localhost:8181/compile';
 
   var req = {
-    files: _.map(this.files_, function(file) {
+    files: _.map(this.files_, function(file, i) {
+      var editor = that.editors_[i];
       return {
         Name: file.name,
-        Body: file.text
+        Body: editor.getText()
       };
     }),
     Identities: []

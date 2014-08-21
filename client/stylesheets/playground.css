@@ -49,7 +49,7 @@
   font-size: 15px;
   font-family: "Monaco", "Menlo", monospace;
   height: 100%;
-  overflow-y: scroll;
+  overflow-y: auto;
   padding: 8px;
 }
 
