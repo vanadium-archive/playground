@@ -3,31 +3,11 @@ module.exports = EmbeddedPlayground;
 var _ = require('lodash');
 var mercury = require('mercury');
 
-var editor = require('./editor');
+var Editor = require('./editor');
 
 var m = mercury;
 var h = mercury.h;
-
-// Mercury widget that wraps a code editor.
-// * type: Type of code. Currently either 'js' or 'go'.
-// * text: Initial code.
-function EditorWidget(type, text) {
-  this.type_ = type;
-  this.text_ = text;
-}
-
-EditorWidget.prototype = {
-  type: 'Widget',
-  init: function() {
-    console.log('EditorWidget.init');
-    var el = document.createElement('div');
-    editor.mount(el, this.type_, this.text_);
-    return el;
-  },
-  update: function() {
-    console.log('EditorWidget.update');
-  }
-};
+var request = require('superagent');
 
 // Shows each file in a tab.
 // * el: The DOM element to mount on.
@@ -44,51 +24,103 @@ function EmbeddedPlayground(el, files) {
   mercury.app(el, this.state_, this.render_.bind(this));
 }
 
-EmbeddedPlayground.prototype = {
-  // TODO(sadovsky): It's annoying that `this.state_` and the local variable
-  // `state` are two different things with the same name. Need a better naming
-  // convention.
-  render_: function(state) {
-    var that = this;
-    var files = this.files_;
+EmbeddedPlayground.prototype.renderConsole_ = function(text) {
+  var that = this;
 
-    var tabs = _.map(files, function(file, i) {
-      var selector = 'div.tab';
-      if (i === state.activeTab) {
-        selector += '.active';
+  var runBtn = h('button.btn', {
+    'ev-click': function() {
+      that.state_.consoleText.set('Running...');
+      that.run();
+    }
+  }, 'Run');
+  var shareBtn = h('button.btn', {
+    'ev-click': function() {
+      that.state_.consoleText.set('(Sharing is not yet implemented.)');
+    }
+  }, 'Share');
+
+  var lines = _.map(text.split('\n'), function(line) {
+    return h('div', line);
+  });
+
+  return h('div.console', [
+    h('div.text', lines), h('div.btns', [runBtn, shareBtn])
+  ]);
+};
+
+// TODO(sadovsky): It's annoying that `this.state_` and the local variable
+// `state` are two different things with the same name. Need a better naming
+// convention.
+EmbeddedPlayground.prototype.render_ = function(state) {
+  var that = this;
+  var files = this.files_;
+
+  var tabs = _.map(files, function(file, i) {
+    var selector = 'div.tab';
+    if (i === state.activeTab) {
+      selector += '.active';
+    }
+    return h(selector, {
+      'ev-click': function() {
+        that.state_.activeTab.set(i);
       }
-      return h(selector, {
-        'ev-click': function() {
-          that.state_.activeTab.set(i);
+    }, file.name);
+  });
+  var editors = _.map(files, function(file, i) {
+    var properties = {};
+    if (i !== state.activeTab) {
+      // Use "visibility: hidden" rather than "display: none" because the latter
+      // causes the editor to initialize lazily and thus flicker when it's first
+      // opened.
+      properties['style'] = {visibility: 'hidden'};
+    }
+    return h('div.editor', properties, new Editor(file.type, file.text));
+  });
+  // TODO(sadovsky): Make the console a proper component with its own render
+  // method?
+  var consoleEl = this.renderConsole_(state.consoleText);
+  return h('div.pg', [
+    h('div', tabs), h('div.editors', editors), consoleEl
+  ]);
+};
+
+// Sends the files to the backend, then injects the response in the console.
+EmbeddedPlayground.prototype.run = function() {
+  var compileUrl = 'http://playground.envyor.com:8181/compile';
+
+  // Uncomment the following line for testing. Instructions for how to run the
+  // compile server locally are in go/src/veyron/tools/playground/README.md.
+  //compileUrl = 'http://localhost:8181/compile';
+
+  var req = {
+    files: _.map(this.files_, function(file) {
+      return {
+        Name: file.name,
+        Body: file.text
+      };
+    }),
+    Identities: []
+  };
+
+  var state = this.state_;
+  request
+      .post(compileUrl)
+      .type('json')
+      .accept('json')
+      .send(req)
+      .end(function(err, res) {
+        if (err) {
+          return console.error(err);
         }
-      }, file.name);
-    });
-    var editors = _.map(files, function(file, i) {
-      var properties = {};
-      if (i !== state.activeTab) {
-        // Use "visibility: hidden" rather than "display: none" because the
-        // latter causes the editor to initialize lazily and thus flicker when
-        // it's first opened.
-        properties['style'] = {visibility: 'hidden'};
-      }
-      return h('div.editor', properties,
-               new EditorWidget(file.type, file.text));
-    });
-    var runBtn = h('button.btn', {
-      'ev-click': function() {
-        that.state_.consoleText.set('Run');
-      }
-    }, 'Run');
-    var shareBtn = h('button.btn', {
-      'ev-click': function() {
-        that.state_.consoleText.set('Share');
-      }
-    }, 'Share');
-    var consoleEl = h('div.console.clearfix', [
-      h('span', state.consoleText), shareBtn, runBtn
-    ]);
-    return h('div.pg', [
-      h('div', tabs), h('div.editors', editors), consoleEl
-    ]);
-  }
+        if (res.error) {
+          return console.error(res.error);
+        }
+        if (res.body.Errors) {
+          return state.consoleText.set(res.body.Errors);
+        }
+        if (res.body.Events && res.body.Events[0]) {
+          // Currently only sends one event.
+          return state.consoleText.set(res.body.Events[0].Message);
+        }
+      });
 };

@@ -1,9 +1,3 @@
-/* Temporary, for testing. */
-.vanilla-editor {
-  width: 600px;
-  height: 200px;
-}
-
 /* CSS rules for elements inside EmbeddedPlayground instances. */
 
 /* TODO(sadovsky): Make this reactive. */
@@ -45,24 +39,31 @@
 }
 
 .pg .console {
+  position: relative;
   background-color: #ddd;
-  font-size: 15px;
-  font-family: "Monaco", "Menlo", monospace;
-  padding: 4px;
   width: 100%;
   height: 80px;
 }
 
-.pg .btn {
-  background-color: #0277bd;
-  color: #fff;
-  float: right;
-  margin-left: 4px;
-  outline: 0 !important;  /* disable Chrome border */
+.pg .console .text {
+  font-size: 15px;
+  font-family: "Monaco", "Menlo", monospace;
+  height: 100%;
+  overflow-y: scroll;
+  padding: 8px;
 }
 
-.pg .btn:hover {
-  background-color: #01579b;
+/* TODO(sadovsky): Figure out where to put these buttons. */
+/* TODO(sadovsky): Eliminate the scrollbar width hack below. */
+.pg .console .btns {
+  position: absolute;
+  top: 0;
+  right: 15px;  /* scrollbar width */
+  margin: 4px;
+}
+
+.pg .btn {
+  margin-left: 4px;
 }
 
 .pg .btn:hover, .pg .btn:active, .pg .btn:focus {
@@ -73,4 +74,39 @@
   display: table;
   clear: both;
   content: "";
+}
+
+/* Generic button styling. */
+/* TODO(sadovsky): Replace with Material button styling. */
+
+.pg .btn {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: normal;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  background-color: #0277bd;
+  border: 0;
+  border-radius: 4px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* TODO(sadovsky): Add .no-touch once we integrate Modernizr. */
+.pg .btn:hover {
+  background-color: #01579b;
+}
+
+.btn:focus {
+  outline: 0;
+}
+
+.btn:active {
+  outline: 0;
+  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
 }
