@@ -31,23 +31,18 @@ EmbeddedPlayground.prototype.renderConsole_ = function(text) {
   var that = this;
 
   var runBtn = h('button.btn', {
-    'ev-click': function() {
-      that.state_.consoleText.set('Running...');
-      that.run();
-    }
+    'ev-click': that.run.bind(that)
   }, 'Run');
-  var shareBtn = h('button.btn', {
-    'ev-click': function() {
-      that.state_.consoleText.set('(Sharing is not yet implemented.)');
-    }
-  }, 'Share');
+  var resetBtn = h('button.btn', {
+    'ev-click': that.reset.bind(that)
+  }, 'Reset');
 
   var lines = _.map(text.split('\n'), function(line) {
     return h('div', line);
   });
 
   return h('div.console', [
-    h('div.text', lines), h('div.btns', [runBtn, shareBtn])
+    h('div.text', lines), h('div.btns', [runBtn, resetBtn])
   ]);
 };
 
@@ -88,7 +83,7 @@ EmbeddedPlayground.prototype.render_ = function(state) {
 
 // Sends the files to the backend, then injects the response in the console.
 EmbeddedPlayground.prototype.run = function() {
-  var that = this;
+  this.state_.consoleText.set('Running...');
 
   var compileUrl = 'http://playground.envyor.com:8181/compile';
 
@@ -96,9 +91,10 @@ EmbeddedPlayground.prototype.run = function() {
   // compile server locally are in go/src/veyron/tools/playground/README.md.
   //compileUrl = 'http://localhost:8181/compile';
 
+  var editors = this.editors_;
   var req = {
     files: _.map(this.files_, function(file, i) {
-      var editor = that.editors_[i];
+      var editor = editors[i];
       return {
         Name: file.name,
         Body: editor.getText()
@@ -128,4 +124,12 @@ EmbeddedPlayground.prototype.run = function() {
           return state.consoleText.set(res.body.Events[0].Message);
         }
       });
+};
+
+// Clears the console and resets all editors to their original contents.
+EmbeddedPlayground.prototype.reset = function() {
+  this.state_.consoleText.set('');
+  _.forEach(this.editors_, function(editor) {
+    editor.reset();
+  });
 };

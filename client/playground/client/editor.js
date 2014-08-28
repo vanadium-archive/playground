@@ -34,7 +34,12 @@ Editor.prototype.update = function() {
 };
 
 Editor.prototype.getText = function() {
-  return this.aceEditor_.getSession().getValue();
+  return this.aceEditor_.getValue();
+};
+
+Editor.prototype.reset = function() {
+  // The '-1' argument puts the cursor at the document start.
+  this.aceEditor_.setValue(this.text_, -1);
 };
 
 // Creates a new Ace editor instance and mounts it on a DOM node.
