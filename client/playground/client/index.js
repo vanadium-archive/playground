@@ -10,8 +10,8 @@ _.forEach(document.querySelectorAll('.playground'), function(el) {
 
   fetchBundle(srcdir, function(err, bundle) {
     if (err) {
-      el.innerHTML = '<div class="error">Playground initialization error.' +
-          ' Bundle not found: ' + srcdir + '</div>';
+      el.innerHTML = '<div class="error"><p>Playground initialization error.' +
+          ' Bundle not found: ' + srcdir + '</p></div>';
       return;
     }
     var pg = new EmbeddedPlayground(el, bundle.files);  // jshint ignore:line
