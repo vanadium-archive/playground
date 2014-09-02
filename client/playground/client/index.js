@@ -10,11 +10,11 @@ _.forEach(document.querySelectorAll('.playground'), function(el) {
 
   fetchBundle(srcdir, function(err, bundle) {
     if (err) {
-      el.innerHTML = '<div class="error"><p>Playground initialization error.' +
-          ' Bundle not found: ' + srcdir + '</p></div>';
+      el.innerHTML = '<div class="error"><p>Playground error.' +
+        '<br>Bundle not found: <strong>' + srcdir + '</strong></p></div>';
       return;
     }
-    var pg = new EmbeddedPlayground(el, bundle.files);  // jshint ignore:line
+    new EmbeddedPlayground(el, srcdir, bundle.files);  // jshint ignore:line
   });
 });
 
@@ -22,15 +22,15 @@ function fetchBundle(loc, cb) {
   var basePath = '/guides/code/';
   console.log('Fetching bundle', loc);
   request
-      .get(path.join(basePath, loc, 'bundle.json'))
-      .accept('json')
-      .end(function(err, res) {
-        if (err) {
-          return cb(err);
-        }
-        if (res.error) {
-          return cb(res.error);
-        }
-        cb(null, res.body);
-      });
+    .get(path.join(basePath, loc, 'bundle.json'))
+    .accept('json')
+    .end(function(err, res) {
+      if (err) {
+        return cb(err);
+      }
+      if (res.error) {
+        return cb(res.error);
+      }
+      cb(null, res.body);
+    });
 }

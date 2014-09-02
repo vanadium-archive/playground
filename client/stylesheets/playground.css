@@ -1,23 +1,58 @@
 /* CSS rules for elements inside EmbeddedPlayground instances. */
 
-/* TODO(sadovsky): Make this reactive. */
 .pg {
-  width: 600px;
+  width: 100%;
+}
+
+.pg .top-bar {
+  position: relative;
+}
+
+.pg .btn,
+.pg .tab {
+  cursor: pointer;
+  display: inline-block;
+  font-size: 14px;
+  font-weight: normal;
+  padding: 6px 12px;
+  user-select: none;
 }
 
 .pg .tab {
   background-color: #bbb;
-  cursor: pointer;
-  display: inline-block;
-  padding: 8px;
-}
-
-.pg .tab:not(:first-child) {
-  border-left: 2px solid #fff;
+  margin-right: 2px;
 }
 
 .pg .tab.active {
   background-color: #ddd;
+}
+
+.pg .btns {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.pg .btn {
+  background-color: #0277bd;
+  color: #fff;
+  border: 0;
+  margin-left: 2px;
+}
+
+/* TODO(sadovsky): Add .no-touch once we integrate Modernizr. */
+.pg .btn:hover {
+  background-color: #01579b;
+}
+
+.pg .btn:focus,
+.pg .btn:active {
+  outline: 0;
+}
+
+.pg .btn:active {
+  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
 }
 
 /* TODO(sadovsky): Make this reactive. */
@@ -39,74 +74,26 @@
 }
 
 .pg .console {
-  position: relative;
   background-color: #ddd;
   width: 100%;
-  height: 80px;
+  height: 4px;  /* matches .editors border-top; expands on run */
+  transition: height 0.2s;
 }
 
 .pg .console .text {
-  font-size: 15px;
-  font-family: "Monaco", "Menlo", monospace;
-  height: 100%;
+  color: #222;
+  font-family: "Source Code Pro", monospace;
+  font-size: 13px;
   overflow-y: auto;
   padding: 8px;
 }
 
-/* TODO(sadovsky): Figure out where to put these buttons. */
-/* TODO(sadovsky): Eliminate the scrollbar width hack below. */
-.pg .console .btns {
-  position: absolute;
-  top: 0;
-  right: 15px;  /* scrollbar width */
-  margin: 4px;
-}
-
-.pg .btn {
-  margin-left: 4px;
-}
-
-.pg .btn:hover, .pg .btn:active, .pg .btn:focus {
-  color: #fff;  /* override Bootstrap */
+.pg .console.open {
+  height: 200px;
 }
 
 .clearfix {
   display: table;
   clear: both;
   content: "";
-}
-
-/* Generic button styling. */
-/* TODO(sadovsky): Replace with Material button styling. */
-
-.pg .btn {
-  display: inline-block;
-  padding: 6px 12px;
-  font-size: 14px;
-  font-weight: normal;
-  color: #fff;
-  text-align: center;
-  white-space: nowrap;
-  vertical-align: middle;
-  cursor: pointer;
-  background-color: #0277bd;
-  border: 0;
-  border-radius: 4px;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-/* TODO(sadovsky): Add .no-touch once we integrate Modernizr. */
-.pg .btn:hover {
-  background-color: #01579b;
-}
-
-.btn:focus {
-  outline: 0;
-}
-
-.btn:active {
-  outline: 0;
-  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
 }

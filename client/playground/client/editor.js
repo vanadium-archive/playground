@@ -49,7 +49,11 @@ Editor.prototype.reset = function() {
 Editor.prototype.mount = function(el, type, text) {
   var editor = this.aceEditor_ = ace.edit(el);
   editor.setTheme('ace/theme/monokai');
-  editor.setFontSize(15);
+  // https://github.com/ajaxorg/ace/wiki/Configuring-Ace
+  editor.setOptions({
+    fontFamily: 'Source Code Pro',
+    fontSize: '13px'
+  });
 
   var session = editor.getSession();
   switch (type) {

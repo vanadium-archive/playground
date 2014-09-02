@@ -11,8 +11,10 @@ var request = require('superagent');
 
 // Shows each file in a tab.
 // * el: The DOM element to mount on.
+// * id: Identifier for this playground instance, used in debug messages.
 // * files: List of {name, text}.
-function EmbeddedPlayground(el, files) {
+function EmbeddedPlayground(el, id, files) {
+  this.id_ = id;
   this.files_ = _.map(files, function(file) {
     var type = file.name.substr(file.name.indexOf('.') + 1);
     return _.assign({}, file, {type: type});
@@ -22,34 +24,15 @@ function EmbeddedPlayground(el, files) {
   });
   this.state_ = m.struct({
     activeTab: m.value(0),
+    nextRunId: m.value(0),
+    running: m.value(false),
+    hasRun: m.value(false),
     consoleText: m.value('')
   });
   mercury.app(el, this.state_, this.render_.bind(this));
 }
 
-EmbeddedPlayground.prototype.renderConsole_ = function(text) {
-  var that = this;
-
-  var runBtn = h('button.btn', {
-    'ev-click': that.run.bind(that)
-  }, 'Run');
-  var resetBtn = h('button.btn', {
-    'ev-click': that.reset.bind(that)
-  }, 'Reset');
-
-  var lines = _.map(text.split('\n'), function(line) {
-    return h('div', line);
-  });
-
-  return h('div.console', [
-    h('div.text', lines), h('div.btns', [runBtn, resetBtn])
-  ]);
-};
-
-// TODO(sadovsky): It's annoying that `this.state_` and the local variable
-// `state` are two different things with the same name. Need a better naming
-// convention.
-EmbeddedPlayground.prototype.render_ = function(state) {
+EmbeddedPlayground.prototype.renderTopBar_ = function(state) {
   var that = this;
 
   var tabs = _.map(this.files_, function(file, i) {
@@ -63,6 +46,18 @@ EmbeddedPlayground.prototype.render_ = function(state) {
       }
     }, file.name);
   });
+
+  var runBtn = h('button.btn', {
+    'ev-click': that.run.bind(that)
+  }, 'Run');
+  var resetBtn = h('button.btn', {
+    'ev-click': that.reset.bind(that)
+  }, 'Reset');
+
+  return h('div.top-bar', [h('div', tabs), h('div.btns', [runBtn, resetBtn])]);
+};
+
+EmbeddedPlayground.prototype.renderEditors_ = function(state) {
   var editors = _.map(this.editors_, function(editor, i) {
     var properties = {};
     if (i !== state.activeTab) {
@@ -73,16 +68,42 @@ EmbeddedPlayground.prototype.render_ = function(state) {
     }
     return h('div.editor', properties, editor);
   });
-  // TODO(sadovsky): Make the console a proper component with its own render
-  // method?
-  var consoleEl = this.renderConsole_(state.consoleText);
+
+  return h('div.editors', editors);
+};
+
+EmbeddedPlayground.prototype.renderConsole_ = function(state) {
+  var lines = _.map(state.consoleText.split('\n'), function(line) {
+    return h('div', line);
+  });
+  if (state.hasRun) {
+    return h('div.console.open', [h('div.text', lines)]);
+  }
+  return h('div.console');
+};
+
+EmbeddedPlayground.prototype.render_ = function(state) {
   return h('div.pg', [
-    h('div', tabs), h('div.editors', editors), consoleEl
+    this.renderTopBar_(state),
+    this.renderEditors_(state),
+    this.renderConsole_(state)
   ]);
 };
 
 // Sends the files to the backend, then injects the response in the console.
 EmbeddedPlayground.prototype.run = function() {
+  if (this.state_.running()) {
+    console.log('Already running', this.id_);
+    return;
+  }
+  var runId = this.state_.nextRunId();
+
+  // TODO(sadovsky): Disable the "Run" button or turn it into a "Stop" button.
+  // Q(sadovsky): Is it OK to set multiple fields this way, or will each set()
+  // call trigger a render? I imagine it's OK, since Mercury batches render
+  // calls using requestAnimationFrame anyway.
+  this.state_.running.set(true);
+  this.state_.hasRun.set(true);
   this.state_.consoleText.set('Running...');
 
   var compileUrl = 'http://playground.envyor.com:8181/compile';
@@ -103,27 +124,33 @@ EmbeddedPlayground.prototype.run = function() {
     Identities: []
   };
 
-  var state = this.state_;
+  var that = this, state = this.state_;
   request
-      .post(compileUrl)
-      .type('json')
-      .accept('json')
-      .send(req)
-      .end(function(err, res) {
-        if (err) {
-          return console.error(err);
-        }
-        if (res.error) {
-          return console.error(res.error);
-        }
-        if (res.body.Errors) {
-          return state.consoleText.set(res.body.Errors);
-        }
-        if (res.body.Events && res.body.Events[0]) {
-          // Currently only sends one event.
-          return state.consoleText.set(res.body.Events[0].Message);
-        }
-      });
+    .post(compileUrl)
+    .type('json')
+    .accept('json')
+    .send(req)
+    .end(function(err, res) {
+      // If the user has stopped this run or reset the playground, do nothing.
+      if (runId !== state.nextRunId()) {
+        return;
+      }
+      that.endRun_();
+      // TODO(sadovsky): Show system errors to the user somehow.
+      if (err) {
+        return console.error(err);
+      }
+      if (res.error) {
+        return console.error(res.error);
+      }
+      if (res.body.Errors) {
+        return state.consoleText.set(res.body.Errors);
+      }
+      if (res.body.Events && res.body.Events[0]) {
+        // Currently only sends one event.
+        return state.consoleText.set(res.body.Events[0].Message);
+      }
+    });
 };
 
 // Clears the console and resets all editors to their original contents.
@@ -132,4 +159,11 @@ EmbeddedPlayground.prototype.reset = function() {
   _.forEach(this.editors_, function(editor) {
     editor.reset();
   });
+  this.endRun_();
+  this.state_.hasRun.set(false);
+};
+
+EmbeddedPlayground.prototype.endRun_ = function() {
+  this.state_.nextRunId.set(this.state_.nextRunId() + 1);
+  this.state_.running.set(false);
 };
