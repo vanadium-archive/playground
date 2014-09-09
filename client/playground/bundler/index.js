@@ -10,7 +10,8 @@ module.exports = { run: run };
 
 // TODO(nlacasse): improve this.
 function usage(){
-  console.error('Usage: pgbundle <path> [<path> <path> ...]');
+  console.log('Usage: pgbundle [options] <path> [<path> <path> ...]');
+  console.log('Options: --verbose   defaults to false.')
   process.exit(1);
 }
 
@@ -63,7 +64,11 @@ function run(){
     // Write the bundle.json.
     var outFile = path.resolve(dir, BUNDLE_NAME);
     fs.writeFileSync(outFile, JSON.stringify(out));
-    console.log('Wrote ' + outFile);
+
+    if (argv.verbose) {
+      console.log('Wrote ' + outFile);
+    }
+
   });
 }
 
