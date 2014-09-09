@@ -60,6 +60,12 @@ Editor.prototype.mount = function(el, type, text) {
   case 'go':
     session.setMode('ace/mode/golang');
     break;
+  case 'vdl':
+    session.setMode('ace/mode/golang');
+    break;
+  case 'json':
+    session.setMode('ace/mode/javascript');
+    break;
   case 'js':
     session.setMode('ace/mode/javascript');
     break;
