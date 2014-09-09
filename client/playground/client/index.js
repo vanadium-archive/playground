@@ -19,7 +19,7 @@ _.forEach(document.querySelectorAll('.playground'), function(el) {
 });
 
 function fetchBundle(loc, cb) {
-  var basePath = '/guides/code/';
+  var basePath = '/tutorials/code/';
   console.log('Fetching bundle', loc);
   request
     .get(path.join(basePath, loc, 'bundle.json'))
