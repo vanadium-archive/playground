@@ -110,7 +110,7 @@ EmbeddedPlayground.prototype.run = function() {
 
   // Uncomment the following line for testing. Instructions for how to run the
   // compile server locally are in go/src/veyron/tools/playground/README.md.
-  //compileUrl = 'http://localhost:8181/compile';
+  compileUrl = 'http://localhost:8181/compile';
 
   var editors = this.editors_;
   var req = {
@@ -146,12 +146,20 @@ EmbeddedPlayground.prototype.run = function() {
       if (res.body.Errors) {
         return state.consoleText.set(res.body.Errors);
       }
-      if (res.body.Events && res.body.Events[0]) {
-        // Currently only sends one event.
-        return state.consoleText.set(res.body.Events[0].Message);
+      if (res.body.Events) {
+        var consoleText = "";
+        _.forEach(res.body.Events, function(event) {
+          consoleText += formatEvent(event);
+        });
+        return state.consoleText.set(consoleText);
       }
     });
 };
+
+function formatEvent(event) {
+  return '' + event.Timestamp + ' ' + event.File +
+      '[' + event.Stream + ']: ' + event.Message + '\n';
+}
 
 // Clears the console and resets all editors to their original contents.
 EmbeddedPlayground.prototype.reset = function() {
