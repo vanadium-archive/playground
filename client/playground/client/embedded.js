@@ -165,7 +165,7 @@ EmbeddedPlayground.prototype.run = function() {
 
 // Clears the console and resets all editors to their original contents.
 EmbeddedPlayground.prototype.reset = function() {
-  this.state_.consoleTextArray.set([]);
+  this.state_.consoleEvents.set([]);
   _.forEach(this.editors_, function(editor) {
     editor.reset();
   });
