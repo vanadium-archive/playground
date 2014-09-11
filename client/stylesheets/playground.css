@@ -88,6 +88,14 @@
   padding: 8px;
 }
 
+.pg .console .text .filename {
+  font-weight: bold;
+}
+
+.pg .console .text .stderr {
+  color: red;
+}
+
 .pg .console.open {
   height: 200px;
   overflow: auto;

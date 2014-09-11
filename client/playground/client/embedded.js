@@ -27,7 +27,7 @@ function EmbeddedPlayground(el, id, files) {
     nextRunId: m.value(0),
     running: m.value(false),
     hasRun: m.value(false),
-    consoleText: m.value('')
+    consoleEvents: m.value([])
   });
   mercury.app(el, this.state_, this.render_.bind(this));
 }
@@ -72,12 +72,23 @@ EmbeddedPlayground.prototype.renderEditors_ = function(state) {
   return h('div.editors', editors);
 };
 
+function renderConsoleEvent(event) {
+  event.Timestamp = event.Timestamp || parseInt(Date.now()/1000, 10);
+  event.File = event.File || '';
+  event.Stream = event.Stream || 'stdout';
+
+  return h('div', [
+      '' + event.Timestamp + ' ',
+      h('span.filename', event.File + ': '),
+      h('span.' + event.Stream, event.Message)
+  ]);
+}
+
 EmbeddedPlayground.prototype.renderConsole_ = function(state) {
-  var lines = _.map(state.consoleText.split('\n'), function(line) {
-    return h('div', line);
-  });
   if (state.hasRun) {
-    return h('div.console.open', [h('div.text', lines)]);
+    return h('div.console.open', [
+        h('div.text', _.map(state.consoleEvents, renderConsoleEvent))
+    ]);
   }
   return h('div.console');
 };
@@ -104,7 +115,7 @@ EmbeddedPlayground.prototype.run = function() {
   // calls using requestAnimationFrame anyway.
   this.state_.running.set(true);
   this.state_.hasRun.set(true);
-  this.state_.consoleText.set('Running...');
+  this.state_.consoleEvents.set([{ Message: 'Running...' }]);
 
   var compileUrl = 'http://playground.envyor.com:8181/compile';
 
@@ -144,26 +155,17 @@ EmbeddedPlayground.prototype.run = function() {
         return console.error(res.error);
       }
       if (res.body.Errors) {
-        return state.consoleText.set(res.body.Errors);
+        return state.consoleEvents.set([{ Message: res.body.Errors }]);
       }
       if (res.body.Events) {
-        var consoleText = "";
-        _.forEach(res.body.Events, function(event) {
-          consoleText += formatEvent(event);
-        });
-        return state.consoleText.set(consoleText);
+        return state.consoleEvents.set(res.body.Events);
       }
     });
 };
 
-function formatEvent(event) {
-  return '' + event.Timestamp + ' ' + event.File +
-      '[' + event.Stream + ']: ' + event.Message + '\n';
-}
-
 // Clears the console and resets all editors to their original contents.
 EmbeddedPlayground.prototype.reset = function() {
-  this.state_.consoleText.set('');
+  this.state_.consoleTextArray.set([]);
   _.forEach(this.editors_, function(editor) {
     editor.reset();
   });
