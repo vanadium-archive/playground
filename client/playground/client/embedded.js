@@ -121,7 +121,7 @@ EmbeddedPlayground.prototype.run = function() {
 
   // Uncomment the following line for testing. Instructions for how to run the
   // compile server locally are in go/src/veyron/tools/playground/README.md.
-  compileUrl = 'http://localhost:8181/compile';
+  // compileUrl = 'http://localhost:8181/compile';
 
   var editors = this.editors_;
   var req = {
