@@ -73,9 +73,9 @@ EmbeddedPlayground.prototype.renderEditors_ = function(state) {
 };
 
 function renderConsoleEvent(event) {
-  event.Timestamp = event.Timestamp || parseInt(Date.now()/1000, 10);
+  event.Timestamp = event.Timestamp || '';
   event.File = event.File || '';
-  event.Stream = event.Stream || 'stdout';
+  event.Stream = event.Stream || 'unknown';
 
   return h('div', [
       '' + event.Timestamp + ' ',
@@ -121,7 +121,7 @@ EmbeddedPlayground.prototype.run = function() {
 
   // Uncomment the following line for testing. Instructions for how to run the
   // compile server locally are in go/src/veyron/tools/playground/README.md.
-  //compileUrl = 'http://localhost:8181/compile';
+  compileUrl = 'http://localhost:8181/compile';
 
   var editors = this.editors_;
   var req = {

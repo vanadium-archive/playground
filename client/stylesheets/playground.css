@@ -93,7 +93,7 @@
 }
 
 .pg .console .text .stderr {
-  color: red;
+  color: #e51c23;
 }
 
 .pg .console.open {
