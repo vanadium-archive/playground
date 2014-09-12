@@ -9,15 +9,15 @@ var BUNDLE_NAME = 'bundle.json';
 module.exports = { run: run };
 
 // TODO(nlacasse): improve this.
-function usage(){
+function usage() {
   console.log('Usage: pgbundle [options] <path> [<path> <path> ...]');
-  console.log('Options: --verbose   defaults to false.')
+  console.log('Options: --verbose   defaults to false');
   process.exit(1);
 }
 
 // Main function.
-function run(){
-  // Get the paths from process.argv
+function run() {
+  // Get the paths from process.argv.
   var argv = require('minimist')(process.argv.slice(2));
   var dirs = argv._;
 
@@ -27,7 +27,7 @@ function run(){
   }
 
   // Loop over each path.
-  _.each(dirs, function(dir){
+  _.each(dirs, function(dir) {
     var subFiles = glob.sync('**', {
       cwd: dir,
       mark: true // Add a '/ character to directory matches
@@ -68,7 +68,6 @@ function run(){
     if (argv.verbose) {
       console.log('Wrote ' + outFile);
     }
-
   });
 }
 

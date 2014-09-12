@@ -2,12 +2,13 @@ module.exports = EmbeddedPlayground;
 
 var _ = require('lodash');
 var mercury = require('mercury');
+var request = require('superagent');
+var url = require('url');
 
 var Editor = require('./editor');
 
 var m = mercury;
 var h = mercury.h;
-var request = require('superagent');
 
 // Shows each file in a tab.
 // * el: The DOM element to mount on.
@@ -78,16 +79,16 @@ function renderConsoleEvent(event) {
   event.Stream = event.Stream || 'unknown';
 
   return h('div', [
-      '' + event.Timestamp + ' ',
-      h('span.filename', event.File + ': '),
-      h('span.' + event.Stream, event.Message)
+    '' + event.Timestamp + ' ',
+    h('span.filename', event.File + ': '),
+    h('span.' + event.Stream, event.Message)
   ]);
 }
 
 EmbeddedPlayground.prototype.renderConsole_ = function(state) {
   if (state.hasRun) {
     return h('div.console.open', [
-        h('div.text', _.map(state.consoleEvents, renderConsoleEvent))
+      h('div.text', _.map(state.consoleEvents, renderConsoleEvent))
     ]);
   }
   return h('div.console');
@@ -109,19 +110,19 @@ EmbeddedPlayground.prototype.run = function() {
   }
   var runId = this.state_.nextRunId();
 
-  // TODO(sadovsky): Disable the "Run" button or turn it into a "Stop" button.
-  // Q(sadovsky): Is it OK to set multiple fields this way, or will each set()
-  // call trigger a render? I imagine it's OK, since Mercury batches render
-  // calls using requestAnimationFrame anyway.
+  // TODO(sadovsky): Visually disable the "Run" button or change it to a "Stop"
+  // button.
   this.state_.running.set(true);
   this.state_.hasRun.set(true);
   this.state_.consoleEvents.set([{ Message: 'Running...' }]);
 
-  var compileUrl = 'http://playground.envyor.com:8181/compile';
-
-  // Uncomment the following line for testing. Instructions for how to run the
-  // compile server locally are in go/src/veyron/tools/playground/README.md.
-  // compileUrl = 'http://localhost:8181/compile';
+  var pgaddr = url.parse(window.location.href, true).query.pgaddr;
+  if (pgaddr) {
+    console.log('Using pgaddr', pgaddr);
+  } else {
+    pgaddr = 'playground.envyor.com:8181';
+  }
+  var compileUrl = 'http://' + pgaddr + '/compile';
 
   var editors = this.editors_;
   var req = {
