@@ -138,30 +138,30 @@ EmbeddedPlayground.prototype.run = function() {
 
   var that = this, state = this.state_;
   request
-    .post(compileUrl)
-    .type('json')
-    .accept('json')
-    .send(req)
-    .end(function(err, res) {
-      // If the user has stopped this run or reset the playground, do nothing.
-      if (runId !== state.nextRunId()) {
-        return;
-      }
-      that.endRun_();
-      // TODO(sadovsky): Show system errors to the user somehow.
-      if (err) {
-        return console.error(err);
-      }
-      if (res.error) {
-        return console.error(res.error);
-      }
-      if (res.body.Errors) {
-        return state.consoleEvents.set([{ Message: res.body.Errors }]);
-      }
-      if (res.body.Events) {
-        return state.consoleEvents.set(res.body.Events);
-      }
-    });
+      .post(compileUrl)
+      .type('json')
+      .accept('json')
+      .send(req)
+      .end(function(err, res) {
+        // If the user has stopped this run or reset the playground, do nothing.
+        if (runId !== state.nextRunId()) {
+          return;
+        }
+        that.endRun_();
+        // TODO(sadovsky): Show system errors to the user somehow.
+        if (err) {
+          return console.error(err);
+        }
+        if (res.error) {
+          return console.error(res.error);
+        }
+        if (res.body.Errors) {
+          return state.consoleEvents.set([{ Message: res.body.Errors }]);
+        }
+        if (res.body.Events) {
+          return state.consoleEvents.set(res.body.Events);
+        }
+      });
 };
 
 // Clears the console and resets all editors to their original contents.

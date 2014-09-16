@@ -11,7 +11,7 @@ module.exports = { run: run };
 // TODO(nlacasse): improve this.
 function usage() {
   console.log('Usage: pgbundle [options] <path> [<path> <path> ...]');
-  console.log('Options: --verbose   defaults to false');
+  console.log('Options: --verbose   defaults to false.');
   process.exit(1);
 }
 
