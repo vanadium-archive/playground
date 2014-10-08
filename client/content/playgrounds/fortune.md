@@ -1,13 +1,14 @@
 = yaml =
-title: Playground example - Fortune 
+title: Playground example - Fortune
 status: draft
 sort: 05
 = yaml =
 
 <span style="background-color:red">
-TODO(jregan): plan is to insert one or more of these as appropriate in tutorials</span>
+TODO(jregan): plan is to insert one or more of these as appropriate in tutorials
+</span>
 
-(Taken from https://docs.google.com/a/google.com/document/d/189JXetSjHc980LuSl88Y7_VtG4tyZ0iggILEWD2_JKc/edit#)
+(Taken from: https://docs.google.com/a/google.com/document/d/189JXetSjHc980LuSl88Y7_VtG4tyZ0iggILEWD2_JKc/edit#)
 
 This is an example of a simple Fortune application in Veyron.  It has two
 parts, a client and a server.  The client can either request a fortune from the
