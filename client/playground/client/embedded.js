@@ -74,15 +74,15 @@ EmbeddedPlayground.prototype.renderEditors_ = function(state) {
 };
 
 function renderConsoleEvent(event) {
-  event.Timestamp = event.Timestamp || '';
-  event.File = event.File || '';
-  event.Stream = event.Stream || 'unknown';
-
-  return h('div', [
-    '' + event.Timestamp + ' ',
-    h('span.filename', event.File + ': '),
-    h('span.' + event.Stream, event.Message)
-  ]);
+  var children = [];
+  if (event.Timestamp) {
+    children.push(h('span.timestamp', event.Timestamp));
+  }
+  if (event.File) {
+    children.push(h('span.filename', event.File + ': '));
+  }
+  children.push(h('span.' + event.Stream || 'unknown', event.Message));
+  return h('div', children);
 }
 
 EmbeddedPlayground.prototype.renderConsole_ = function(state) {
@@ -114,7 +114,7 @@ EmbeddedPlayground.prototype.run = function() {
   // button.
   this.state_.running.set(true);
   this.state_.hasRun.set(true);
-  this.state_.consoleEvents.set([{ Message: 'Running...' }]);
+  this.state_.consoleEvents.set([{Message: 'Running...'}]);
 
   var pgaddr = url.parse(window.location.href, true).query.pgaddr;
   if (pgaddr) {
@@ -156,7 +156,7 @@ EmbeddedPlayground.prototype.run = function() {
           return console.error(res.error);
         }
         if (res.body.Errors) {
-          return state.consoleEvents.set([{ Message: res.body.Errors }]);
+          return state.consoleEvents.set([{Message: res.body.Errors}]);
         }
         if (res.body.Events) {
           return state.consoleEvents.set(res.body.Events);
