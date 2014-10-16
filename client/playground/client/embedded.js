@@ -13,7 +13,7 @@ var h = mercury.h;
 // Shows each file in a tab.
 // * el: The DOM element to mount on.
 // * id: Identifier for this playground instance, used in debug messages.
-// * files: List of {name, text}.
+// * files: List of {name, body}, as written by bundler.
 function EmbeddedPlayground(el, id, files) {
   this.id_ = id;
   this.files_ = _.map(files, function(file) {
@@ -21,7 +21,7 @@ function EmbeddedPlayground(el, id, files) {
     return _.assign({}, file, {type: type});
   });
   this.editors_ = _.map(this.files_, function(file) {
-    return new Editor(file.type, file.text);
+    return new Editor(file.type, file.body);
   });
   this.state_ = m.struct({
     activeTab: m.value(0),
