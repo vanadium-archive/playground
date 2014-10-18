@@ -6,13 +6,14 @@ import (
 	"log"
 	"math/rand"
 
-	"fortune"
-	"veyron/lib/signals"
-	vflag "veyron/security/flag"
-	"veyron2/ipc"
-	"veyron2/rt"
-)
+	"veyron.io/veyron/veyron/lib/signals"
+	_ "veyron.io/veyron/veyron/profiles"
+	vflag "veyron.io/veyron/veyron/security/flag"
+	"veyron.io/veyron/veyron2/ipc"
+	"veyron.io/veyron/veyron2/rt"
 
+	"fortune"
+)
 
 // The Fortuned implementation.
 type fortuned struct {
@@ -27,11 +28,11 @@ type fortuned struct {
 func newFortuned() *fortuned {
 	return &fortuned{
 		fortunes: []string{
-		"You will reach the height of success in whatever you do.",
-		"You have remarkable power which you are not using.",
-		"Everything will now come your way.",
+			"You will reach the height of success in whatever you do.",
+			"You have remarkable power which you are not using.",
+			"Everything will now come your way.",
 		},
-	random: rand.New(rand.NewSource(99)),
+		random: rand.New(rand.NewSource(99)),
 	}
 }
 

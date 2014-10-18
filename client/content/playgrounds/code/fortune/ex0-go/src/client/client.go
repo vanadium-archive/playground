@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	_ "veyron.io/veyron/veyron/profiles"
+	"veyron.io/veyron/veyron2/rt"
+
 	"fortune"
-	"veyron2/rt"
 )
 
 func main() {
@@ -26,7 +28,7 @@ func main() {
 	for {
 		var err error
 		if fortune, err = s.Get(runtime.NewContext()); err == nil {
-			break;
+			break
 		}
 		time.Sleep(100 * time.Millisecond)
 
