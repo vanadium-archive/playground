@@ -1,6 +1,9 @@
 #!/bin/bash
 
-# Tests the playgrounds embedded in the website.
+# Tests that all embedded playgrounds execute successfully.
+
+# TODO(sadovsky): This test actually doesn't quite work yet, because builder
+# returns with exit code 0 even if some program terminated badly.
 
 # TODO(sadovsky): Much of the setup code below also exists in
 # veyron.io/veyron/veyron/tools/playground/test.sh.
