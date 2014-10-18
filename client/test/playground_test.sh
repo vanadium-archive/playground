@@ -2,6 +2,9 @@
 
 # Tests the playgrounds embedded in the website.
 
+# TODO(sadovsky): Much of the setup code below also exists in
+# veyron.io/veyron/veyron/tools/playground/test.sh.
+
 source "${VEYRON_ROOT}/scripts/lib/shell_test.sh"
 
 # Installs the veyron.js library and makes it accessible to javascript files in
@@ -10,21 +13,20 @@ install_veyron_js() {
   # TODO(nlacasse): Once veyron.js is publicly available in npm, replace this
   # with "npm install veyron".
   pushd "${VEYRON_ROOT}/veyron.js"
-  "${VEYRON_ROOT}/environment/cout/node/bin/npm" link
+  npm link
   popd
-  "${VEYRON_ROOT}/environment/cout/node/bin/npm" link veyron
+  npm link veyron
 }
 
 # Installs the pgbundle tool.
 install_pgbundle() {
   pushd "${VEYRON_ROOT}/veyron/go/src/veyron.io/veyron/veyron/tools/playground/pgbundle"
-  "${VEYRON_ROOT}/environment/cout/node/bin/npm" link
+  npm link
   popd
-  "${VEYRON_ROOT}/environment/cout/node/bin/npm" link pgbundle
+  npm link pgbundle
 }
 
-# TODO(sadovsky): Copied from veyron.io/veyron/veyron/tools/playground/test.sh.
-# Ideally we could share the playground test setup.
+# Installs various go binaries.
 build_go_binaries() {
   # Note that "go build" puts built binaries in $(pwd), but only if they are
   # built one at a time. So much for the principle of least surprise...
@@ -37,13 +39,19 @@ build_go_binaries() {
   veyron go build veyron.io/wspr/veyron/services/wsprd || shell_test::fail "line ${LINENO}: failed to build 'wsprd'"
 }
 
+# Tests a single example (i.e. a single embedded playground).
 test_example() {
+  local -r PGBUNDLE_DIR="$1"
+  ./node_modules/.bin/pgbundle "${PGBUNDLE_DIR}"
 
-
-  local -r DIR="$1"
-  ./node_modules/.bin/pgbundle "$DIR"
-  rm -f builder.out
-  GOPATH="${DIR}:${GOPATH}"./builder < "${DIR}/bundle.json" 2>&1 > builder.out || shell_test::fail "$DIR"
+  # Create a fresh dir to run bundler from.
+  local -r ORIG_DIR=$(pwd)
+  pushd $(shell::tmp_dir)
+  ln -s "${ORIG_DIR}/node_modules" ./  # for veyron.js
+  "${ORIG_DIR}/builder" < "${PGBUNDLE_DIR}/bundle.json" 2>&1 > builder.out
+  local -r OK=$?
+  popd
+  [ $OK ] || shell_test::fail "${PGBUNDLE_DIR}"
 }
 
 main() {
@@ -52,7 +60,7 @@ main() {
 
   export GOPATH="$(pwd):$(veyron env GOPATH)"
   export VDLPATH="$(pwd):$(veyron env VDLPATH)"
-  export PATH="$(pwd):${PATH}"
+  export PATH="$(pwd):${VEYRON_ROOT}/environment/cout/node/bin:${PATH}"
 
   build_go_binaries
   install_veyron_js
@@ -62,6 +70,8 @@ main() {
   for d in $EXAMPLE_DIRS; do
     test_example "$d"
   done
+
+  shell_test::pass
 }
 
 main "$@"
