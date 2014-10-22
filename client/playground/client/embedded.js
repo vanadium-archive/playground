@@ -2,6 +2,7 @@ module.exports = EmbeddedPlayground;
 
 var _ = require('lodash');
 var mercury = require('mercury');
+var path = require('path');
 var request = require('superagent');
 var url = require('url');
 
@@ -17,8 +18,10 @@ var h = mercury.h;
 function EmbeddedPlayground(el, id, files) {
   this.id_ = id;
   this.files_ = _.map(files, function(file) {
-    var type = file.name.substr(file.name.indexOf('.') + 1);
-    return _.assign({}, file, {type: type});
+    return _.assign({}, file, {
+      basename: path.basename(file.name),
+      type: path.extname(file.name).substr(1)
+    });
   });
   this.editors_ = _.map(this.files_, function(file) {
     return new Editor(file.type, file.body);
@@ -45,7 +48,7 @@ EmbeddedPlayground.prototype.renderTopBar_ = function(state) {
       'ev-click': function() {
         that.state_.activeTab.set(i);
       }
-    }, file.name);
+    }, file.basename);
   });
 
   var runBtn = h('button.btn', {
@@ -76,7 +79,10 @@ EmbeddedPlayground.prototype.renderEditors_ = function(state) {
 function renderConsoleEvent(event) {
   var children = [];
   if (event.Timestamp) {
-    children.push(h('span.timestamp', event.Timestamp));
+    // NOTE(sadovsky): Passing a Number as the second argument to h() makes
+    // Mercury throw an exception.
+    // FIXME: Print nicer timestamps.
+    children.push(h('span.timestamp', '' + event.Timestamp));
   }
   if (event.File) {
     children.push(h('span.filename', event.File + ': '));
