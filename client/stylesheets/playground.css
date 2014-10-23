@@ -88,6 +88,10 @@
   padding: 8px;
 }
 
+.pg .console .text .timestamp {
+  color: #9e9e9e;
+}
+
 .pg .console .text .filename {
   font-weight: bold;
 }

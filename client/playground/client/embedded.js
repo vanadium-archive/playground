@@ -2,6 +2,7 @@ module.exports = EmbeddedPlayground;
 
 var _ = require('lodash');
 var mercury = require('mercury');
+var moment = require('moment');
 var path = require('path');
 var request = require('superagent');
 var url = require('url');
@@ -79,10 +80,9 @@ EmbeddedPlayground.prototype.renderEditors_ = function(state) {
 function renderConsoleEvent(event) {
   var children = [];
   if (event.Timestamp) {
-    // NOTE(sadovsky): Passing a Number as the second argument to h() makes
-    // Mercury throw an exception.
-    // FIXME: Print nicer timestamps.
-    children.push(h('span.timestamp', '' + event.Timestamp));
+    // Convert UTC to local time.
+    var t = moment(event.Timestamp / 1e6);
+    children.push(h('span.timestamp', t.format('H:mm:ss.SSS') + ' '));
   }
   if (event.File) {
     children.push(h('span.filename', event.File + ': '));
