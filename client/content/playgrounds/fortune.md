@@ -54,7 +54,7 @@ The server listens for a tcp connection on localhost, and mounts itself on the
 mounttable with the name "fortune".
 </div>
 
-<span class="lang-js">TODO(nlacasse): describe the `js` server</span>
+<span class="lang-js">TODO(nlacasse): describe the js server</span>
 
 ### Client
 
