@@ -7,6 +7,8 @@
 
 source "${VEYRON_ROOT}/scripts/lib/shell_test.sh"
 
+readonly WORKDIR="${shell_test_WORK_DIR}"
+
 # Installs the veyron.js library and makes it accessible to javascript files in
 # the veyron playground test folder under the module name 'veyron'.
 install_veyron_js() {
@@ -30,13 +32,12 @@ install_pgbundle() {
 build_go_binaries() {
   # Note that "go build" puts built binaries in $(pwd), but only if they are
   # built one at a time. So much for the principle of least surprise...
-  local -r V="veyron.io/veyron/veyron"
-  veyron go build $V/tools/identity || shell_test::fail "line ${LINENO}: failed to build 'identity'"
-  veyron go build $V/services/proxy/proxyd || shell_test::fail "line ${LINENO}: failed to build 'proxyd'"
-  veyron go build $V/services/mounttable/mounttabled || shell_test::fail "line ${LINENO}: failed to build 'mounttabled'"
-  veyron go build veyron.io/playground/builder || shell_test::fail "line ${LINENO}: failed to build 'builder'"
-  veyron go build veyron.io/veyron/veyron2/vdl/vdl || shell_test::fail "line ${LINENO}: failed to build 'vdl'"
-  veyron go build veyron.io/wspr/veyron/services/wsprd || shell_test::fail "line ${LINENO}: failed to build 'wsprd'"
+  IDENTITY_BIN="$(shell_test::build_go_binary 'veyron.io/veyron/veyron/tools/identity')"
+  PROXYD_BIN="$(shell_test::build_go_binary 'veyron.io/veyron/veyron/services/proxy/proxyd')"
+  MOUNTTABLED_BIN="$(shell_test::build_go_binary 'veyron.io/veyron/veyron/services/mounttable/mounttabled')"
+  BUILDER_BIN="$(shell_test::build_go_binary 'veyron.io/playground/builder')"
+  VDL_BIN="$(shell_test::build_go_binary 'veyron.io/veyron/veyron2/vdl/vdl')"
+  WSPRD_BIN="$(shell_test::build_go_binary 'veyron.io/wspr/veyron/services/wsprd')"
 }
 
 # Sets up a directory with the given files, then runs builder.
@@ -57,18 +58,18 @@ test_with_files() {
   local -r ORIG_DIR=$(pwd)
   pushd $(shell::tmp_dir)
   ln -s "${ORIG_DIR}/node_modules" ./  # for veyron.js
-  "${ORIG_DIR}/builder" < "${PGBUNDLE_DIR}/bundle.json" 2>&1 | tee builder.out
+  "${BUILDER_BIN}" < "${PGBUNDLE_DIR}/bundle.json" 2>&1 | tee builder.out
   # Move builder output to original dir for verification.
   mv builder.out "${ORIG_DIR}"
   popd
 }
 
 main() {
-  cd $(shell::tmp_dir)
+  cd "${WORKDIR}"
 
   export GOPATH="$(pwd):$(veyron env GOPATH)"
   export VDLPATH="$(pwd):$(veyron env VDLPATH)"
-  export PATH="$(pwd):${VEYRON_ROOT}/environment/cout/node/bin:${PATH}"
+  export PATH="$(pwd):${shell_test_BIN_DIR}:${VEYRON_ROOT}/environment/cout/node/bin:${PATH}"
 
   build_go_binaries
   install_veyron_js
