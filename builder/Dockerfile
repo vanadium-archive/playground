@@ -27,7 +27,7 @@ RUN $VEYRON_ROOT/bin/veyron profile setup web
 # Install the veyron.js library.
 # TODO(nlacasse): Switch to "npm install -g veyron" once veyron.js is publicly
 # visible in NPM.
-WORKDIR /usr/local/veyron/veyron.js/
+WORKDIR /usr/local/veyron/veyron.js
 # NOTE(sadovsky): NPM is flaky. If any of the NPM commands below fail, simply
 # retry them.
 RUN $VEYRON_ROOT/environment/cout/node/bin/npm install --production
@@ -44,11 +44,11 @@ RUN veyron go install veyron.io/veyron/...
 # your local version of the code. This is useful when developing and testing
 # local changes.
 #RUN rm $VEYRON_ROOT/veyron/go/bin/builder
-#ADD main.go $VEYRON_ROOT/veyron/go/src/veyron.io/veyron/veyron/tools/playground/builder/main.go
-#ADD identity.go $VEYRON_ROOT/veyron/go/src/veyron.io/veyron/veyron/tools/playground/builder/identity.go
-#ADD services.go $VEYRON_ROOT/veyron/go/src/veyron.io/veyron/veyron/tools/playground/builder/services.go
-#ADD multi_writer.go $VEYRON_ROOT/veyron/go/src/veyron.io/veyron/veyron/tools/playground/builder/multi_writer.go
-#RUN veyron go install veyron.io/veyron/veyron/tools/playground/builder
+#ADD main.go $VEYRON_ROOT/veyron/go/src/veyron.io/playground/builder/main.go
+#ADD identity.go $VEYRON_ROOT/veyron/go/src/veyron.io/playground/builder/identity.go
+#ADD services.go $VEYRON_ROOT/veyron/go/src/veyron.io/playground/builder/services.go
+#ADD multi_writer.go $VEYRON_ROOT/veyron/go/src/veyron.io/playground/builder/multi_writer.go
+#RUN veyron go install veyron.io/playground/builder
 
 # Copy proxyd's main.go to builder/proxyd_main.go, then uncomment the following
 # lines to install a version of proxyd (used by the builder tool) using your

@@ -32,7 +32,7 @@ import (
 	"syscall"
 	"time"
 
-	"veyron.io/veyron/veyron/tools/playground/event"
+	"veyron.io/playground/event"
 )
 
 const runTimeout = 3 * time.Second

@@ -7,7 +7,7 @@
 #     gcutil ssh --project google.com:veyron playground-master
 #     sudo su - veyron
 #     veyron project update
-#     bash $VEYRON_ROOT/go/src/veyron.io/veyron/veyron/tools/playground/compilerd/update.sh
+#     bash $VEYRON_ROOT/go/src/veyron.io/playground/compilerd/update.sh
 
 set -e
 readonly DATE=$(date +%F)
@@ -40,7 +40,7 @@ function main() {
   sudo mount /dev/sdb1 /mnt
 
   # Build the docker image.
-  cd ${VEYRON_ROOT}/veyron/go/src/veyron.io/veyron/veyron/tools/playground/builder
+  cd ${VEYRON_ROOT}/veyron/go/src/veyron.io/playground/builder
   cp ~/.netrc ./netrc
   sudo docker build --no-cache -t playground .
   rm -f ./netrc

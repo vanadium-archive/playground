@@ -20,7 +20,7 @@ install_veyron_js() {
 
 # Installs the pgbundle tool.
 install_pgbundle() {
-  pushd "${VEYRON_ROOT}/veyron/go/src/veyron.io/veyron/veyron/tools/playground/pgbundle"
+  pushd "${VEYRON_ROOT}/veyron/javascript/pgbundle"
   npm link
   popd
   npm link pgbundle
@@ -34,14 +34,14 @@ build_go_binaries() {
   veyron go build $V/tools/identity || shell_test::fail "line ${LINENO}: failed to build 'identity'"
   veyron go build $V/services/proxy/proxyd || shell_test::fail "line ${LINENO}: failed to build 'proxyd'"
   veyron go build $V/services/mounttable/mounttabled || shell_test::fail "line ${LINENO}: failed to build 'mounttabled'"
-  veyron go build $V/tools/playground/builder || shell_test::fail "line ${LINENO}: failed to build 'builder'"
+  veyron go build veyron.io/playground/builder || shell_test::fail "line ${LINENO}: failed to build 'builder'"
   veyron go build veyron.io/veyron/veyron2/vdl/vdl || shell_test::fail "line ${LINENO}: failed to build 'vdl'"
   veyron go build veyron.io/wspr/veyron/services/wsprd || shell_test::fail "line ${LINENO}: failed to build 'wsprd'"
 }
 
 # Sets up a directory with the given files, then runs builder.
 test_with_files() {
-  local -r TESTDATA_DIR="$(shell::go_package_dir veyron.io/veyron/veyron/tools/playground/testdata)"
+  local -r TESTDATA_DIR="$(shell::go_package_dir veyron.io/playground/testdata)"
 
   # Write input files to a fresh dir, then run pgbundle.
   local -r PGBUNDLE_DIR=$(shell::tmp_dir)
