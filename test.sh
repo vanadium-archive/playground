@@ -105,15 +105,15 @@ main() {
 
   echo -e "\n\n>>>>> Test with expired identities\n\n"
 
-  test_with_files "src/pong/pong.go" "src/ping/ping.go" "src/pingpong/wire.vdl" "src/ids/expired.id" || shell_test::fail  "line ${LINENO}: failed to build with expired id (go -> go)"
-  grep -q "ipc: not authorized" builder.out || shell_test::fail "line ${LINENO}: rpc with expired id succeeded"
+  test_with_files "src/pong/pong.go" "src/ping/ping.go" "src/pingpong/wire.vdl" "src/ids/expired.id" || shell_test::fail  "line ${LINENO}: expired id (go -> go)"
+  grep -q "not authorized because: security.unixTimeExpiryCaveat" builder.out || shell_test::fail "line ${LINENO}: rpc with expired id succeeded"
 
-  test_with_files "src/pong/pong.js" "src/ping/ping.js" "src/ids/expired.id" || shell_test::fail  "line ${LINENO}: failed to build with expired id (js -> js)"
-  grep -q "ipc: not authorized" builder.out || shell_test::fail "line ${LINENO}: rpc with expired id succeeded"
+  test_with_files "src/pong/pong.js" "src/ping/ping.js" "src/ids/expired.id" || shell_test::fail  "line ${LINENO}: expired id (js -> js)"
+  grep -q "not authorized because: security.unixTimeExpiryCaveat" builder.out || shell_test::fail "line ${LINENO}: rpc with expired id succeeded"
 
   echo -e "\n\n>>>>> Test with unauthorized identities\n\n"
 
-  test_with_files "src/pong/pong.go" "src/ping/ping.go" "src/pingpong/wire.vdl" "src/ids/unauthorized.id" || shell_test::fail  "line ${LINENO}: failed to build with unauthorized id (go -> go)"
+  test_with_files "src/pong/pong.go" "src/ping/ping.go" "src/pingpong/wire.vdl" "src/ids/unauthorized.id" || shell_test::fail  "line ${LINENO}: unauthorized id (go -> go)"
   grep -q "ipc: not authorized" builder.out || shell_test::fail "line ${LINENO}: rpc with unauthorized id succeeded"
 
   # TODO(nlacasse): Write the javascript version of this test once the

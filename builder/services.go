@@ -48,8 +48,7 @@ func findUnusedPort() (int, error) {
 // variable to the mounttable's location.  We run one mounttabled process for
 // the entire environment.
 func startMount(timeLimit time.Duration) (proc *os.Process, err error) {
-	cmd := makeCmd("", true, "mounttabled", "--veyron.tcp.address=127.0.0.1:0")
-
+	cmd := makeCmd("", true, "mounttabled", "-veyron.tcp.address=127.0.0.1:0")
 	matches, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile("Mount table .+ endpoint: (.+)\n"))
 	if err != nil {
 		return nil, fmt.Errorf("Error starting mounttabled: %v", err)
@@ -64,11 +63,7 @@ func startMount(timeLimit time.Duration) (proc *os.Process, err error) {
 // startProxy starts a proxyd process.  We run one proxyd process for the
 // entire environment.
 func startProxy() (proc *os.Process, err error) {
-	port, err := findUnusedPort()
-	if err != nil {
-		return nil, err
-	}
-	cmd := makeCmd("", true, "proxyd", "-name="+proxyName, "-address=127.0.0.1:"+strconv.Itoa(port), "-http=")
+	cmd := makeCmd("", true, "proxyd", "-name="+proxyName, "-address=127.0.0.1:0", "-http=")
 	err = cmd.Start()
 	if err != nil {
 		return nil, err
@@ -88,6 +83,7 @@ func startWspr(fileName, identity string) (proc *os.Process, port int, err error
 		// Verbose logging so we can watch the output for "Listening" log line.
 		"-v=3",
 		"-veyron.proxy="+proxyName,
+		"-veyron.tcp.address=127.0.0.1:0",
 		"-port="+strconv.Itoa(port),
 		// Retry RPC calls for 3 seconds. If a client makes an RPC call before the
 		// server is running, it won't immediately fail, but will retry while the
