@@ -39,6 +39,7 @@ RUN $VEYRON_ROOT/environment/cout/node/bin/npm link veyron
 WORKDIR /usr/local/veyron/veyron
 ENV PATH $VEYRON_ROOT/veyron/go/bin:$VEYRON_ROOT/bin:$PATH
 RUN veyron go install veyron.io/veyron/...
+RUN veyron go install veyron.io/playground/...
 
 # Uncomment the following lines to install a version of the builder tool using
 # your local version of the code. This is useful when developing and testing

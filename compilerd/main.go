@@ -121,7 +121,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	cmd.Stdout, cmd.Stderr = stdoutBuf, stderrBuf
 
 	// Arbitrary deadline (enough to compile, run, shutdown).
-	timeout := time.After(5000 * time.Millisecond)
+	// TODO(sadovsky): For now this is set high to avoid spurious timeouts.
+	// Playground execution speed needs to be optimized.
+	timeout := time.After(10000 * time.Millisecond)
 	exit := make(chan error)
 
 	go func() { exit <- cmd.Run() }()
