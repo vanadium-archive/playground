@@ -50,15 +50,12 @@ var (
 )
 
 // Type of data sent to the builder on stdin.  Input should contain Files.  We
-// look for a file whose Name ends with .id, and parse that into Identities.
+// look for a file whose Name ends with .id, and parse that into credentials.
 //
-// TODO(nlacasse): Update the identity parsing and usage to the new identity
-// APIs.
-//
-// TODO(ribrdb): Consider moving identity parsing into the http server.
+// TODO(ribrdb): Consider moving credentials parsing into the http server.
 type request struct {
-	Files      []*codeFile
-	Identities []identity
+	Files       []*codeFile
+	Credentials []credentials
 }
 
 // Type of file data.  Only Name and Body should be initially set.  The other
@@ -68,8 +65,8 @@ type codeFile struct {
 	Body string
 	// Language the file is written in.  Inferred from the file extension.
 	lang string
-	// Identity to associate with the file's process.
-	identity string
+	// Credentials to associate with the file's process.
+	credentials string
 	// The executable flag denotes whether the file should be executed as
 	// part of the playground run. This is currently used only for
 	// javascript files, and go files with package "main".
@@ -112,7 +109,7 @@ func parseRequest(in io.Reader) (r request, err error) {
 		f := r.Files[i]
 		f.index = i
 		if path.Ext(f.Name) == ".id" {
-			err = json.Unmarshal([]byte(f.Body), &r.Identities)
+			err = json.Unmarshal([]byte(f.Body), &r.Credentials)
 			if err != nil {
 				return
 			}
@@ -142,21 +139,21 @@ func parseRequest(in io.Reader) (r request, err error) {
 			m[basename] = f
 		}
 	}
-	if len(r.Identities) == 0 {
-		// Run everything with the same identity if none are specified.
-		r.Identities = append(r.Identities, identity{Name: "default"})
+	if len(r.Credentials) == 0 {
+		// Run everything with the same credentials if none are specified.
+		r.Credentials = append(r.Credentials, credentials{Name: "default"})
 		for _, f := range r.Files {
-			f.identity = "default"
+			f.credentials = "default"
 		}
 	} else {
-		for _, identity := range r.Identities {
-			for _, basename := range identity.Files {
-				// Check that the file associated with the identity exists.  We ignore
+		for _, creds := range r.Credentials {
+			for _, basename := range creds.Files {
+				// Check that the file associated with the credentials exists.  We ignore
 				// cases where it doesn't because the test .id files get used for
 				// multiple different code files.  See testdata/ids/authorized.id, for
 				// example.
 				if m[basename] != nil {
-					m[basename].identity = identity.Name
+					m[basename].credentials = creds.Name
 				}
 			}
 		}
@@ -270,7 +267,7 @@ func (f *codeFile) write() error {
 }
 
 func (f *codeFile) startJs() error {
-	wsprProc, wsprPort, err := startWspr(f.Name, f.identity)
+	wsprProc, wsprPort, err := startWspr(f.Name, f.credentials)
 	if err != nil {
 		return fmt.Errorf("Error starting wspr: %v", err)
 	}
@@ -283,8 +280,8 @@ func (f *codeFile) startJs() error {
 
 func (f *codeFile) startGo() error {
 	f.cmd = makeCmd(f.Name, false, filepath.Join("bin", f.binaryName))
-	if f.identity != "" {
-		f.cmd.Env = append(f.cmd.Env, fmt.Sprintf("VEYRON_IDENTITY=%s", filepath.Join("ids", f.identity)))
+	if f.credentials != "" {
+		f.cmd.Env = append(f.cmd.Env, fmt.Sprintf("VEYRON_CREDENTIALS=%s", filepath.Join("credentials", f.credentials)))
 	}
 	return f.cmd.Start()
 }
@@ -308,7 +305,7 @@ func (f *codeFile) run(ch chan exit) {
 		}
 	}()
 	if err != nil {
-		debug("Failed to start", f.Name)
+		debug("Failed to start", f.Name, "-", err)
 		ch <- exit{f.Name, err}
 		return
 	}
@@ -395,7 +392,7 @@ func main() {
 	r, err := parseRequest(os.Stdin)
 	panicOnError(err)
 
-	panicOnError(createIdentities(r.Identities))
+	panicOnError(createCredentials(r.Credentials))
 
 	mt, err := startMount(runTimeout)
 	panicOnError(err)

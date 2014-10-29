@@ -1,7 +1,12 @@
 [
 {
-  "Name": "expired",
+  "Name": "myserver",
+  "Files": ["pong.go", "pong.js"]
+},
+{
+  "Name": "myclient",
+  "Blesser": "myserver",
   "Duration": "0s",
-  "Files": ["ping.go", "pong.go", "ping.js", "pong.js"]
+  "Files": ["ping.go", "ping.js"]
 }
 ]

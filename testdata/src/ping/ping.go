@@ -5,13 +5,14 @@ import (
 	"fmt"
 
 	_ "veyron.io/veyron/veyron/profiles"
+	"veyron.io/veyron/veyron2/options"
 	"veyron.io/veyron/veyron2/rt"
 
 	"pingpong"
 )
 
 func main() {
-	runtime := rt.Init()
+	runtime := rt.Init(options.ForceNewSecurityModel{})
 	log := runtime.Logger()
 
 	s, err := pingpong.BindPingPong("pingpong")

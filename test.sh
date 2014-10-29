@@ -30,9 +30,7 @@ install_pgbundle() {
 
 # Installs various go binaries.
 build_go_binaries() {
-  # Note that "go build" puts built binaries in $(pwd), but only if they are
-  # built one at a time. So much for the principle of least surprise...
-  IDENTITY_BIN="$(shell_test::build_go_binary 'veyron.io/veyron/veyron/tools/identity')"
+  PRINCIPAL_BIN="$(shell_test::build_go_binary 'veyron.io/veyron/veyron/tools/principal')"
   PROXYD_BIN="$(shell_test::build_go_binary 'veyron.io/veyron/veyron/services/proxy/proxyd')"
   MOUNTTABLED_BIN="$(shell_test::build_go_binary 'veyron.io/veyron/veyron/services/mounttable/mounttabled')"
   BUILDER_BIN="$(shell_test::build_go_binary 'veyron.io/playground/builder')"
@@ -75,7 +73,7 @@ main() {
   install_veyron_js
   install_pgbundle
 
-  echo -e "\n\n>>>>> Test without identities\n\n"
+  echo -e "\n\n>>>>> Test as the same principal\n\n"
 
   test_with_files "src/pingpong/wire.vdl" "src/pong/pong.go" "src/ping/ping.go" || shell_test::fail "line ${LINENO}: basic ping (go -> go)"
   grep -q PING builder.out || shell_test::fail "line ${LINENO}: no PING"
@@ -93,7 +91,7 @@ main() {
   grep -q PING builder.out || shell_test::fail "line ${LINENO}: no PING"
   grep -q PONG builder.out || shell_test::fail "line ${LINENO}: no PONG"
 
-  echo -e "\n\n>>>>> Test with authorized identities\n\n"
+  echo -e "\n\n>>>>> Test with authorized blessings\n\n"
 
   test_with_files "src/pong/pong.go" "src/ping/ping.go" "src/pingpong/wire.vdl" "src/ids/authorized.id" || shell_test::fail "line ${LINENO}: authorized id (go -> go)"
   grep -q PING builder.out || shell_test::fail "line ${LINENO}: no PING"
@@ -103,22 +101,21 @@ main() {
   grep -q PING builder.out || shell_test::fail "line ${LINENO}: no PING"
   grep -q PONG builder.out || shell_test::fail "line ${LINENO}: no PONG"
 
-  echo -e "\n\n>>>>> Test with expired identities\n\n"
+  echo -e "\n\n>>>>> Test with expired blessings\n\n"
 
   test_with_files "src/pong/pong.go" "src/ping/ping.go" "src/pingpong/wire.vdl" "src/ids/expired.id" || shell_test::fail  "line ${LINENO}: expired id (go -> go)"
-  grep -q "not authorized because: security.unixTimeExpiryCaveat" builder.out || shell_test::fail "line ${LINENO}: rpc with expired id succeeded"
+  grep -q "not authorized" builder.out || shell_test::fail "line ${LINENO}: rpc with expired id succeeded (go -> go)"
 
   test_with_files "src/pong/pong.js" "src/ping/ping.js" "src/ids/expired.id" || shell_test::fail  "line ${LINENO}: expired id (js -> js)"
-  grep -q "not authorized because: security.unixTimeExpiryCaveat" builder.out || shell_test::fail "line ${LINENO}: rpc with expired id succeeded"
+  grep -q "not authorized" builder.out || shell_test::fail "line ${LINENO}: rpc with expired id succeeded (js -> js)"
 
-  echo -e "\n\n>>>>> Test with unauthorized identities\n\n"
+  echo -e "\n\n>>>>> Test with unauthorized blessings\n\n"
 
   test_with_files "src/pong/pong.go" "src/ping/ping.go" "src/pingpong/wire.vdl" "src/ids/unauthorized.id" || shell_test::fail  "line ${LINENO}: unauthorized id (go -> go)"
-  grep -q "is not authorized" builder.out || shell_test::fail "line ${LINENO}: rpc with unauthorized id succeeded"
+  grep -q "not authorized" builder.out || shell_test::fail "line ${LINENO}: rpc with unauthorized id succeeded (go -> go)"
 
-  # TODO(nlacasse): Write the javascript version of this test once the
-  # javascript implementation is capable of checking that an identity is
-  # authorized.
+  test_with_files "src/pong/pong.js" "src/ping/ping.js" "src/ids/unauthorized.id" || shell_test::fail  "line ${LINENO}: unauthorized id (js -> js)"
+  grep -q "not authorized" builder.out || shell_test::fail "line ${LINENO}: rpc with unauthorized id succeeded (js -> js)"
 
   shell_test::pass
 }

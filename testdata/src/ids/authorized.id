@@ -1,10 +1,6 @@
 [
 {
-  "Name": "myorg"
-},
-{
   "Name": "myserver",
-  "Blesser": "myorg",
   "Files": ["pong.go", "pong.js"]
 },
 {

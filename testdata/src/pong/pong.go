@@ -6,8 +6,8 @@ import (
 
 	"veyron.io/veyron/veyron/lib/signals"
 	"veyron.io/veyron/veyron/profiles"
-	sflag "veyron.io/veyron/veyron/security/flag"
 	"veyron.io/veyron/veyron2/ipc"
+	"veyron.io/veyron/veyron2/options"
 	"veyron.io/veyron/veyron2/rt"
 
 	"pingpong"
@@ -15,13 +15,14 @@ import (
 
 type pongd struct{}
 
-func (f *pongd) Ping(_ ipc.ServerContext, message string) (result string, err error) {
-	fmt.Println(message)
+func (f *pongd) Ping(ctx ipc.ServerContext, message string) (result string, err error) {
+	remote := ctx.RemoteBlessings().ForContext(ctx)
+	fmt.Printf("%v: %q\n", remote, message)
 	return "PONG", nil
 }
 
 func main() {
-	r := rt.Init()
+	r := rt.Init(options.ForceNewSecurityModel{})
 	log := r.Logger()
 	s, err := r.NewServer()
 	if err != nil {
@@ -37,7 +38,7 @@ func main() {
 		log.Fatal("error listening to service: ", err)
 	}
 
-	if err := s.Serve("pingpong", ipc.LeafDispatcher(serverPong, sflag.NewAuthorizerOrDie())); err != nil {
+	if err := s.Serve("pingpong", ipc.LeafDispatcher(serverPong, nil)); err != nil {
 		log.Fatal("error serving service: ", err)
 	}
 

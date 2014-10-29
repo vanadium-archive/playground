@@ -2,8 +2,8 @@ var veyron = require('veyron');
 var leafDispatcher = require('veyron/src/ipc/leaf_dispatcher');
 
 var pingPongService = {
-  ping: function(msg){
-    console.log(msg);
+  ping: function($context, msg){
+    console.log('['+$context.remoteBlessingStrings+'] '+msg);
     return 'PONG';
   }
 };

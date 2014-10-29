@@ -73,7 +73,7 @@ func startProxy() (proc *os.Process, err error) {
 
 // startWspr starts a wsprd process. We run one wsprd process for each
 // javascript file being run.
-func startWspr(fileName, identity string) (proc *os.Process, port int, err error) {
+func startWspr(fileName, credentials string) (proc *os.Process, port int, err error) {
 	port, err = findUnusedPort()
 	if err != nil {
 		return nil, port, err
@@ -91,10 +91,11 @@ func startWspr(fileName, identity string) (proc *os.Process, port int, err error
 		// TODO(nlacasse): Remove this when javascript can tell wspr how long to
 		// retry for. Right now it's a global setting in wspr.
 		"-retry-timeout=3",
+		"-new_security_model",
 		// The identd server won't be used, so pass a fake name.
 		"-identd=/unused")
-	if identity != "" {
-		cmd.Env = append(cmd.Env, fmt.Sprintf("VEYRON_IDENTITY=%s", path.Join("ids", identity)))
+	if credentials != "" {
+		cmd.Env = append(cmd.Env, fmt.Sprintf("VEYRON_CREDENTIALS=%s", path.Join("credentials", credentials)))
 	}
 	if _, err := startAndWaitFor(cmd, 3*time.Second, regexp.MustCompile("Listening")); err != nil {
 		return nil, 0, fmt.Errorf("Error starting wspr: %v", err)
