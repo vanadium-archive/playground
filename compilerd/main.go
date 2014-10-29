@@ -147,7 +147,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	//
 	// Setting GOMAXPROCS may or may not help.  See
 	// https://github.com/docker/docker/issues/6480
-	Docker("rm", "-f", id).Run()
+
+	// TODO(sadovsky): Temporarily disabled because it was causing consistent
+	// timeouts, and we want to start experimenting with the playground for
+	// tutorial authoring. Most likely, containers are small enough that combined
+	// with the hourly VM restarts this line isn't even needed... but that still
+	// remains to be verified.
+	//Docker("rm", "-f", id).Run()
 
 	// If the response is bigger than the limit, cache the response and return an
 	// error.
@@ -189,9 +195,8 @@ func respondWithBody(w http.ResponseWriter, status int, body interface{}) {
 	w.Header().Add("Content-Length", fmt.Sprintf("%d", len(bodyJson)))
 	w.Write(bodyJson)
 
-	// TODO(nlacasse): This flush doesn't really help us right now, but
-	// we'll definitly need something like it when we switch to the
-	// streaming model.
+	// TODO(nlacasse): This flush doesn't really help us right now, but we'll
+	// definitely need something like it when we switch to the streaming model.
 	if f, ok := w.(http.Flusher); ok {
 		f.Flush()
 	} else {

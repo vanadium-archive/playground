@@ -17,7 +17,7 @@ readonly DISK="pg-data-${DATE}"
 
 function unmount() {
   sudo umount /mnt
-  gcloud compute --project "google.com:veyron" instances detach-disk --disk="${DISK}" $(hostname) --zone us-central1-a
+  gcloud compute --project "google.com:veyron" instances detach-disk --disk=${DISK} $(hostname) --zone us-central1-a
 }
 
 function cleanup() {
@@ -25,9 +25,9 @@ function cleanup() {
     # The disk is still mounted on the master, which means it's not yet mounted
     # on any backends. It's safe to unmount and delete it.
     unmount
-    gcloud compute --project "google.com:veyron" disks delete "${DISK}" --zone "us-central1-a"
+    gcloud compute --project "google.com:veyron" disks delete ${DISK} --zone "us-central1-a"
   fi
-  sudo docker rm "${DISK}" || true
+  sudo docker rm ${DISK} &> /dev/null || true
 }
 trap cleanup EXIT
 
@@ -37,8 +37,8 @@ function main() {
     exit 1
   fi
 
-  gcloud compute --project "google.com:veyron" disks create "${DISK}" --size "200" --zone "us-central1-a" --source-snapshot "pg-data-20140702" --type "pd-standard"
-  gcloud compute --project "google.com:veyron" instances attach-disk --disk="${DISK}" $(hostname) --zone us-central1-a
+  gcloud compute --project "google.com:veyron" disks create ${DISK} --size "200" --zone "us-central1-a" --source-snapshot "pg-data-20140702" --type "pd-standard"
+  gcloud compute --project "google.com:veyron" instances attach-disk --disk=${DISK} $(hostname) --zone us-central1-a
   sudo mount /dev/sdb1 /mnt
 
   # Build the docker image.
