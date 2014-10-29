@@ -7,7 +7,6 @@ import (
 	"veyron.io/veyron/veyron/lib/signals"
 	"veyron.io/veyron/veyron/profiles"
 	"veyron.io/veyron/veyron2/ipc"
-	"veyron.io/veyron/veyron2/options"
 	"veyron.io/veyron/veyron2/rt"
 
 	"pingpong"
@@ -22,7 +21,7 @@ func (f *pongd) Ping(ctx ipc.ServerContext, message string) (result string, err 
 }
 
 func main() {
-	r := rt.Init(options.ForceNewSecurityModel{})
+	r := rt.Init()
 	log := r.Logger()
 	s, err := r.NewServer()
 	if err != nil {
