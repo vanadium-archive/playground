@@ -85,7 +85,7 @@ function renderConsoleEvent(event) {
     children.push(h('span.timestamp', t.format('H:mm:ss.SSS') + ' '));
   }
   if (event.File) {
-    children.push(h('span.filename', event.File + ': '));
+    children.push(h('span.filename', path.basename(event.File) + ': '));
   }
   children.push(h('span.' + event.Stream || 'unknown', event.Message));
   return h('div', children);
