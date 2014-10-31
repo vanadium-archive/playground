@@ -122,13 +122,17 @@ EmbeddedPlayground.prototype.run = function() {
   this.state_.hasRun.set(true);
   this.state_.consoleEvents.set([{Message: 'Running...'}]);
 
-  var pgaddr = url.parse(window.location.href, true).query.pgaddr;
+  var myUrl = url.parse(window.location.href, true);
+  var pgaddr = myUrl.query.pgaddr;
   if (pgaddr) {
     console.log('Using pgaddr', pgaddr);
   } else {
     pgaddr = 'http://playground.envyor.com:8181';
   }
   var compileUrl = pgaddr + '/compile';
+  if (myUrl.query.debug === '1') {
+    compileUrl += '?debug=1';
+  }
 
   var editors = this.editors_;
   var req = {
