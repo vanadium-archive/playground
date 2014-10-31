@@ -38,10 +38,9 @@ import (
 const runTimeout = 3 * time.Second
 
 var (
-	verbose = flag.Bool("v", false, "Whether to output debug messages")
+	verbose = flag.Bool("v", true, "Whether to output debug messages.")
 
-	includeServiceOutput = flag.Bool("includeServiceOutput", false,
-		"Whether to stream service (mounttable, wspr, proxy) output to clients")
+	includeServiceOutput = flag.Bool("includeServiceOutput", false, "Whether to stream service (mounttable, wspr, proxy) output to clients.")
 
 	// Whether we have stopped execution of running files.
 	stopped = false
@@ -88,7 +87,7 @@ type exit struct {
 
 func debug(args ...interface{}) {
 	if *verbose {
-		log.Println(args...)
+		writeEvent("", "debug", fmt.Sprintln(args...))
 	}
 }
 
@@ -211,7 +210,7 @@ func runFiles(files []*codeFile) {
 	for running > 0 {
 		select {
 		case <-timeout:
-			panicOnError(writeEvent("", "stderr", "Playground exceeded deadline."))
+			panicOnError(writeEvent("", "stderr", "Ran for too long; terminated."))
 			stopAll(files)
 		case status := <-exit:
 			if status.err == nil {

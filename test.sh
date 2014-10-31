@@ -56,7 +56,7 @@ test_with_files() {
   local -r ORIG_DIR=$(pwd)
   pushd $(shell::tmp_dir)
   ln -s "${ORIG_DIR}/node_modules" ./  # for veyron.js
-  "${BUILDER_BIN}" < "${PGBUNDLE_DIR}/bundle.json" 2>&1 | tee builder.out
+  "${BUILDER_BIN}" -v=0 < "${PGBUNDLE_DIR}/bundle.json" 2>&1 | tee builder.out
   # Move builder output to original dir for verification.
   mv builder.out "${ORIG_DIR}"
   popd

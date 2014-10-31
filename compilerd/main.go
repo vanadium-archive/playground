@@ -36,10 +36,12 @@ var (
 	// No values are ever sent to it.
 	lameduck chan bool = make(chan bool)
 
-	address = flag.String("address", ":8181", "address to listen on")
+	address = flag.String("address", ":8181", "Address to listen on.")
 
 	// Note, shutdown triggers on SIGTERM or when the time limit is hit.
-	shutdown = flag.Bool("shutdown", true, "whether to ever shutdown the machine")
+	enableShutdown = flag.Bool("shutdown", true, "Whether to ever shutdown the machine.")
+
+	useDocker = flag.Bool("use-docker", true, "Whether to use Docker to run builder; if false, we run the builder directly.")
 
 	// Maximum request and response size. Same limit as imposed by Go tour.
 	maxSize = 1 << 16
@@ -80,12 +82,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	wantDebug := r.FormValue("debug") == "1"
 	requestBody := streamToBytes(r.Body)
 
 	if len(requestBody) > maxSize {
 		responseBody := new(ResponseBody)
 		responseBody.Errors = "Program too large."
-		respondWithBody(w, http.StatusBadRequest, responseBody)
+		respondWithBody(w, http.StatusBadRequest, responseBody, wantDebug)
 		return
 	}
 
@@ -96,7 +99,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	requestBodyHash := sha1.Sum(requestBody)
 	if cachedResponse, ok := cache.Get(requestBodyHash); ok {
 		if cachedResponseStruct, ok := cachedResponse.(CachedResponse); ok {
-			respondWithBody(w, cachedResponseStruct.Status, cachedResponseStruct.Body)
+			respondWithBody(w, cachedResponseStruct.Status, &cachedResponseStruct.Body, wantDebug)
 			return
 		} else {
 			log.Printf("Invalid cached response: %v\n", cachedResponse)
@@ -112,51 +115,42 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	// TODO(sadovsky): Set runtime constraints on CPU and memory usage.
 	// http://docs.docker.com/reference/run/#runtime-constraints-on-cpu-and-memory
-	cmd := Docker("run", "-i", "--name", id, "playground")
+	var cmd *exec.Cmd
+	if *useDocker {
+		cmd = docker("run", "-i", "--name", id, "playground")
+	} else {
+		cmd = exec.Command("builder")
+	}
 	cmd.Stdin = bytes.NewReader(requestBody)
 
 	// Builder will return all normal output as json events on stdout, and will
 	// return unexpected errors on stderr.
+	// TODO(sadovsky): Security issue: what happens if the program output is huge?
+	// We can restrict memory use of the Docker container, but these buffers are
+	// outside Docker.
 	stdoutBuf, stderrBuf := new(bytes.Buffer), new(bytes.Buffer)
 	cmd.Stdout, cmd.Stderr = stdoutBuf, stderrBuf
 
 	// Arbitrary deadline (enough to compile, run, shutdown).
 	// TODO(sadovsky): For now this is set high to avoid spurious timeouts.
 	// Playground execution speed needs to be optimized.
-	timeout := time.After(10000 * time.Millisecond)
-	exit := make(chan error)
+	timeout := time.After(10 * time.Second)
+	timedOut := false
 
+	exit := make(chan error)
 	go func() { exit <- cmd.Run() }()
 
 	select {
 	case <-exit:
 	case <-timeout:
-		// TODO(sadovsky): Race condition. More output could show up after this
-		// message.
-		stderrBuf.Write([]byte("\nTime exceeded, killing...\n"))
+		// NOTE(sadovsky): More builder output could show up on stdout after this
+		// message, but that's not really a problem.
+		stderrBuf.Write([]byte("\nTime exceeded; killing...\n"))
+		timedOut = true
 	}
 
-	// TODO(nlacasse): This takes a long time, during which the client is waiting
-	// for a response.  I tried moving it to after the response is sent, but a
-	// subsequent request will trigger a new "docker run", which somehow has to
-	// wait for this "docker rm" to finish.  This caused some requests to timeout
-	// unexpectedly.
-	//
-	// We should figure out a better way to run this, so that we can return
-	// quickly, and not mess up other requests.
-	//
-	// Setting GOMAXPROCS may or may not help.  See
-	// https://github.com/docker/docker/issues/6480
-
-	// TODO(sadovsky): Temporarily disabled because it was causing consistent
-	// timeouts, and we want to start experimenting with the playground for
-	// tutorial authoring. Most likely, containers are small enough that combined
-	// with the hourly VM restarts this line isn't even needed... but that still
-	// remains to be verified.
-	//Docker("rm", "-f", id).Run()
-
-	// If the response is bigger than the limit, cache the response and return an
-	// error.
+	// If the response is bigger than the limit, create an "output too large"
+	// error response, cache it, and return it.
 	if stdoutBuf.Len() > maxSize {
 		status := http.StatusBadRequest
 		responseBody := new(ResponseBody)
@@ -165,7 +159,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			Status: status,
 			Body:   *responseBody,
 		})
-		respondWithBody(w, status, responseBody)
+		respondWithBody(w, status, responseBody, wantDebug)
 		return
 	}
 
@@ -182,14 +176,45 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		responseBody.Events = append(responseBody.Events, e)
 	}
 
-	cache.Add(requestBodyHash, CachedResponse{
-		Status: http.StatusOK,
-		Body:   *responseBody,
-	})
-	respondWithBody(w, http.StatusOK, responseBody)
+	// If we timed out, do not cache anything.
+	// TODO(sadovsky): This policy is helpful for development, but may not be wise
+	// for production. Revisit.
+	if !timedOut {
+		cache.Add(requestBodyHash, CachedResponse{
+			Status: http.StatusOK,
+			Body:   *responseBody,
+		})
+	}
+	respondWithBody(w, http.StatusOK, responseBody, wantDebug)
+
+	// TODO(nlacasse): This "docker rm" can be slow (several seconds), and seems
+	// to block other Docker commands, thereby slowing down other concurrent
+	// requests. We should figure out how to make it not block other Docker
+	// commands. Setting GOMAXPROCS may or may not help.
+	// See: https://github.com/docker/docker/issues/6480
+	if *useDocker {
+		go func() {
+			docker("rm", "-f", id).Run()
+		}()
+	}
 }
 
-func respondWithBody(w http.ResponseWriter, status int, body interface{}) {
+func respondWithBody(w http.ResponseWriter, status int, body *ResponseBody, wantDebug bool) {
+	// If the request does not include query param debug=true, strip any debug
+	// events produced by the builder. Note, these events don't contain any
+	// sensitive information, so guarding with a query parameter is sufficient.
+	if !wantDebug {
+		// TODO(sadovsky): Use pointers to avoid copying Event structs, or cache
+		// debug-stripped responses in addition to full responses.
+		eventsNoDebug := make([]event.Event, 0, len(body.Events))
+		for _, e := range body.Events {
+			if e.Stream != "debug" {
+				eventsNoDebug = append(eventsNoDebug, e)
+			}
+		}
+		body.Events = eventsNoDebug
+	}
+
 	bodyJson, _ := json.Marshal(body)
 	w.Header().Add("Content-Type", "application/json")
 	w.Header().Add("Content-Length", fmt.Sprintf("%d", len(bodyJson)))
@@ -210,7 +235,7 @@ func streamToBytes(stream io.Reader) []byte {
 	return buf.Bytes()
 }
 
-func Docker(args ...string) *exec.Cmd {
+func docker(args ...string) *exec.Cmd {
 	fullArgs := []string{"docker"}
 	fullArgs = append(fullArgs, args...)
 	return exec.Command("sudo", fullArgs...)
@@ -232,14 +257,14 @@ func init() {
 func main() {
 	flag.Parse()
 
-	if *shutdown {
+	if *enableShutdown {
 		limit_min := 60
 		delay_min := limit_min/2 + rand.Intn(limit_min/2)
 
 		// VMs will be periodically killed to prevent any owned VMs from causing
 		// damage. We want to shutdown cleanly before then so we don't cause
 		// requests to fail.
-		go WaitForShutdown(time.Minute * time.Duration(delay_min))
+		go waitForShutdown(time.Minute * time.Duration(delay_min))
 	}
 
 	http.HandleFunc("/compile", handler)
@@ -249,7 +274,7 @@ func main() {
 	http.ListenAndServe(*address, nil)
 }
 
-func WaitForShutdown(limit time.Duration) {
+func waitForShutdown(limit time.Duration) {
 	var beforeExit func() error
 
 	// Shutdown if we get a SIGTERM.
@@ -273,12 +298,14 @@ Loop:
 			break Loop
 		}
 	}
+
 	// Fail health checks so we stop getting requests.
 	close(lameduck)
+
 	// Give running requests time to finish.
 	time.Sleep(30 * time.Second)
 
-	// Then go ahead and shutdown.
+	// Go ahead and shutdown.
 	if beforeExit != nil {
 		err := beforeExit()
 		if err != nil {

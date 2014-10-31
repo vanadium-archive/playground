@@ -46,7 +46,7 @@ RUN veyron go install veyron.io/playground/...
 # local changes.
 #RUN rm $VEYRON_ROOT/veyron/go/bin/builder
 #ADD main.go $VEYRON_ROOT/veyron/go/src/veyron.io/playground/builder/main.go
-#ADD identity.go $VEYRON_ROOT/veyron/go/src/veyron.io/playground/builder/identity.go
+#ADD credentials.go $VEYRON_ROOT/veyron/go/src/veyron.io/playground/builder/credentials.go
 #ADD services.go $VEYRON_ROOT/veyron/go/src/veyron.io/playground/builder/services.go
 #ADD multi_writer.go $VEYRON_ROOT/veyron/go/src/veyron.io/playground/builder/multi_writer.go
 #RUN veyron go install veyron.io/playground/builder

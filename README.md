@@ -39,6 +39,14 @@ Run the compiler binary as root:
 
     $ sudo $VEYRON_ROOT/veyron/go/bin/compilerd --shutdown=false --address=localhost:8181
 
+Or, run it without Docker (for faster iterations during development):
+
+    $ cd $(mktemp -d "/tmp/XXXXXXXX")
+    $ PATH=$VEYRON_ROOT/veyron/go/bin:$PATH compilerd --shutdown=false --address=localhost:8181 --use-docker=false
+
 The server should now be running at http://localhost:8181 and responding to
-compile requests at http://localhost:8181/compile. Add `?pgaddr=localhost:8181`
-to any veyron-www page to make its embedded playgrounds talk to your server.
+compile requests at http://localhost:8181/compile.
+
+Add `?pgaddr=//localhost:8181` to any veyron-www page to make its embedded
+playgrounds talk to your server. Add `?debug=1` to see debug info from the
+builder.
