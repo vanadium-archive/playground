@@ -97,7 +97,11 @@
 }
 
 .pg .console .text .stderr {
-  color: #e51c23;
+  color: #d01716;
+}
+
+.pg .console .text .debug {
+  color: #455ede;
 }
 
 .pg .console.open {

@@ -87,7 +87,7 @@ function renderConsoleEvent(event) {
   if (event.File) {
     children.push(h('span.filename', path.basename(event.File) + ': '));
   }
-  children.push(h('span.' + event.Stream || 'unknown', event.Message));
+  children.push(h('span.' + (event.Stream || 'unknown'), event.Message));
   return h('div', children);
 }
 
@@ -146,6 +146,9 @@ EmbeddedPlayground.prototype.run = function() {
     Identities: []
   };
 
+  // TODO(sadovsky): To deal with cached responses, shift timestamps (based on
+  // current time) and introduce a fake delay. Also, switch to streaming
+  // messages, for usability.
   var that = this, state = this.state_;
   request
       .post(compileUrl)
