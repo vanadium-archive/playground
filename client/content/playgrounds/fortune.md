@@ -54,7 +54,9 @@ The server listens for a tcp connection on localhost, and mounts itself on the
 mounttable with the name "fortune".
 </div>
 
+<!--
 <span class="lang-js">TODO(nlacasse): describe the js server</span>
+-->
 
 ### Client
 
@@ -64,9 +66,14 @@ and then issues a `Get` request.  We do the `.Get` request in a loop to give
 the server a chance to start up.
 </div>
 
+<!--
 <span class="lang-js">TODO(nlacasse): describe the js client</span>
+-->
 
 ### Code
 
 <div class="lang-go playground" data-srcdir="/fortune/ex0-go"></div>
+
+<!--
 <div class="lang-js playground" data-srcdir="/fortune/ex0-js"></div>
+-->

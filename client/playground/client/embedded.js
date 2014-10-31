@@ -127,7 +127,7 @@ EmbeddedPlayground.prototype.run = function() {
   if (pgaddr) {
     console.log('Using pgaddr', pgaddr);
   } else {
-    pgaddr = 'http://playground.envyor.com:8181';
+    pgaddr = '//staging.v.io/playground';
   }
   var compileUrl = pgaddr + '/compile';
   if (myUrl.query.debug === '1') {
