@@ -127,7 +127,7 @@ EmbeddedPlayground.prototype.run = function() {
   if (pgaddr) {
     console.log('Using pgaddr', pgaddr);
   } else {
-    pgaddr = '//staging.v.io/playground';
+    pgaddr = 'https://staging.v.io/playground';
   }
   var compileUrl = pgaddr + '/compile';
   if (myUrl.query.debug === '1') {
