@@ -15,6 +15,8 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+
+	"veyron.io/veyron/veyron/lib/flags/consts"
 )
 
 var (
@@ -57,7 +59,7 @@ func startMount(timeLimit time.Duration) (proc *os.Process, err error) {
 	if endpoint == "" {
 		return nil, fmt.Errorf("Failed to get mounttable endpoint")
 	}
-	return cmd.Process, os.Setenv("NAMESPACE_ROOT", endpoint)
+	return cmd.Process, os.Setenv(consts.NamespaceRootPrefix, endpoint)
 }
 
 // startProxy starts a proxyd process.  We run one proxyd process for the
@@ -95,7 +97,7 @@ func startWspr(fileName, credentials string) (proc *os.Process, port int, err er
 		// The identd server won't be used, so pass a fake name.
 		"-identd=/unused")
 	if credentials != "" {
-		cmd.Env = append(cmd.Env, fmt.Sprintf("VEYRON_CREDENTIALS=%s", path.Join("credentials", credentials)))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("%v=%s", consts.VeyronCredentials, path.Join("credentials", credentials)))
 	}
 	if _, err := startAndWaitFor(cmd, 3*time.Second, regexp.MustCompile("Listening")); err != nil {
 		return nil, 0, fmt.Errorf("Error starting wspr: %v", err)

@@ -33,6 +33,7 @@ import (
 	"time"
 
 	"veyron.io/playground/event"
+	"veyron.io/veyron/veyron/lib/flags/consts"
 )
 
 const runTimeout = 3 * time.Second
@@ -280,7 +281,7 @@ func (f *codeFile) startJs() error {
 func (f *codeFile) startGo() error {
 	f.cmd = makeCmd(f.Name, false, filepath.Join("bin", f.binaryName))
 	if f.credentials != "" {
-		f.cmd.Env = append(f.cmd.Env, fmt.Sprintf("VEYRON_CREDENTIALS=%s", filepath.Join("credentials", f.credentials)))
+		f.cmd.Env = append(f.cmd.Env, fmt.Sprintf("%v=%s", consts.VeyronCredentials, filepath.Join("credentials", f.credentials)))
 	}
 	return f.cmd.Start()
 }
