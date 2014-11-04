@@ -93,7 +93,6 @@ func startWspr(fileName, credentials string) (proc *os.Process, port int, err er
 		// TODO(nlacasse): Remove this when javascript can tell wspr how long to
 		// retry for. Right now it's a global setting in wspr.
 		"-retry-timeout=3",
-		"-new_security_model",
 		// The identd server won't be used, so pass a fake name.
 		"-identd=/unused")
 	if credentials != "" {
