@@ -37,7 +37,7 @@ func main() {
 		log.Fatal("error listening to service: ", err)
 	}
 
-	if err := s.Serve("pingpong", ipc.LeafDispatcher(serverPong, nil)); err != nil {
+	if err := s.Serve("pingpong", serverPong, nil); err != nil {
 		log.Fatal("error serving service: ", err)
 	}
 
