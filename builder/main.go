@@ -43,6 +43,8 @@ var (
 
 	includeServiceOutput = flag.Bool("includeServiceOutput", false, "Whether to stream service (mounttable, wspr, proxy) output to clients.")
 
+	includeVeyronEnv = flag.Bool("includeVeyronEnv", false, "Whether to log the output of \"veyron env\" before compilation.")
+
 	// Whether we have stopped execution of running files.
 	stopped = false
 
@@ -96,6 +98,13 @@ func panicOnError(err error) {
 	if err != nil {
 		log.Panic(err)
 	}
+}
+
+func logVeyronEnv() error {
+	if *includeVeyronEnv {
+		return makeCmd("", false, "veyron", "env").Run()
+	}
+	return nil
 }
 
 func parseRequest(in io.Reader) (r request, err error) {
@@ -403,6 +412,9 @@ func main() {
 	defer proxy.Kill()
 
 	panicOnError(writeFiles(r.Files))
+
+	logVeyronEnv()
 	panicOnError(compileFiles(r.Files))
+
 	runFiles(r.Files)
 }
