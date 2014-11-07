@@ -29,7 +29,7 @@ func main() {
 	}
 	log.Info("Waiting for ping")
 
-	serverPong := pingpong.NewServerPingPong(&pongd{})
+	serverPong := pingpong.PingPongServer(&pongd{})
 
 	if endpoint, err := s.Listen(profiles.LocalListenSpec); err == nil {
 		fmt.Printf("Listening at: %v\n", endpoint)

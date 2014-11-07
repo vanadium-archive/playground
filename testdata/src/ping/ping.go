@@ -14,11 +14,7 @@ func main() {
 	runtime := rt.Init()
 	log := runtime.Logger()
 
-	s, err := pingpong.BindPingPong("pingpong")
-	if err != nil {
-		log.Fatal("error binding to server: ", err)
-	}
-
+	s := pingpong.PingPongClient("pingpong")
 	pong, err := s.Ping(runtime.NewContext(), "PING")
 	if err != nil {
 		log.Fatal("error pinging: ", err)
