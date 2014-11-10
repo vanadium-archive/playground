@@ -7,8 +7,6 @@
 
 source "${VEYRON_ROOT}/scripts/lib/shell_test.sh"
 
-readonly WORKDIR="${shell_test_WORK_DIR}"
-
 # Installs the veyron.js library and makes it accessible to javascript files in
 # the veyron playground test folder under the module name 'veyron'.
 install_veyron_js() {
@@ -30,12 +28,12 @@ install_pgbundle() {
 
 # Installs various go binaries.
 build_go_binaries() {
-  PRINCIPAL_BIN="$(shell_test::build_go_binary 'veyron.io/veyron/veyron/tools/principal')"
-  PROXYD_BIN="$(shell_test::build_go_binary 'veyron.io/veyron/veyron/services/proxy/proxyd')"
-  MOUNTTABLED_BIN="$(shell_test::build_go_binary 'veyron.io/veyron/veyron/services/mounttable/mounttabled')"
-  BUILDER_BIN="$(shell_test::build_go_binary 'veyron.io/playground/builder')"
-  VDL_BIN="$(shell_test::build_go_binary 'veyron.io/veyron/veyron2/vdl/vdl')"
-  WSPRD_BIN="$(shell_test::build_go_binary 'veyron.io/wspr/veyron/services/wsprd')"
+  shell_test::build_go_binary 'veyron.io/veyron/veyron/tools/principal'
+  shell_test::build_go_binary 'veyron.io/veyron/veyron/services/proxy/proxyd'
+  shell_test::build_go_binary 'veyron.io/veyron/veyron/services/mounttable/mounttabled'
+  shell_test::build_go_binary 'veyron.io/playground/builder'
+  shell_test::build_go_binary 'veyron.io/veyron/veyron2/vdl/vdl'
+  shell_test::build_go_binary 'veyron.io/wspr/veyron/services/wsprd'
 }
 
 # Sets up a directory with the given files, then runs builder.
@@ -56,18 +54,19 @@ test_with_files() {
   local -r ORIG_DIR=$(pwd)
   pushd $(shell::tmp_dir)
   ln -s "${ORIG_DIR}/node_modules" ./  # for veyron.js
-  "${BUILDER_BIN}" -v=0 --includeVeyronEnv=true < "${PGBUNDLE_DIR}/bundle.json" 2>&1 | tee builder.out
+  "${shell_test_BIN_DIR}/builder" -v=0 --includeVeyronEnv=true < "${PGBUNDLE_DIR}/bundle.json" 2>&1 | tee builder.out
   # Move builder output to original dir for verification.
   mv builder.out "${ORIG_DIR}"
   popd
 }
 
 main() {
-  cd "${WORKDIR}"
+  cd "${shell_test_WORK_DIR}"
 
   export GOPATH="$(pwd):$(veyron env GOPATH)"
   export VDLPATH="$(pwd):$(veyron env VDLPATH)"
   export PATH="$(pwd):${shell_test_BIN_DIR}:${VEYRON_ROOT}/environment/cout/node/bin:${PATH}"
+  unset VEYRON_CREDENTIALS
 
   build_go_binaries
   install_veyron_js
