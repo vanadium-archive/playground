@@ -61,6 +61,7 @@ main() {
   export GOPATH="$(pwd):$(veyron env GOPATH)"
   export VDLPATH="$(pwd):$(veyron env VDLPATH)"
   export PATH="$(pwd):${shell_test_BIN_DIR}:${VEYRON_ROOT}/environment/cout/node/bin:${PATH}"
+  unset VEYRON_CREDENTIALS
 
   build_go_binaries
   install_veyron_js
