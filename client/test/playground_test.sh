@@ -31,15 +31,12 @@ install_pgbundle() {
 
 # Installs various go binaries.
 build_go_binaries() {
-  # Note that "go build" puts built binaries in $(pwd), but only if they are
-  # built one at a time. So much for the principle of least surprise...
-  local -r V="veyron.io/veyron/veyron"
-  veyron go build $V/tools/identity || shell_test::fail "line ${LINENO}: failed to build 'identity'"
-  veyron go build $V/services/proxy/proxyd || shell_test::fail "line ${LINENO}: failed to build 'proxyd'"
-  veyron go build $V/services/mounttable/mounttabled || shell_test::fail "line ${LINENO}: failed to build 'mounttabled'"
-  veyron go build veyron.io/playground/builder || shell_test::fail "line ${LINENO}: failed to build 'builder'"
-  veyron go build veyron.io/veyron/veyron2/vdl/vdl || shell_test::fail "line ${LINENO}: failed to build 'vdl'"
-  veyron go build veyron.io/wspr/veyron/services/wsprd || shell_test::fail "line ${LINENO}: failed to build 'wsprd'"
+  shell_test::build_go_binary 'veyron.io/veyron/veyron/tools/principal'
+  shell_test::build_go_binary 'veyron.io/veyron/veyron/services/proxy/proxyd'
+  shell_test::build_go_binary 'veyron.io/veyron/veyron/services/mounttable/mounttabled'
+  shell_test::build_go_binary 'veyron.io/playground/builder'
+  shell_test::build_go_binary 'veyron.io/veyron/veyron2/vdl/vdl'
+  shell_test::build_go_binary 'veyron.io/wspr/veyron/services/wsprd'
 }
 
 # Tests a single example (i.e. a single embedded playground).
@@ -51,7 +48,7 @@ test_example() {
   local -r ORIG_DIR=$(pwd)
   pushd $(shell::tmp_dir)
   ln -s "${ORIG_DIR}/node_modules" ./  # for veyron.js
-  "${ORIG_DIR}/builder" < "${PGBUNDLE_DIR}/bundle.json" 2>&1 > builder.out
+  "${shell_test_BIN_DIR}/builder" < "${PGBUNDLE_DIR}/bundle.json" 2>&1 > builder.out
   local -r OK=$?
   popd
   [ $OK ] || shell_test::fail "${PGBUNDLE_DIR}"
@@ -59,11 +56,11 @@ test_example() {
 
 main() {
   local -r WWWDIR="$(pwd)"
-  cd $(shell::tmp_dir)
+  cd "${shell_test_WORK_DIR}"
 
   export GOPATH="$(pwd):$(veyron env GOPATH)"
   export VDLPATH="$(pwd):$(veyron env VDLPATH)"
-  export PATH="$(pwd):${VEYRON_ROOT}/environment/cout/node/bin:${PATH}"
+  export PATH="$(pwd):${shell_test_BIN_DIR}:${VEYRON_ROOT}/environment/cout/node/bin:${PATH}"
 
   build_go_binaries
   install_veyron_js
