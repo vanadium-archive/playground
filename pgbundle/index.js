@@ -52,6 +52,11 @@ function shouldIgnore(fileName) {
   if ((/\.vdl\.go$/i).test(fileName)) {
     return true;
   }
+  // Ignore files inside "bin" and "pkg" directories.
+  if (fileName.indexOf('bin/') === 0 ||
+      fileName.indexOf('pkg/') === 0) {
+    return true;
+  }
   return false;
 }
 
