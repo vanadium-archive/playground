@@ -8,7 +8,7 @@ var BUNDLE_NAME = 'bundle.json';
 
 module.exports = {run: run};
 
-// TODO(nlacasse): improve this.
+// TODO(nlacasse): Improve this.
 function usage() {
   console.log('Usage: pgbundle [options] <path> [<path> <path> ...]');
   console.log('Options: --verbose: Enable verbose output.');
