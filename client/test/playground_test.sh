@@ -2,7 +2,7 @@
 
 # Tests that all embedded playgrounds execute successfully.
 
-# To build a playground example yourself, do something like:
+# To debug playground compile errors you can build examples locally, e.g.:
 # $ cd content/playgrounds/code/fortune/ex0-go/src
 # $ GOPATH=$(dirname $(pwd)) VDLPATH=$(dirname $(pwd)) veyron go install ./...
 
