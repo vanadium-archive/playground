@@ -2,8 +2,9 @@
 
 # Tests that all embedded playgrounds execute successfully.
 
-# TODO(sadovsky): This test actually doesn't quite work yet, because builder
-# returns with exit code 0 even if some program terminated badly.
+# To build a playground example yourself, do something like:
+# $ cd content/playgrounds/code/fortune/ex0-go/src
+# $ GOPATH=$(dirname $(pwd)) VDLPATH=$(dirname $(pwd)) veyron go install ./...
 
 # TODO(sadovsky): Much of the setup code below also exists in
 # veyron.io/veyron/veyron/tools/playground/test.sh.
@@ -44,14 +45,16 @@ test_example() {
   local -r PGBUNDLE_DIR="$1"
   ./node_modules/.bin/pgbundle "${PGBUNDLE_DIR}"
 
+  echo -e "\n\n>>>>> Test ${PGBUNDLE_DIR}\n\n"
+
   # Create a fresh dir to run bundler from.
   local -r ORIG_DIR=$(pwd)
   pushd $(shell::tmp_dir)
   ln -s "${ORIG_DIR}/node_modules" ./  # for veyron.js
-  "${shell_test_BIN_DIR}/builder" < "${PGBUNDLE_DIR}/bundle.json" 2>&1 > builder.out
-  local -r OK=$?
+  "${shell_test_BIN_DIR}/builder" < "${PGBUNDLE_DIR}/bundle.json" 2>&1 | tee builder.out
+  # TODO(sadovsky): Make this "clean exit" check more robust.
+  grep -q "\"Exited cleanly.\"" builder.out || shell_test::fail "${PGBUNDLE_DIR}: did not exit cleanly"
   popd
-  [ $OK ] || shell_test::fail "${PGBUNDLE_DIR}"
 }
 
 main() {

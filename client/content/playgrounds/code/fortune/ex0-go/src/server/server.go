@@ -58,7 +58,7 @@ func main() {
 	}
 
 	// Create the fortune server stub.
-	serverFortune := fortune.NewServerFortune(newFortuned())
+	fortuneServer := fortune.FortuneServer(newFortuned())
 
 	// Create an endpoint and begin listening.
 	if endpoint, err := s.Listen(profiles.LocalListenSpec); err == nil {
@@ -68,7 +68,7 @@ func main() {
 	}
 
 	// Serve the fortune dispatcher at "fortune".
-	if err := s.Serve("fortune", ipc.LeafDispatcher(serverFortune, vflag.NewAuthorizerOrDie())); err != nil {
+	if err := s.ServeDispatcher("fortune", ipc.LeafDispatcher(fortuneServer, vflag.NewAuthorizerOrDie())); err != nil {
 		log.Fatal("error serving service: ", err)
 	}
 
