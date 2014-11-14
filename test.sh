@@ -61,9 +61,6 @@ test_with_files() {
 }
 
 main() {
-  # TODO(suharshs,nlacasse,jsimsa): Remove this after this test is fixed.
-  shell_test::pass
-
   cd "${shell_test_WORK_DIR}"
 
   export GOPATH="$(pwd):$(veyron env GOPATH)"
