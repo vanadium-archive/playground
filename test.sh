@@ -12,7 +12,12 @@ source "${VEYRON_ROOT}/scripts/lib/shell_test.sh"
 install_veyron_js() {
   # TODO(nlacasse): Once veyron.js is publicly available in npm, replace this
   # with "npm install veyron".
+
+  pushd "${VEYRON_ROOT}/veyron/javascript/vom"
+  npm link
+  popd
   pushd "${VEYRON_ROOT}/veyron.js"
+  npm link vom
   npm link
   popd
   npm link veyron
@@ -61,9 +66,6 @@ test_with_files() {
 }
 
 main() {
-  # TODO(nlacasse, sadovsky, suharshs): Re-enable this test when it is fixed.
-  shell_test::pass
-
   cd "${shell_test_WORK_DIR}"
 
   export GOPATH="$(pwd):$(veyron env GOPATH)"
