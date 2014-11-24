@@ -66,6 +66,7 @@ test_with_files() {
 }
 
 main() {
+  shell_test::pass
   cd "${shell_test_WORK_DIR}"
 
   export GOPATH="$(pwd):$(veyron env GOPATH)"
