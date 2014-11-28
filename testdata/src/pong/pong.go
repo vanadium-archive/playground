@@ -22,6 +22,8 @@ func (f *pongd) Ping(ctx ipc.ServerContext, message string) (result string, err 
 
 func main() {
 	r := rt.Init()
+	defer r.Cleanup()
+
 	log := r.Logger()
 	s, err := r.NewServer()
 	if err != nil {
@@ -42,5 +44,5 @@ func main() {
 	}
 
 	// Wait forever.
-	<-signals.ShutdownOnSignals()
+	<-signals.ShutdownOnSignals(r)
 }
