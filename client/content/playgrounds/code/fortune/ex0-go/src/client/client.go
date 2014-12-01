@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	_ "veyron.io/veyron/veyron/profiles"
@@ -12,7 +13,11 @@ import (
 )
 
 func main() {
-	runtime := rt.Init()
+	var err error
+	runtime, err := rt.New()
+	if err != nil {
+		log.Fatal("failure creating runtime: ", err)
+	}
 
 	// Create a new stub that binds to address without
 	// using the name service.
@@ -22,7 +27,6 @@ func main() {
 	// We do this in a loop to give the server time to start up.
 	var fortune string
 	for {
-		var err error
 		if fortune, err = s.Get(runtime.NewContext()); err == nil {
 			break
 		}
