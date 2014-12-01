@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-	var err error
 	runtime, err := rt.New()
 	if err != nil {
 		log.Fatal("failure creating runtime: ", err)
