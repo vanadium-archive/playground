@@ -315,7 +315,10 @@ func (f *codeFile) run(ch chan exit) {
 	}()
 	if err != nil {
 		debug("Failed to start", f.Name, "-", err)
-		ch <- exit{f.Name, err}
+		// Use a goroutine to avoid deadlock.
+		go func() {
+			ch <- exit{f.Name, err}
+		}()
 		return
 	}
 
