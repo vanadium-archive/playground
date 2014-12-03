@@ -11,7 +11,12 @@ import (
 )
 
 func main() {
-	runtime := rt.Init()
+	runtime, err := rt.New()
+	if err != nil {
+		panic(err)
+	}
+	defer runtime.Cleanup()
+
 	log := runtime.Logger()
 
 	s := pingpong.PingPongClient("pingpong")

@@ -21,7 +21,10 @@ func (f *pongd) Ping(ctx ipc.ServerContext, message string) (result string, err 
 }
 
 func main() {
-	r := rt.Init()
+	r, err := rt.New()
+	if err != nil {
+		panic(err)
+	}
 	defer r.Cleanup()
 
 	log := r.Logger()
