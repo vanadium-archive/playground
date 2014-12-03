@@ -43,10 +43,12 @@ veyron.init({}).then(function(rt){
   rt.serve('bakery/cookie/fortune', fortuneService).then(function() {
     console.log('Fortune server serving under: bakery/cookie/fortune \n');
   }).catch(function(err) {
-    console.log('Failed to serve the Fortune server because: \n', err);
+    console.error('Failed to serve the Fortune server because: \n', err);
+    process.exit(1);
   });
 }).catch(function(err) {
   console.error('Failed to start the fortune server because:', err);
+  process.exit(1);
 });
 
 // Let's add a few fortunes to start with
