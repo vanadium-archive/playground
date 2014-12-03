@@ -180,7 +180,9 @@ func writeFiles(files []*codeFile) error {
 	return nil
 }
 
-func compileFiles(files []*codeFile) error {
+// If compilation failed due to user error (bad input), returns badInput=true
+// and err=nil. Only internal errors return non-nil err.
+func compileFiles(files []*codeFile) (badInput bool, err error) {
 	needToCompile := false
 	for _, f := range files {
 		if f.lang == "vdl" || f.lang == "go" {
@@ -189,19 +191,26 @@ func compileFiles(files []*codeFile) error {
 		}
 	}
 	if !needToCompile {
-		return nil
+		return
 	}
 
 	debug("Compiling files")
 	pwd, err := os.Getwd()
 	if err != nil {
-		return err
+		return
 	}
 	os.Setenv("GOPATH", pwd+":"+os.Getenv("GOPATH"))
 	os.Setenv("VDLPATH", pwd+":"+os.Getenv("VDLPATH"))
 	// We set isService=false for compilation because "go install" only produces
 	// output on error, and we always want clients to see such errors.
-	return makeCmd("", false, "veyron", "go", "install", "./...").Run()
+	err = makeCmd("<compile>", false, "veyron", "go", "install", "./...").Run()
+	// TODO(ivanpi): We assume *exec.ExitError results from uncompilable input
+	// files; other cases can result from bugs in playground backend or compiler
+	// itself.
+	if _, ok := err.(*exec.ExitError); ok {
+		badInput, err = true, nil
+	}
+	return
 }
 
 func runFiles(files []*codeFile) {
@@ -417,7 +426,14 @@ func main() {
 	panicOnError(writeFiles(r.Files))
 
 	logVeyronEnv()
-	panicOnError(compileFiles(r.Files))
+
+	badInput, err := compileFiles(r.Files)
+	// Panic on internal error, but not on user error.
+	panicOnError(err)
+	if badInput {
+		writeEvent("<compile>", "stderr", "Compilation error.")
+		return
+	}
 
 	runFiles(r.Files)
 }
