@@ -20,7 +20,7 @@ ENV VDLPATH $GOPATH
 # fresh veyron code, you must pass "--no-cache" to the docker build command.
 # See README.md.
 ADD netrc /root/.netrc
-RUN curl -u veyron:D6HT]P,LrJ7e https://www.envyor.com/noproxy/veyron-setup.sh | bash
+RUN curl -u veyron:D6HT]P,LrJ7e https://dev.v.io/noproxy/veyron-setup.sh | bash
 RUN rm /root/.netrc
 RUN $VEYRON_ROOT/bin/veyron profile setup web
 
