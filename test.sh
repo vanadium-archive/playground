@@ -5,7 +5,7 @@
 # TODO(sadovsky): Much of the setup code below also exists in
 # veyron-www/test/playground_test.sh.
 
-source "${VEYRON_ROOT}/scripts/lib/shell_test.sh"
+source "$(go list -f {{.Dir}} veyron.io/veyron/shell/lib)/shell_test.sh"
 
 # Installs the veyron.js library and makes it accessible to javascript files in
 # the veyron playground test folder under the module name 'veyron'.
