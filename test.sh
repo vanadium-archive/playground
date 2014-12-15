@@ -43,7 +43,7 @@ build_go_binaries() {
 
 # Sets up a directory with the given files, then runs builder.
 test_with_files() {
-  local -r TESTDATA_DIR="$(shell::go_package_dir veyron.io/playground/testdata)"
+  local -r TESTDATA_DIR="$(go list -f {{.Dir}} veyron.io/playground)/testdata"
 
   # Write input files to a fresh dir, then run pgbundle.
   local -r PGBUNDLE_DIR=$(shell::tmp_dir)
