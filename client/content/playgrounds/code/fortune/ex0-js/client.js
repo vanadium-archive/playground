@@ -1,4 +1,5 @@
 var veyron = require('veyron');
+var context = veyron.context;
 
 /**
  * Create a Veyron runtime using the configuration defined in config.js,
@@ -10,7 +11,9 @@ veyron.init({}, function(err, rt){
   retryBindTo(rt, function(err, fortuneService) {
     if (err) { return error(err); }
 
-    fortuneService.getRandomFortune(function(err, fortune) {
+    var ctx = new context.Context();
+
+    fortuneService.getRandomFortune(ctx, function(err, fortune) {
       if (err) { return error(err); }
 
       console.log(fortune);
