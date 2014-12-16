@@ -39,6 +39,10 @@ function main() {
     echo "Unable to access git, missing ~/.netrc"
     exit 1
   fi
+  if [[ ! -e ~/.hgrc ]]; then
+    echo "Unable to access mercurial, missing ~/.hgrc"
+    exit 1
+  fi
 
   local ROLLING="1"
   if [[ $# -gt 0 && ("$1" == "--no-rolling") ]]; then
@@ -52,8 +56,10 @@ function main() {
   # Build the docker image.
   cd ${VEYRON_ROOT}/veyron/go/src/veyron.io/playground/builder
   cp ~/.netrc ./netrc
+  cp ~/.hgrc ./hgrc
   sudo docker build --no-cache -t playground .
   rm -f ./netrc
+  rm -f ./hgrc
 
   # Export the docker image to disk.
   sudo docker save -o /mnt/playground.tar.gz playground

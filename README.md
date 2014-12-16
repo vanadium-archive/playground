@@ -20,6 +20,7 @@ Start (or restart) the Docker daemon:
 Build the playground Docker image (this will take a while...):
 
     $ cp ~/.netrc $VEYRON_ROOT/veyron/go/src/veyron.io/playground/builder/netrc
+    $ cp ~/.hgrc $VEYRON_ROOT/veyron/go/src/veyron.io/playground/builder/hgrc
     $ sudo docker build -t playground $VEYRON_ROOT/veyron/go/src/veyron.io/playground/builder/.
 
 Note: If you want to ensure an up-to-date version of veyron is installed in the

@@ -3,7 +3,7 @@ RUN /usr/sbin/useradd -d /home/playground -m playground
 
 # Install various prereqs.
 RUN apt-get update
-RUN apt-get install -y curl g++ git libc6-i386 make python
+RUN apt-get install -y curl g++ git libc6-i386 make mercurial python
 
 # Install Go. Note, the apt-get "golang" target is too old.
 RUN (cd /tmp; curl -O https://storage.googleapis.com/golang/go1.3.3.linux-amd64.tar.gz)
@@ -22,7 +22,9 @@ ENV VDLPATH $GOPATH
 ADD netrc /root/.netrc
 RUN curl -u veyron:D6HT]P,LrJ7e https://dev.v.io/noproxy/veyron-setup.sh | bash
 RUN rm /root/.netrc
+ADD hgrc /root/.hgrc
 RUN $VEYRON_ROOT/bin/veyron profile setup web
+RUN rm /root/.hgrc
 
 # Install the veyron.js library.
 # TODO(nlacasse): Switch to "npm install -g veyron" once veyron.js is publicly
