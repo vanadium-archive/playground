@@ -104,6 +104,11 @@
   color: #455ede;
 }
 
+.pg .console .text .syserr {
+  color: #d01716;
+  font-weight: bold;
+}
+
 .pg .console.open {
   height: 200px;
   overflow: auto;

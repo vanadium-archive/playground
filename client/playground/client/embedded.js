@@ -1,10 +1,10 @@
 module.exports = EmbeddedPlayground;
 
 var _ = require('lodash');
+var http = require('http');
 var mercury = require('mercury');
 var moment = require('moment');
 var path = require('path');
-var request = require('superagent');
 var url = require('url');
 
 var Editor = require('./editor');
@@ -135,7 +135,7 @@ EmbeddedPlayground.prototype.run = function() {
   }
 
   var editors = this.editors_;
-  var req = {
+  var reqData = {
     files: _.map(this.files_, function(file, i) {
       var editor = editors[i];
       return {
@@ -150,31 +150,96 @@ EmbeddedPlayground.prototype.run = function() {
   // current time) and introduce a fake delay. Also, switch to streaming
   // messages, for usability.
   var that = this, state = this.state_;
-  request
-      .post(compileUrl)
-      .type('json')
-      .accept('json')
-      .send(req)
-      .end(function(err, res) {
-        // If the user has stopped this run or reset the playground, do nothing.
-        if (runId !== state.nextRunId()) {
-          return;
-        }
-        that.endRun_();
-        // TODO(sadovsky): Show system errors to the user somehow.
-        if (err) {
-          return console.error(err);
-        }
-        if (res.error) {
-          return console.error(res.error);
-        }
-        if (res.body.Errors) {
-          return state.consoleEvents.set([{Message: res.body.Errors}]);
-        }
-        if (res.body.Events) {
-          return state.consoleEvents.set(res.body.Events);
+
+  // If the user has stopped this run or reset the playground, returns false.
+  var isRunActive = function() {
+    return runId === state.nextRunId();
+  };
+  var addConsoleEvents = function(events) {
+    state.consoleEvents.set(state.consoleEvents().concat(events));
+  };
+  var echoEvent = function(stream, message, events) {
+    var ev = {Stream: stream, Message: message};
+    if (events) {
+      events.push(ev);
+    } else {
+      addConsoleEvents([ev]);
+    }
+  };
+
+  var optp = url.parse(compileUrl);
+
+  var options = {
+    method: 'POST',
+    protocol: optp.protocol,
+    hostname: optp.hostname,
+    port: optp.port || '80',
+    path: optp.path,
+    // TODO(ivanpi): Change once deployed.
+    withCredentials: false,
+    headers: {
+      'accept': 'application/json',
+      'content-type': 'application/json'
+    }
+  };
+
+  var req = http.request(options);
+
+  var endRunIfActive = function() {
+    if (isRunActive()) {
+      that.endRun_();
+    }
+  };
+
+  req.on('error', function(err) {
+    if (isRunActive()) {
+      console.log(err);
+      echoEvent('syserr', 'Error connecting to server.');
+      process.nextTick(endRunIfActive);
+    }
+  });
+
+  req.on('response', function(res) {
+    if (isRunActive()) {
+      if (res.statusCode !== 0 && res.statusCode !== 200) {
+        echoEvent('syserr', 'HTTP status ' + res.statusCode);
+      }
+      // Holds partial prefix of next line.
+      var line = { buffer: '' };
+      res.on('data', function(chunk) {
+        if (isRunActive()) {
+          // Each complete line is one JSON Event.
+          var eventsJson = (line.buffer + chunk).split('\n');
+          line.buffer = eventsJson.pop();
+          var events = [];
+          _.forEach(eventsJson, function(el) {
+            // Ignore empty and invalid lines.
+            if (el && el.charAt(0) === '{') {
+              try {
+                events.push(JSON.parse(el));
+              } catch (err) {
+                console.error(err);
+                echoEvent('syserr', 'Error parsing server response.', events);
+                endRunIfActive();
+                return false;
+              }
+            }
+          });
+          addConsoleEvents(events);
         }
       });
+    }
+  });
+
+  req.on('close', function() {
+    if (isRunActive()) {
+      process.nextTick(endRunIfActive);
+    }
+  });
+
+  req.write(JSON.stringify(reqData));
+
+  req.end();
 };
 
 // Clears the console and resets all editors to their original contents.
