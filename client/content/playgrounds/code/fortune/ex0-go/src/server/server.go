@@ -49,7 +49,10 @@ func (f *fortuned) Add(_ ipc.ServerContext, Fortune string) error {
 // Main - Set everything up.
 func main() {
 	// Create the runtime.
-	r := rt.Init()
+	r, err := rt.New()
+	if err != nil {
+		log.Fatal("failure creating runtime: ", err)
+	}
 
 	// Create a new instance of the runtime's server functionality.
 	s, err := r.NewServer()
@@ -73,5 +76,5 @@ func main() {
 	}
 
 	// Wait forever.
-	<-signals.ShutdownOnSignals()
+	<-signals.ShutdownOnSignals(r)
 }
