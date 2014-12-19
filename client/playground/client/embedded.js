@@ -155,16 +155,11 @@ EmbeddedPlayground.prototype.run = function() {
   var isRunActive = function() {
     return runId === state.nextRunId();
   };
-  var addConsoleEvents = function(events) {
+  var appendToConsole = function(events) {
     state.consoleEvents.set(state.consoleEvents().concat(events));
   };
-  var echoEvent = function(stream, message, events) {
-    var ev = {Stream: stream, Message: message};
-    if (events) {
-      events.push(ev);
-    } else {
-      addConsoleEvents([ev]);
-    }
+  var makeEvent = function(stream, message) {
+    return {Stream: stream, Message: message};
   };
 
   var optp = url.parse(compileUrl);
@@ -194,7 +189,7 @@ EmbeddedPlayground.prototype.run = function() {
   req.on('error', function(err) {
     if (isRunActive()) {
       console.log(err);
-      echoEvent('syserr', 'Error connecting to server.');
+      appendToConsole(makeEvent('syserr', 'Error connecting to server.'));
       process.nextTick(endRunIfActive);
     }
   });
@@ -202,7 +197,7 @@ EmbeddedPlayground.prototype.run = function() {
   req.on('response', function(res) {
     if (isRunActive()) {
       if (res.statusCode !== 0 && res.statusCode !== 200) {
-        echoEvent('syserr', 'HTTP status ' + res.statusCode);
+        appendToConsole(makeEvent('syserr', 'HTTP status ' + res.statusCode));
       }
       // Holds partial prefix of next line.
       var line = { buffer: '' };
@@ -219,13 +214,14 @@ EmbeddedPlayground.prototype.run = function() {
                 events.push(JSON.parse(el));
               } catch (err) {
                 console.error(err);
-                echoEvent('syserr', 'Error parsing server response.', events);
+                events.push(makeEvent('syserr',
+                    'Error parsing server response.'));
                 endRunIfActive();
                 return false;
               }
             }
           });
-          addConsoleEvents(events);
+          appendToConsole(events);
         }
       });
     }
