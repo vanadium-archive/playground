@@ -24,7 +24,7 @@ an example Fortune service:
 
     type Fortune interface {
       // Returns a random fortune.
-      Get() (Fortune string, Err error)
+      Get() (Fortune string | error)
 
       // Adds a fortune to the set used by Get().
       Add(Fortune string) error
