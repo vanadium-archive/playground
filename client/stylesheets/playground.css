@@ -100,6 +100,10 @@
   color: #d01716;
 }
 
+.pg .console .text .svc-stderr {
+  color: #d01716;
+}
+
 .pg .console .text .debug {
   color: #455ede;
 }
