@@ -1,6 +1,6 @@
 package pingpong
 
-import "veyron.io/veyron/veyron2/security"
+import "v.io/veyron/veyron2/security"
 
 type PingPong interface {
 	Ping(message string) (string | error) {security.ReadLabel}

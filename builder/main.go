@@ -32,8 +32,8 @@ import (
 	"syscall"
 	"time"
 
-	"veyron.io/playground/event"
-	"veyron.io/veyron/veyron/lib/flags/consts"
+	"v.io/playground/event"
+	"v.io/veyron/veyron/lib/flags/consts"
 )
 
 const runTimeout = 3 * time.Second

@@ -16,7 +16,7 @@ import (
 	"syscall"
 	"time"
 
-	"veyron.io/veyron/veyron/lib/flags/consts"
+	"v.io/veyron/veyron/lib/flags/consts"
 )
 
 var (

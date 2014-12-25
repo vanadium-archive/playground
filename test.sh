@@ -5,7 +5,7 @@
 # TODO(sadovsky): Much of the setup code below also exists in
 # veyron-www/test/playground_test.sh.
 
-source "$(go list -f {{.Dir}} veyron.io/veyron/shell/lib)/shell_test.sh"
+source "$(go list -f {{.Dir}} v.io/veyron/shell/lib)/shell_test.sh"
 
 # Installs the veyron.js library and makes it accessible to javascript files in
 # the veyron playground test folder under the module name 'veyron'.
@@ -33,17 +33,17 @@ install_pgbundle() {
 
 # Installs various go binaries.
 build_go_binaries() {
-  shell_test::build_go_binary 'veyron.io/veyron/veyron/tools/principal'
-  shell_test::build_go_binary 'veyron.io/veyron/veyron/services/proxy/proxyd'
-  shell_test::build_go_binary 'veyron.io/veyron/veyron/services/mounttable/mounttabled'
-  shell_test::build_go_binary 'veyron.io/playground/builder'
-  shell_test::build_go_binary 'veyron.io/veyron/veyron2/vdl/vdl'
-  shell_test::build_go_binary 'veyron.io/wspr/veyron/services/wsprd'
+  shell_test::build_go_binary 'v.io/veyron/veyron/tools/principal'
+  shell_test::build_go_binary 'v.io/veyron/veyron/services/proxy/proxyd'
+  shell_test::build_go_binary 'v.io/veyron/veyron/services/mounttable/mounttabled'
+  shell_test::build_go_binary 'v.io/playground/builder'
+  shell_test::build_go_binary 'v.io/veyron/veyron2/vdl/vdl'
+  shell_test::build_go_binary 'v.io/wspr/veyron/services/wsprd'
 }
 
 # Sets up a directory with the given files, then runs builder.
 test_with_files() {
-  local -r TESTDATA_DIR="$(go list -f {{.Dir}} veyron.io/playground)/testdata"
+  local -r TESTDATA_DIR="$(go list -f {{.Dir}} v.io/playground)/testdata"
 
   # Write input files to a fresh dir, then run pgbundle.
   local -r PGBUNDLE_DIR=$(shell::tmp_dir)

@@ -4,14 +4,14 @@
 package pingpong
 
 import (
-	"veyron.io/veyron/veyron2/security"
+	"v.io/veyron/veyron2/security"
 
 	// The non-user imports are prefixed with "__" to prevent collisions.
-	__veyron2 "veyron.io/veyron/veyron2"
-	__context "veyron.io/veyron/veyron2/context"
-	__ipc "veyron.io/veyron/veyron2/ipc"
-	__vdlutil "veyron.io/veyron/veyron2/vdl/vdlutil"
-	__wiretype "veyron.io/veyron/veyron2/wiretype"
+	__veyron2 "v.io/veyron/veyron2"
+	__context "v.io/veyron/veyron2/context"
+	__ipc "v.io/veyron/veyron2/ipc"
+	__vdlutil "v.io/veyron/veyron2/vdl/vdlutil"
+	__wiretype "v.io/veyron/veyron2/wiretype"
 )
 
 // TODO(toddw): Remove this line once the new signature support is done.
@@ -137,7 +137,7 @@ var PingPongDesc __ipc.InterfaceDesc = descPingPong
 // descPingPong hides the desc to keep godoc clean.
 var descPingPong = __ipc.InterfaceDesc{
 	Name:    "PingPong",
-	PkgPath: "veyron.io/playground/testdata/src/pingpong",
+	PkgPath: "v.io/playground/testdata/src/pingpong",
 	Methods: []__ipc.MethodDesc{
 		{
 			Name: "Ping",

@@ -40,26 +40,26 @@ RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link veyron
 # Install Veyron Go dependencies.
 WORKDIR /usr/local/veyron/veyron
 ENV PATH $VANADIUM_ROOT/veyron/go/bin:$VANADIUM_ROOT/bin:$PATH
-RUN veyron go install veyron.io/veyron/...
-RUN veyron go install veyron.io/playground/...
+RUN veyron go install v.io/veyron/...
+RUN veyron go install v.io/playground/...
 
 # Uncomment the following lines to install a version of the builder tool using
 # your local version of the code. This is useful when developing and testing
 # local changes.
 #RUN rm $VANADIUM_ROOT/veyron/go/bin/builder
-#ADD main.go $VANADIUM_ROOT/veyron/go/src/veyron.io/playground/builder/main.go
-#ADD credentials.go $VANADIUM_ROOT/veyron/go/src/veyron.io/playground/builder/credentials.go
-#ADD services.go $VANADIUM_ROOT/veyron/go/src/veyron.io/playground/builder/services.go
-#ADD multi_writer.go $VANADIUM_ROOT/veyron/go/src/veyron.io/playground/builder/multi_writer.go
-#RUN veyron go install veyron.io/playground/builder
+#ADD main.go $VANADIUM_ROOT/veyron/go/src/v.io/playground/builder/main.go
+#ADD credentials.go $VANADIUM_ROOT/veyron/go/src/v.io/playground/builder/credentials.go
+#ADD services.go $VANADIUM_ROOT/veyron/go/src/v.io/playground/builder/services.go
+#ADD multi_writer.go $VANADIUM_ROOT/veyron/go/src/v.io/playground/builder/multi_writer.go
+#RUN veyron go install v.io/playground/builder
 
 # Copy proxyd's main.go to builder/proxyd_main.go, then uncomment the following
 # lines to install a version of proxyd (used by the builder tool) using your
 # local version of the code. This is useful when developing and testing local
 # changes.
 #RUN rm $VANADIUM_ROOT/veyron/go/bin/proxyd
-#ADD proxyd_main.go $VANADIUM_ROOT/veyron/go/src/veyron.io/veyron/veyron/services/proxy/proxyd/main.go
-#RUN veyron go install veyron.io/veyron/veyron/services/proxy/proxyd
+#ADD proxyd_main.go $VANADIUM_ROOT/veyron/go/src/v.io/veyron/veyron/services/proxy/proxyd/main.go
+#RUN veyron go install v.io/veyron/veyron/services/proxy/proxyd
 
 USER playground
 WORKDIR /home/playground
