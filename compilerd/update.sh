@@ -7,7 +7,7 @@
 #   gcutil ssh --project google.com:veyron playground-master
 #   sudo su - veyron
 #   veyron update
-#   bash $VEYRON_ROOT/veyron/go/src/veyron.io/playground/compilerd/update.sh
+#   bash $VANADIUM_ROOT/veyron/go/src/veyron.io/playground/compilerd/update.sh
 
 set -e
 set -u
@@ -54,7 +54,7 @@ function main() {
   sudo mount /dev/sdb1 /mnt
 
   # Build the docker image.
-  cd ${VEYRON_ROOT}/veyron/go/src/veyron.io/playground/builder
+  cd ${VANADIUM_ROOT}/veyron/go/src/veyron.io/playground/builder
   cp ~/.netrc ./netrc
   cp ~/.hgrc ./hgrc
   sudo docker build --no-cache -t playground .

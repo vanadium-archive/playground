@@ -13,10 +13,10 @@ install_veyron_js() {
   # TODO(nlacasse): Once veyron.js is publicly available in npm, replace this
   # with "npm install veyron".
 
-  pushd "${VEYRON_ROOT}/veyron/javascript/vom"
+  pushd "${VANADIUM_ROOT}/veyron/javascript/vom"
   npm link
   popd
-  pushd "${VEYRON_ROOT}/veyron.js"
+  pushd "${VANADIUM_ROOT}/veyron.js"
   npm link vom
   npm link
   popd
@@ -25,7 +25,7 @@ install_veyron_js() {
 
 # Installs the pgbundle tool.
 install_pgbundle() {
-  pushd "${VEYRON_ROOT}/veyron/javascript/pgbundle"
+  pushd "${VANADIUM_ROOT}/veyron/javascript/pgbundle"
   npm link
   popd
   npm link pgbundle
@@ -70,7 +70,7 @@ main() {
 
   export GOPATH="$(pwd):$(veyron env GOPATH)"
   export VDLPATH="$(pwd):$(veyron env VDLPATH)"
-  export PATH="$(pwd):${shell_test_BIN_DIR}:${VEYRON_ROOT}/environment/cout/node/bin:${PATH}"
+  export PATH="$(pwd):${shell_test_BIN_DIR}:${VANADIUM_ROOT}/environment/cout/node/bin:${PATH}"
   unset VEYRON_CREDENTIALS
 
   build_go_binaries

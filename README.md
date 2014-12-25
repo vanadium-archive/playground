@@ -19,9 +19,9 @@ Start (or restart) the Docker daemon:
 
 Build the playground Docker image (this will take a while...):
 
-    $ cp ~/.netrc $VEYRON_ROOT/veyron/go/src/veyron.io/playground/builder/netrc
-    $ cp ~/.hgrc $VEYRON_ROOT/veyron/go/src/veyron.io/playground/builder/hgrc
-    $ sudo docker build -t playground $VEYRON_ROOT/veyron/go/src/veyron.io/playground/builder/.
+    $ cp ~/.netrc $VANADIUM_ROOT/veyron/go/src/veyron.io/playground/builder/netrc
+    $ cp ~/.hgrc $VANADIUM_ROOT/veyron/go/src/veyron.io/playground/builder/hgrc
+    $ sudo docker build -t playground $VANADIUM_ROOT/veyron/go/src/veyron.io/playground/builder/.
 
 Note: If you want to ensure an up-to-date version of veyron is installed in the
 Docker image, run the above command with the "--no-cache" flag.
@@ -38,12 +38,12 @@ Install the playground binaries:
 
 Run the compiler binary as root:
 
-    $ sudo $VEYRON_ROOT/veyron/go/bin/compilerd --shutdown=false --address=localhost:8181
+    $ sudo $VANADIUM_ROOT/veyron/go/bin/compilerd --shutdown=false --address=localhost:8181
 
 Or, run it without Docker (for faster iterations during development):
 
     $ cd $(mktemp -d "/tmp/XXXXXXXX")
-    $ PATH=$VEYRON_ROOT/veyron/go/bin:$PATH compilerd --shutdown=false --address=localhost:8181 --use-docker=false
+    $ PATH=$VANADIUM_ROOT/veyron/go/bin:$PATH compilerd --shutdown=false --address=localhost:8181 --use-docker=false
 
 The server should now be running at http://localhost:8181 and responding to
 compile requests at http://localhost:8181/compile.
