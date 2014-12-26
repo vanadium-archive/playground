@@ -33,7 +33,7 @@ import (
 	"time"
 
 	"v.io/playground/event"
-	"v.io/veyron/veyron/lib/flags/consts"
+	"v.io/core/veyron/lib/flags/consts"
 )
 
 const runTimeout = 3 * time.Second
@@ -43,7 +43,7 @@ var (
 
 	includeServiceOutput = flag.Bool("includeServiceOutput", false, "Whether to stream service (mounttable, wspr, proxy) output to clients.")
 
-	includeVeyronEnv = flag.Bool("includeVeyronEnv", false, "Whether to log the output of \"veyron env\" before compilation.")
+	includeVeyronEnv = flag.Bool("includeVeyronEnv", false, "Whether to log the output of \"v23 env\" before compilation.")
 
 	// Whether we have stopped execution of running files.
 	stopped = false
@@ -102,7 +102,7 @@ func panicOnError(err error) {
 
 func logVeyronEnv() error {
 	if *includeVeyronEnv {
-		return makeCmd("", false, "veyron", "env").Run()
+		return makeCmd("", false, "v23", "env").Run()
 	}
 	return nil
 }
@@ -203,7 +203,7 @@ func compileFiles(files []*codeFile) (badInput bool, err error) {
 	os.Setenv("VDLPATH", pwd+":"+os.Getenv("VDLPATH"))
 	// We set isService=false for compilation because "go install" only produces
 	// output on error, and we always want clients to see such errors.
-	err = makeCmd("<compile>", false, "veyron", "go", "install", "./...").Run()
+	err = makeCmd("<compile>", false, "v23", "go", "install", "./...").Run()
 	// TODO(ivanpi): We assume *exec.ExitError results from uncompilable input
 	// files; other cases can result from bugs in playground backend or compiler
 	// itself.

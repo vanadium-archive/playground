@@ -12,7 +12,7 @@ ENV PATH /usr/local/go/bin:$PATH
 
 ENV HOME /root
 ENV VANADIUM_ROOT /usr/local/veyron
-ENV GOPATH /home/playground:$VANADIUM_ROOT/veyron/go
+ENV GOPATH /home/playground:$VANADIUM_ROOT/release/go
 ENV VDLPATH $GOPATH
 
 # Setup veyron and veyron profiles.
@@ -26,10 +26,10 @@ ADD hgrc /root/.hgrc
 RUN $VANADIUM_ROOT/bin/veyron profile setup web
 RUN rm /root/.hgrc
 
-# Install the veyron.js library.
-# TODO(nlacasse): Switch to "npm install -g veyron" once veyron.js is publicly
+# Install the release/javascript/core library.
+# TODO(nlacasse): Switch to "npm install -g veyron" once release/javascript/core is publicly
 # visible in NPM.
-WORKDIR /usr/local/veyron/veyron.js
+WORKDIR /usr/local/veyron/release/javascript/core
 # NOTE(sadovsky): NPM is flaky. If any of the NPM commands below fail, simply
 # retry them.
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm install --production
@@ -38,29 +38,29 @@ WORKDIR /home/playground
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link veyron
 
 # Install Veyron Go dependencies.
-WORKDIR /usr/local/veyron/veyron
-ENV PATH $VANADIUM_ROOT/veyron/go/bin:$VANADIUM_ROOT/bin:$PATH
+WORKDIR /usr/local/core/veyron
+ENV PATH $VANADIUM_ROOT/release/go/bin:$VANADIUM_ROOT/bin:$PATH
 RUN veyron go install v.io/veyron/...
 RUN veyron go install v.io/playground/...
 
 # Uncomment the following lines to install a version of the builder tool using
 # your local version of the code. This is useful when developing and testing
 # local changes.
-#RUN rm $VANADIUM_ROOT/veyron/go/bin/builder
-#ADD main.go $VANADIUM_ROOT/veyron/go/src/v.io/playground/builder/main.go
-#ADD credentials.go $VANADIUM_ROOT/veyron/go/src/v.io/playground/builder/credentials.go
-#ADD services.go $VANADIUM_ROOT/veyron/go/src/v.io/playground/builder/services.go
-#ADD multi_writer.go $VANADIUM_ROOT/veyron/go/src/v.io/playground/builder/multi_writer.go
+#RUN rm $VANADIUM_ROOT/release/go/bin/builder
+#ADD main.go $VANADIUM_ROOT/release/go/src/v.io/playground/builder/main.go
+#ADD credentials.go $VANADIUM_ROOT/release/go/src/v.io/playground/builder/credentials.go
+#ADD services.go $VANADIUM_ROOT/release/go/src/v.io/playground/builder/services.go
+#ADD multi_writer.go $VANADIUM_ROOT/release/go/src/v.io/playground/builder/multi_writer.go
 #RUN veyron go install v.io/playground/builder
 
 # Copy proxyd's main.go to builder/proxyd_main.go, then uncomment the following
 # lines to install a version of proxyd (used by the builder tool) using your
 # local version of the code. This is useful when developing and testing local
 # changes.
-#RUN rm $VANADIUM_ROOT/veyron/go/bin/proxyd
-#ADD proxyd_main.go $VANADIUM_ROOT/veyron/go/src/v.io/veyron/veyron/services/proxy/proxyd/main.go
-#RUN veyron go install v.io/veyron/veyron/services/proxy/proxyd
+#RUN rm $VANADIUM_ROOT/release/go/bin/proxyd
+#ADD proxyd_main.go $VANADIUM_ROOT/release/go/src/v.io/core/veyron/services/proxy/proxyd/main.go
+#RUN veyron go install v.io/core/veyron/services/proxy/proxyd
 
 USER playground
 WORKDIR /home/playground
-ENTRYPOINT /usr/local/veyron/veyron/go/bin/builder
+ENTRYPOINT /usr/local/veyron/release/go/bin/builder

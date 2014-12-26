@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"path"
 
-	"v.io/veyron/veyron/lib/flags/consts"
+	"v.io/core/veyron/lib/flags/consts"
 )
 
 type credentials struct {

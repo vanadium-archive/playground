@@ -16,14 +16,14 @@ import (
 	"syscall"
 	"time"
 
-	"v.io/veyron/veyron/lib/flags/consts"
+	"v.io/core/veyron/lib/flags/consts"
 )
 
 var (
 	proxyName = "proxy"
 )
 
-// Note: This was copied from veyron/go/src/veyron/tools/findunusedport.
+// Note: This was copied from release/go/src/veyron/tools/findunusedport.
 // I would like to be able to import that package directly, but it defines a
 // main(), so can't be imported.  An alternative solution would be to call the
 // 'findunusedport' binary, but that would require starting another process and

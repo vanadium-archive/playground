@@ -7,7 +7,7 @@
 #   gcutil ssh --project google.com:veyron playground-master
 #   sudo su - veyron
 #   veyron update
-#   bash $VANADIUM_ROOT/veyron/go/src/v.io/playground/compilerd/update.sh
+#   bash $VANADIUM_ROOT/release/go/src/v.io/playground/compilerd/update.sh
 
 set -e
 set -u
@@ -54,7 +54,7 @@ function main() {
   sudo mount /dev/sdb1 /mnt
 
   # Build the docker image.
-  cd ${VANADIUM_ROOT}/veyron/go/src/v.io/playground/builder
+  cd ${VANADIUM_ROOT}/release/go/src/v.io/playground/builder
   cp ~/.netrc ./netrc
   cp ~/.hgrc ./hgrc
   sudo docker build --no-cache -t playground .
@@ -73,7 +73,7 @@ function main() {
   # Annoyingly, the only way to create the container is to run the image.
   # TODO(sadovsky): Why don't we just build compilerd using "veyron go install"?
   sudo docker run --name=${DISK} playground &> /dev/null || true
-  sudo docker cp ${DISK}:/usr/local/veyron/veyron/go/bin/compilerd /tmp
+  sudo docker cp ${DISK}:/usr/local/veyron/release/go/bin/compilerd /tmp
   sudo mv /tmp/compilerd /mnt/compilerd
   sudo docker rm ${DISK}
 

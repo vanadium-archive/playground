@@ -7,16 +7,16 @@
 
 source "$(go list -f {{.Dir}} v.io/veyron/shell/lib)/shell_test.sh"
 
-# Installs the veyron.js library and makes it accessible to javascript files in
+# Installs the release/javascript/core library and makes it accessible to javascript files in
 # the veyron playground test folder under the module name 'veyron'.
 install_veyron_js() {
-  # TODO(nlacasse): Once veyron.js is publicly available in npm, replace this
+  # TODO(nlacasse): Once release/javascript/core is publicly available in npm, replace this
   # with "npm install veyron".
 
   pushd "${VANADIUM_ROOT}/veyron/javascript/vom"
   npm link
   popd
-  pushd "${VANADIUM_ROOT}/veyron.js"
+  pushd "${VANADIUM_ROOT}/release/javascript/core"
   npm link vom
   npm link
   popd
@@ -33,11 +33,11 @@ install_pgbundle() {
 
 # Installs various go binaries.
 build_go_binaries() {
-  shell_test::build_go_binary 'v.io/veyron/veyron/tools/principal'
-  shell_test::build_go_binary 'v.io/veyron/veyron/services/proxy/proxyd'
-  shell_test::build_go_binary 'v.io/veyron/veyron/services/mounttable/mounttabled'
+  shell_test::build_go_binary 'v.io/core/veyron/tools/principal'
+  shell_test::build_go_binary 'v.io/core/veyron/services/proxy/proxyd'
+  shell_test::build_go_binary 'v.io/core/veyron/services/mounttable/mounttabled'
   shell_test::build_go_binary 'v.io/playground/builder'
-  shell_test::build_go_binary 'v.io/veyron/veyron2/vdl/vdl'
+  shell_test::build_go_binary 'v.io/core/veyron2/vdl/vdl'
   shell_test::build_go_binary 'v.io/wspr/veyron/services/wsprd'
 }
 
@@ -58,7 +58,7 @@ test_with_files() {
   # Create a fresh dir to run bundler from.
   local -r ORIG_DIR=$(pwd)
   pushd $(shell::tmp_dir)
-  ln -s "${ORIG_DIR}/node_modules" ./  # for veyron.js
+  ln -s "${ORIG_DIR}/node_modules" ./  # for release/javascript/core
   "${shell_test_BIN_DIR}/builder" -v=0 --includeVeyronEnv=true < "${PGBUNDLE_DIR}/bundle.json" 2>&1 | tee builder.out
   # Move builder output to original dir for verification.
   mv builder.out "${ORIG_DIR}"

@@ -4,8 +4,8 @@ package main
 import (
 	"fmt"
 
-	_ "v.io/veyron/veyron/profiles"
-	"v.io/veyron/veyron2/rt"
+	_ "v.io/core/veyron/profiles"
+	"v.io/core/veyron2/rt"
 
 	"pingpong"
 )

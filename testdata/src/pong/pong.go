@@ -4,10 +4,10 @@ package main
 import (
 	"fmt"
 
-	"v.io/veyron/veyron/lib/signals"
-	"v.io/veyron/veyron/profiles"
-	"v.io/veyron/veyron2/ipc"
-	"v.io/veyron/veyron2/rt"
+	"v.io/core/veyron/lib/signals"
+	"v.io/core/veyron/profiles"
+	"v.io/core/veyron2/ipc"
+	"v.io/core/veyron2/rt"
 
 	"pingpong"
 )
