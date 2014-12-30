@@ -6,7 +6,7 @@
 # Usage:
 #   gcutil ssh --project google.com:veyron playground-master
 #   sudo su - veyron
-#   veyron update
+#   v23 update
 #   bash $VANADIUM_ROOT/release/go/src/v.io/playground/compilerd/update.sh
 
 set -e
@@ -35,8 +35,8 @@ function cleanup() {
 }
 
 function main() {
-  if [[ ! -e ~/.netrc ]]; then
-    echo "Unable to access git, missing ~/.netrc"
+  if [[ ! -e ~/.gitcookies ]]; then
+    echo "Unable to access git, missing ~/.gitcookies"
     exit 1
   fi
   if [[ ! -e ~/.hgrc ]]; then
@@ -55,10 +55,10 @@ function main() {
 
   # Build the docker image.
   cd ${VANADIUM_ROOT}/release/go/src/v.io/playground/builder
-  cp ~/.netrc ./netrc
+  cp ~/.gitcookies ./gitcookies
   cp ~/.hgrc ./hgrc
   sudo docker build --no-cache -t playground .
-  rm -f ./netrc
+  rm -f ./gitcookies
   rm -f ./hgrc
 
   # Export the docker image to disk.
@@ -71,9 +71,9 @@ function main() {
   # NOTE(sadovsky): The purpose of the following line is to create a container
   # out of the docker image, so that we can copy out the compilerd binary.
   # Annoyingly, the only way to create the container is to run the image.
-  # TODO(sadovsky): Why don't we just build compilerd using "veyron go install"?
+  # TODO(sadovsky): Why don't we just build compilerd using "v23 go install"?
   sudo docker run --name=${DISK} playground &> /dev/null || true
-  sudo docker cp ${DISK}:/usr/local/veyron/release/go/bin/compilerd /tmp
+  sudo docker cp ${DISK}:/usr/local/vanadium/release/go/bin/compilerd /tmp
   sudo mv /tmp/compilerd /mnt/compilerd
   sudo docker rm ${DISK}
 

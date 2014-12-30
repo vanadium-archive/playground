@@ -6,30 +6,31 @@ RUN apt-get update
 RUN apt-get install -y curl g++ git libc6-i386 make mercurial python
 
 # Install Go. Note, the apt-get "golang" target is too old.
-RUN (cd /tmp; curl -O https://storage.googleapis.com/golang/go1.3.3.linux-amd64.tar.gz)
-RUN tar -C /usr/local -xzf /tmp/go1.3.3.linux-amd64.tar.gz
+RUN (cd /tmp; curl -O https://storage.googleapis.com/golang/go1.4.linux-amd64.tar.gz)
+RUN tar -C /usr/local -xzf /tmp/go1.4.linux-amd64.tar.gz
 ENV PATH /usr/local/go/bin:$PATH
 
 ENV HOME /root
-ENV VANADIUM_ROOT /usr/local/veyron
+ENV VANADIUM_ROOT /usr/local/vanadium
 ENV GOPATH /home/playground:$VANADIUM_ROOT/release/go
 ENV VDLPATH $GOPATH
 
-# Setup veyron and veyron profiles.
+# Setup Vanadium and Vanadium profiles.
 # Note: This will be cached! If you want to re-build the docker image using
-# fresh veyron code, you must pass "--no-cache" to the docker build command.
+# fresh Vanadium code, you must pass "--no-cache" to the docker build command.
 # See README.md.
-ADD netrc /root/.netrc
-RUN curl -u veyron:D6HT]P,LrJ7e https://dev.v.io/noproxy/veyron-setup.sh | bash
-RUN rm /root/.netrc
+ADD gitcookies /root/.gitcookies
+RUN git config --global http.cookiefile ~/.gitcookies
+RUN curl -u vanadium:D6HT]P,LrJ7e https://dev.v.io/noproxy/vanadium-setup.sh | bash
+RUN rm /root/.gitcookies
 ADD hgrc /root/.hgrc
-RUN $VANADIUM_ROOT/bin/veyron profile setup web
+RUN $VANADIUM_ROOT/bin/v23 profile setup web
 RUN rm /root/.hgrc
 
 # Install the release/javascript/core library.
 # TODO(nlacasse): Switch to "npm install -g veyron" once release/javascript/core is publicly
 # visible in NPM.
-WORKDIR /usr/local/veyron/release/javascript/core
+WORKDIR /usr/local/vanadium/release/javascript/core
 # NOTE(sadovsky): NPM is flaky. If any of the NPM commands below fail, simply
 # retry them.
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm install --production
@@ -37,11 +38,11 @@ RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link
 WORKDIR /home/playground
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link veyron
 
-# Install Veyron Go dependencies.
-WORKDIR /usr/local/core/veyron
+# Install Vanadium Go dependencies.
+WORKDIR /usr/local/vanadium/release
 ENV PATH $VANADIUM_ROOT/release/go/bin:$VANADIUM_ROOT/bin:$PATH
-RUN veyron go install v.io/core/...
-RUN veyron go install v.io/playground/...
+RUN v23 go install v.io/core/...
+RUN v23 go install v.io/playground/...
 
 # Uncomment the following lines to install a version of the builder tool using
 # your local version of the code. This is useful when developing and testing
@@ -51,7 +52,7 @@ RUN veyron go install v.io/playground/...
 #ADD credentials.go $VANADIUM_ROOT/release/go/src/v.io/playground/builder/credentials.go
 #ADD services.go $VANADIUM_ROOT/release/go/src/v.io/playground/builder/services.go
 #ADD multi_writer.go $VANADIUM_ROOT/release/go/src/v.io/playground/builder/multi_writer.go
-#RUN veyron go install v.io/playground/builder
+#RUN v23 go install v.io/playground/builder
 
 # Copy proxyd's main.go to builder/proxyd_main.go, then uncomment the following
 # lines to install a version of proxyd (used by the builder tool) using your
@@ -59,8 +60,8 @@ RUN veyron go install v.io/playground/...
 # changes.
 #RUN rm $VANADIUM_ROOT/release/go/bin/proxyd
 #ADD proxyd_main.go $VANADIUM_ROOT/release/go/src/v.io/core/veyron/services/proxy/proxyd/main.go
-#RUN veyron go install v.io/core/veyron/services/proxy/proxyd
+#RUN v23 go install v.io/core/veyron/services/proxy/proxyd
 
 USER playground
 WORKDIR /home/playground
-ENTRYPOINT /usr/local/veyron/release/go/bin/builder
+ENTRYPOINT /usr/local/vanadium/release/go/bin/builder

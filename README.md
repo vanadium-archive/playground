@@ -19,12 +19,12 @@ Start (or restart) the Docker daemon:
 
 Build the playground Docker image (this will take a while...):
 
-    $ cp ~/.netrc $VANADIUM_ROOT/release/go/src/v.io/playground/builder/netrc
+    $ cp ~/.gitcookies $VANADIUM_ROOT/release/go/src/v.io/playground/builder/gitcookies
     $ cp ~/.hgrc $VANADIUM_ROOT/release/go/src/v.io/playground/builder/hgrc
     $ sudo docker build -t playground $VANADIUM_ROOT/release/go/src/v.io/playground/builder/.
 
-Note: If you want to ensure an up-to-date version of veyron is installed in the
-Docker image, run the above command with the "--no-cache" flag.
+Note: If you want to ensure an up-to-date version of Vanadium is installed in
+the Docker image, run the above command with the "--no-cache" flag.
 
 Test your image (without running compilerd):
 
@@ -34,7 +34,7 @@ Test your image (without running compilerd):
 
 Install the playground binaries:
 
-    $ veyron go install v.io/playground/...
+    $ v23 go install v.io/playground/...
 
 Run the compiler binary as root:
 
