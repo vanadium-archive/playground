@@ -38,7 +38,7 @@ var fortuneService = {
  */
 
 // Create a Veyron runtime using the configuration
-veyron.init({}).then(function(rt){
+veyron.init().then(function(rt){
   // Serve the fortune server under a name. Serve returns a Promise object
   rt.serve('bakery/cookie/fortune', fortuneService).then(function() {
     console.log('Fortune server serving under: bakery/cookie/fortune \n');

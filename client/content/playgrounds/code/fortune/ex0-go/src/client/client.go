@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	_ "veyron.io/veyron/veyron/profiles"
-	"veyron.io/veyron/veyron2/rt"
+	_ "v.io/core/veyron/profiles"
+	"v.io/core/veyron2/rt"
 
 	"fortune"
 )

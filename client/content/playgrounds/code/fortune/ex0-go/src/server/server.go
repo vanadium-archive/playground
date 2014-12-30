@@ -6,11 +6,11 @@ import (
 	"log"
 	"math/rand"
 
-	"veyron.io/veyron/veyron/lib/signals"
-	"veyron.io/veyron/veyron/profiles"
-	vflag "veyron.io/veyron/veyron/security/flag"
-	"veyron.io/veyron/veyron2/ipc"
-	"veyron.io/veyron/veyron2/rt"
+	"v.io/core/veyron/lib/signals"
+	"v.io/core/veyron/profiles"
+	vflag "v.io/core/veyron/security/flag"
+	"v.io/core/veyron2/ipc"
+	"v.io/core/veyron2/rt"
 
 	"fortune"
 )

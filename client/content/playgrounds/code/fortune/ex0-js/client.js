@@ -5,13 +5,13 @@ var context = veyron.context;
  * Create a Veyron runtime using the configuration defined in config.js,
  * and bind it to the bakery/cookie/fortune service.
  */
-veyron.init({}, function(err, rt){
+veyron.init(function(err, rt){
   if (err) { return error(err); }
 
-  retryBindTo(rt, function(err, fortuneService) {
-    if (err) { return error(err); }
+  var ctx = new context.Context();
 
-    var ctx = new context.Context();
+  retryBindTo(ctx, rt, function(err, fortuneService) {
+    if (err) { return error(err); }
 
     fortuneService.getRandomFortune(ctx, function(err, fortune) {
       if (err) { return error(err); }
@@ -22,12 +22,12 @@ veyron.init({}, function(err, rt){
   });
 });
 
-function retryBindTo(rt, cb) {
-  rt.bindTo('bakery/cookie/fortune', function(err, fortuneService) {
+function retryBindTo(ctx, rt, cb) {
+  rt.bindTo(ctx, 'bakery/cookie/fortune', function(err, fortuneService) {
     if (err) {
       // Try again in 100ms
       return setTimeout(function(){
-        retryBindTo(rt, cb);
+        retryBindTo(ctx, rt, cb);
       }, 100);
     }
 
