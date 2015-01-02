@@ -168,7 +168,7 @@ EmbeddedPlayground.prototype.run = function() {
     method: 'POST',
     protocol: optp.protocol,
     hostname: optp.hostname,
-    port: optp.port || '80',
+    port: optp.port || (optp.protocol === 'https:' ? '443' : '80'),
     path: optp.path,
     // TODO(ivanpi): Change once deployed.
     withCredentials: false,
