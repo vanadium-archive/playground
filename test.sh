@@ -71,7 +71,11 @@ main() {
   export GOPATH="$(pwd):$(v23 env GOPATH)"
   export VDLPATH="$(pwd):$(v23 env VDLPATH)"
   export PATH="$(pwd):${shell_test_BIN_DIR}:${VANADIUM_ROOT}/environment/cout/node/bin:${PATH}"
+
+  # We unset all environment variables that supply a principal in order to
+  # simulate production playground setup.
   unset VEYRON_CREDENTIALS
+  unset VEYRON_AGENT_FD
 
   build_go_binaries
   install_veyron_js
