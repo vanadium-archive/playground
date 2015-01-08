@@ -6,6 +6,7 @@ import (
 
 	"v.io/core/veyron/lib/signals"
 	"v.io/core/veyron/profiles"
+	"v.io/core/veyron2"
 	"v.io/core/veyron2/ipc"
 	"v.io/core/veyron2/rt"
 
@@ -27,8 +28,10 @@ func main() {
 	}
 	defer r.Cleanup()
 
-	log := r.Logger()
-	s, err := r.NewServer()
+	ctx := r.NewContext()
+
+	log := veyron2.GetLogger(ctx)
+	s, err := veyron2.NewServer(ctx)
 	if err != nil {
 		log.Fatal("failure creating server: ", err)
 	}
@@ -47,5 +50,5 @@ func main() {
 	}
 
 	// Wait forever.
-	<-signals.ShutdownOnSignals(r)
+	<-signals.ShutdownOnSignals(ctx)
 }
