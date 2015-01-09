@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	_ "v.io/core/veyron/profiles"
+	"v.io/core/veyron2"
 	"v.io/core/veyron2/rt"
 
 	"pingpong"
@@ -16,8 +17,8 @@ func main() {
 		panic(err)
 	}
 	defer runtime.Cleanup()
-
-	log := runtime.Logger()
+	ctx := runtime.NewContext()
+	log := veyron2.GetLogger(ctx)
 
 	s := pingpong.PingPongClient("pingpong")
 	pong, err := s.Ping(runtime.NewContext(), "PING")
