@@ -3,7 +3,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	_ "v.io/core/veyron/profiles"
@@ -15,18 +14,20 @@ import (
 func main() {
 	runtime, err := rt.New()
 	if err != nil {
-		log.Fatal("failure creating runtime: ", err)
+		panic(err)
 	}
+	defer runtime.Cleanup()
+	ctx := runtime.NewContext()
 
 	// Create a new stub that binds to address without
 	// using the name service.
-	s := fortune.FortuneClient("fortune")
+	stub := fortune.FortuneClient("fortune")
 
 	// Issue a Get() RPC.
 	// We do this in a loop to give the server time to start up.
 	var fortune string
 	for {
-		if fortune, err = s.Get(runtime.NewContext()); err == nil {
+		if fortune, err = stub.Get(ctx); err == nil {
 			break
 		}
 		time.Sleep(100 * time.Millisecond)

@@ -11,7 +11,7 @@ var fortuneService = {
   numFortunesServed: 0,
 
   // Gets a random fortune
-  getRandomFortune: function() {
+  getRandomFortune: function(ctx) {
     var numExistingfortunes = this.fortunes.length;
     if(numExistingfortunes === 0) {
       throw new Error('Sorry! No fortune available :(');
@@ -24,7 +24,7 @@ var fortuneService = {
   },
 
   // Adds a new fortune
-  addNewFortune: function(fortune) {
+  addNewFortune: function(ctx, fortune) {
     if(!fortune || fortune.trim() === '') {
       throw new Error('Sorry! Can\'t add empty or null fortune!');
     }
@@ -52,6 +52,10 @@ veyron.init().then(function(rt){
 });
 
 // Let's add a few fortunes to start with
-fortuneService.addNewFortune('The fortune you seek is in another cookie.');
-fortuneService.addNewFortune('Everything will now come your way.');
-fortuneService.addNewFortune('Conquer your fears or they will conquer you.');
+[
+  'The fortune you seek is in another cookie.',
+  'Everything will now come your way.',
+  'Conquer your fears or they will conquer you.'
+].forEach(function(fortune) {
+  fortuneService.addNewFortune(null, fortune);
+});

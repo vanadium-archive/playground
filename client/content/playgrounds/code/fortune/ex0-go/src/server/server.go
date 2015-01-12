@@ -3,12 +3,12 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 
 	"v.io/core/veyron/lib/signals"
 	"v.io/core/veyron/profiles"
 	vflag "v.io/core/veyron/security/flag"
+	"v.io/core/veyron2"
 	"v.io/core/veyron2/ipc"
 	"v.io/core/veyron2/rt"
 
@@ -48,33 +48,36 @@ func (f *fortuned) Add(_ ipc.ServerContext, Fortune string) error {
 
 // Main - Set everything up.
 func main() {
-	// Create the runtime.
-	r, err := rt.New()
+	// Create the runtime and context.
+	runtime, err := rt.New()
 	if err != nil {
-		log.Fatal("failure creating runtime: ", err)
+		panic(err)
 	}
+	defer runtime.Cleanup()
+	ctx := runtime.NewContext()
+	log := veyron2.GetLogger(ctx)
 
 	// Create a new instance of the runtime's server functionality.
-	s, err := r.NewServer()
+	server, err := veyron2.NewServer(ctx)
 	if err != nil {
-		log.Fatal("failure creating server: ", err)
+		log.Panic("failure creating server: ", err)
 	}
 
 	// Create the fortune server stub.
 	fortuneServer := fortune.FortuneServer(newFortuned())
 
 	// Create an endpoint and begin listening.
-	if endpoint, err := s.Listen(profiles.LocalListenSpec); err == nil {
+	if endpoint, err := server.Listen(profiles.LocalListenSpec); err == nil {
 		fmt.Printf("Listening at: %v\n", endpoint)
 	} else {
-		log.Fatal("error listening to service: ", err)
+		log.Panic("error listening to service: ", err)
 	}
 
-	// Serve the fortune dispatcher at "fortune".
-	if err := s.ServeDispatcher("fortune", ipc.LeafDispatcher(fortuneServer, vflag.NewAuthorizerOrDie())); err != nil {
-		log.Fatal("error serving service: ", err)
+	// Start the fortune server at "fortune".
+	if err := server.Serve("fortune", fortuneServer, vflag.NewAuthorizerOrDie()); err != nil {
+		log.Panic("error serving service: ", err)
 	}
 
 	// Wait forever.
-	<-signals.ShutdownOnSignals(r)
+	<-signals.ShutdownOnSignals(ctx)
 }
