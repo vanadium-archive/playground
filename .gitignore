@@ -1,2 +1,5 @@
 builder/gitcookies
 builder/hgrc
+
+# Vanadium
+/.v23
