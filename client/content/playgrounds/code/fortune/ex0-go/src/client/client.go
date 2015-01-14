@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+	// Create the runtime and context.
 	runtime, err := rt.New()
 	if err != nil {
 		panic(err)
