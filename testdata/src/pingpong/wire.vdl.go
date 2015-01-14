@@ -4,8 +4,6 @@
 package pingpong
 
 import (
-	"v.io/core/veyron2/security"
-
 	// The non-user imports are prefixed with "__" to prevent collisions.
 	__veyron2 "v.io/core/veyron2"
 	__context "v.io/core/veyron2/context"
@@ -148,7 +146,6 @@ var descPingPong = __ipc.InterfaceDesc{
 				{"", ``}, // string
 				{"", ``}, // error
 			},
-			Tags: []__vdlutil.Any{security.Label(2)},
 		},
 	},
 }
