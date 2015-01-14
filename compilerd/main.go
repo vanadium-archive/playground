@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/sha1"
 	"encoding/json"
@@ -13,22 +14,19 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
 	"github.com/golang/groupcache/lru"
 
-	"v.io/playground/event"
+	"v.io/playground/lib"
+	"v.io/playground/lib/event"
 )
-
-type ResponseBody struct {
-	Errors string
-	Events []event.Event
-}
 
 type CachedResponse struct {
 	Status int
-	Body   ResponseBody
+	Events []event.Event
 }
 
 var (
@@ -43,8 +41,18 @@ var (
 
 	useDocker = flag.Bool("use-docker", true, "Whether to use Docker to run builder; if false, we run the builder directly.")
 
-	// Maximum request and response size. Same limit as imposed by Go tour.
+	// Maximum request and output size. Same limit as imposed by Go tour.
+	// Note: The response includes error and status messages as well as output,
+	// so it can be larger (usually by a small constant, hard limited to
+	// 2*maxSize).
+	// maxSize should be large enough to fit all error and status messages
+	// written by compilerd to prevent reaching the hard limit.
 	maxSize = 1 << 16
+
+	// Arbitrary deadline (enough to compile, run, shutdown).
+	// TODO(sadovsky): For now this is set high to avoid spurious timeouts.
+	// Playground execution speed needs to be optimized.
+	maxTime = 10 * time.Second
 
 	// In-memory LRU cache of request/response bodies. Keys are sha1 sum of
 	// request bodies (20 bytes each), values are of type CachedResponse.
@@ -82,13 +90,27 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// If the request does not include query param debug=true, strip any debug
+	// events produced by the builder. Note, these events don't contain any
+	// sensitive information, so guarding with a query parameter is sufficient.
 	wantDebug := r.FormValue("debug") == "1"
+
 	requestBody := streamToBytes(r.Body)
 
+	openResponse := func(status int) *responseEventSink {
+		w.Header().Add("Content-Type", "application/json")
+		// No Content-Length, using chunked encoding.
+		w.WriteHeader(status)
+		// The response is hard limited to 2*maxSize: maxSize for builder stdout,
+		// and another maxSize for compilerd error and status messages.
+		return newResponseEventSink(lib.NewLimitedWriter(w, 2*maxSize, lib.DoOnce(func() {
+			log.Println("Hard response size limit reached, response JSON potentially invalid.")
+		})), !wantDebug)
+	}
+
 	if len(requestBody) > maxSize {
-		responseBody := new(ResponseBody)
-		responseBody.Errors = "Program too large."
-		respondWithBody(w, http.StatusBadRequest, responseBody, wantDebug)
+		res := openResponse(http.StatusBadRequest)
+		res.Write(event.New("", "stderr", "Program too large."))
 		return
 	}
 
@@ -99,19 +121,20 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	requestBodyHash := sha1.Sum(requestBody)
 	if cachedResponse, ok := cache.Get(requestBodyHash); ok {
 		if cachedResponseStruct, ok := cachedResponse.(CachedResponse); ok {
-			respondWithBody(w, cachedResponseStruct.Status, &cachedResponseStruct.Body, wantDebug)
+			res := openResponse(cachedResponseStruct.Status)
+			event.Debug(res, "Sending cached response")
+			res.Write(cachedResponseStruct.Events...)
 			return
 		} else {
-			log.Printf("Invalid cached response: %v\n", cachedResponse)
-			cache.Remove(requestBodyHash)
+			log.Panicf("Invalid cached response: %v\n", cachedResponse)
 		}
 	}
 
-	// TODO(nlacasse): It would be cool if we could stream the output
-	// messages while the process is running, rather than waiting for it to
-	// exit and dumping all the output then.
+	res := openResponse(http.StatusOK)
 
 	id := <-uniq
+
+	event.Debug(res, "Preparing to run program")
 
 	// TODO(sadovsky): Set runtime constraints on CPU and memory usage.
 	// http://docs.docker.com/reference/run/#runtime-constraints-on-cpu-and-memory
@@ -121,71 +144,115 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		cmd = exec.Command("builder")
 	}
+	cmdKill := lib.DoOnce(func() {
+		event.Debug(res, "Killing program")
+		cmd.Process.Kill()
+		if *useDocker {
+			// Sudo doesn't pass sigkill to child processes, so we need to find and
+			// kill the docker process directly.
+			// The docker client can get in a state where stopping/killing/rm-ing
+			// the container will not kill the client. The opposite should work
+			// correctly (killing the docker client stops the container).
+			// If not, the docker rm call below will.
+			exec.Command("sudo", "pkill", "-SIGKILL", "-f", id).Run()
+		}
+	})
+
 	cmd.Stdin = bytes.NewReader(requestBody)
 
-	// Builder will return all normal output as json events on stdout, and will
+	// Builder will return all normal output as JSON Events on stdout, and will
 	// return unexpected errors on stderr.
 	// TODO(sadovsky): Security issue: what happens if the program output is huge?
 	// We can restrict memory use of the Docker container, but these buffers are
 	// outside Docker.
-	stdoutBuf, stderrBuf := new(bytes.Buffer), new(bytes.Buffer)
-	cmd.Stdout, cmd.Stderr = stdoutBuf, stderrBuf
+	// TODO(ivanpi): Revisit above comment.
+	sizedOut := false
+	erroredOut := false
 
-	// Arbitrary deadline (enough to compile, run, shutdown).
-	// TODO(sadovsky): For now this is set high to avoid spurious timeouts.
-	// Playground execution speed needs to be optimized.
-	timeout := time.After(10 * time.Second)
+	userLimitCallback := func() {
+		sizedOut = true
+		cmdKill()
+	}
+	systemLimitCallback := func() {
+		erroredOut = true
+		cmdKill()
+	}
+	userErrorCallback := func(err error) {
+		// A relay error can result from unparseable JSON caused by a builder bug
+		// or a malicious exploit inside Docker. Panicking could lead to a DoS.
+		log.Println(id, "builder stdout relay error:", err)
+		erroredOut = true
+		cmdKill()
+	}
+
+	outRelay, outStop := limitedEventRelay(res, maxSize, userLimitCallback, userErrorCallback)
+	// Builder stdout should already contain a JSON Event stream.
+	cmd.Stdout = outRelay
+
+	// Any stderr is unexpected, most likely a bug (panic) in builder, but could
+	// also result from a malicious exploit inside Docker.
+	// It is quietly logged as long as it doesn't exceed maxSize.
+	errBuffer := new(bytes.Buffer)
+	cmd.Stderr = lib.NewLimitedWriter(errBuffer, maxSize, systemLimitCallback)
+
+	event.Debug(res, "Running program")
+
+	timeout := time.After(maxTime)
+	// User code execution is time limited in builder.
+	// This flag signals only unexpected timeouts. maxTime should be sufficient
+	// for end-to-end request processing by builder for worst-case user input.
+	// TODO(ivanpi): builder doesn't currently time compilation, so builder
+	// worst-case execution time is not clearly bounded.
 	timedOut := false
 
 	exit := make(chan error)
 	go func() { exit <- cmd.Run() }()
 
 	select {
-	case <-exit:
+	case err := <-exit:
+		if err != nil && !sizedOut {
+			erroredOut = true
+		}
 	case <-timeout:
-		// NOTE(sadovsky): More builder output could show up on stdout after this
-		// message, but that's not really a problem.
-		stderrBuf.Write([]byte("\nTime exceeded; killing...\n"))
 		timedOut = true
+		cmdKill()
+		<-exit
 	}
 
-	// If the response is bigger than the limit, create an "output too large"
-	// error response, cache it, and return it.
-	if stdoutBuf.Len() > maxSize {
-		status := http.StatusBadRequest
-		responseBody := new(ResponseBody)
-		responseBody.Errors = "Program output too large."
-		cache.Add(requestBodyHash, CachedResponse{
-			Status: status,
-			Body:   *responseBody,
-		})
-		respondWithBody(w, status, responseBody, wantDebug)
-		return
+	// Close and wait for the output relay.
+	outStop()
+
+	event.Debug(res, "Program exited")
+
+	// Return the appropriate error message to the client.
+	if timedOut {
+		res.Write(event.New("", "stderr", "Internal timeout, please retry."))
+	} else if erroredOut {
+		res.Write(event.New("", "stderr", "Internal error, please retry."))
+	} else if sizedOut {
+		res.Write(event.New("", "stderr", "Program output too large, killed."))
 	}
 
-	responseBody := new(ResponseBody)
-	// TODO(nlacasse): Make these errors Events, so that we can send them
-	// back in the Events array.  This will simplify streaming the events to the
-	// client in realtime.
-	responseBody.Errors = stderrBuf.String()
-
-	// Decode the json events from stdout and add them to the responseBody.
-	for line, err := stdoutBuf.ReadBytes('\n'); err == nil; line, err = stdoutBuf.ReadBytes('\n') {
-		var e event.Event
-		json.Unmarshal(line, &e)
-		responseBody.Events = append(responseBody.Events, e)
+	// Log builder internal errors, if any.
+	// TODO(ivanpi): Prevent caching? Report to client if debug requested?
+	if errBuffer.Len() > 0 {
+		log.Println(id, "builder stderr:", errBuffer.String())
 	}
 
-	// If we timed out, do not cache anything.
+	event.Debug(res, "Response finished")
+
+	// If we timed out or errored out, do not cache anything.
 	// TODO(sadovsky): This policy is helpful for development, but may not be wise
 	// for production. Revisit.
-	if !timedOut {
+	if !timedOut && !erroredOut {
 		cache.Add(requestBodyHash, CachedResponse{
 			Status: http.StatusOK,
-			Body:   *responseBody,
+			Events: res.popWrittenEvents(),
 		})
+		event.Debug(res, "Caching response")
+	} else {
+		event.Debug(res, "Internal errors encountered, not caching response")
 	}
-	respondWithBody(w, http.StatusOK, responseBody, wantDebug)
 
 	// TODO(nlacasse): This "docker rm" can be slow (several seconds), and seems
 	// to block other Docker commands, thereby slowing down other concurrent
@@ -199,34 +266,81 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func respondWithBody(w http.ResponseWriter, status int, body *ResponseBody, wantDebug bool) {
-	// If the request does not include query param debug=true, strip any debug
-	// events produced by the builder. Note, these events don't contain any
-	// sensitive information, so guarding with a query parameter is sufficient.
-	if !wantDebug {
-		// TODO(sadovsky): Use pointers to avoid copying Event structs, or cache
-		// debug-stripped responses in addition to full responses.
-		eventsNoDebug := make([]event.Event, 0, len(body.Events))
-		for _, e := range body.Events {
-			if e.Stream != "debug" {
-				eventsNoDebug = append(eventsNoDebug, e)
+// Each line written to the returned writer, up to limit bytes total, is parsed
+// into an Event and written to Sink.
+// If the limit is reached or an invalid line read, the corresponding callback
+// is called and the relay stopped.
+// The returned stop() function stops the relaying.
+func limitedEventRelay(sink event.Sink, limit int, limitCallback func(), errorCallback func(err error)) (writer io.Writer, stop func()) {
+	pipeReader, pipeWriter := io.Pipe()
+	done := make(chan bool)
+	stop = lib.DoOnce(func() {
+		// Closing the pipe will cause the main relay loop to stop reading (EOF).
+		// Writes will fail with ErrClosedPipe.
+		pipeReader.Close()
+		pipeWriter.Close()
+		// Wait for the relay goroutine to finish.
+		<-done
+	})
+	writer = lib.NewLimitedWriter(pipeWriter, limit, func() {
+		limitCallback()
+		stop()
+	})
+	go func() {
+		bufr := bufio.NewReaderSize(pipeReader, limit)
+		var line []byte
+		var err error
+		// Relay complete lines (events) until EOF or a read error is encountered.
+		for line, err = bufr.ReadBytes('\n'); err == nil; line, err = bufr.ReadBytes('\n') {
+			var e event.Event
+			err = json.Unmarshal(line, &e)
+			if err != nil {
+				err = fmt.Errorf("failed unmarshalling event: %s", line)
+				break
 			}
+			sink.Write(e)
 		}
-		body.Events = eventsNoDebug
-	}
+		if err != io.EOF && err != io.ErrClosedPipe {
+			errorCallback(err)
+			// Use goroutine to prevent deadlock on done channel.
+			go stop()
+		}
+		done <- true
+	}()
+	return
+}
 
-	bodyJson, _ := json.Marshal(body)
-	w.Header().Add("Content-Type", "application/json")
-	w.Header().Add("Content-Length", fmt.Sprintf("%d", len(bodyJson)))
-	w.Write(bodyJson)
+// Initialize using newResponseEventSink.
+// An event.Sink which also saves all written Events regardless of successful
+// writes to the underlying ResponseWriter.
+type responseEventSink struct {
+	// The mutex is used to ensure the same sequence of events being written to
+	// both the JsonSink and the written Event array.
+	mu sync.Mutex
+	event.JsonSink
+	written []event.Event
+}
 
-	// TODO(nlacasse): This flush doesn't really help us right now, but we'll
-	// definitely need something like it when we switch to the streaming model.
-	if f, ok := w.(http.Flusher); ok {
-		f.Flush()
-	} else {
-		log.Println("Cannot flush.")
+func newResponseEventSink(writer io.Writer, filterDebug bool) *responseEventSink {
+	return &responseEventSink{
+		JsonSink: *event.NewJsonSink(writer, filterDebug),
 	}
+}
+
+func (r *responseEventSink) Write(events ...event.Event) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.written = append(r.written, events...)
+	return r.JsonSink.Write(events...)
+}
+
+// Returns and clears the history of Events written to the responseEventSink.
+func (r *responseEventSink) popWrittenEvents() []event.Event {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	events := r.written
+	r.written = nil
+	return events
 }
 
 func streamToBytes(stream io.Reader) []byte {

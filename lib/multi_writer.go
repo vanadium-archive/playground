@@ -3,28 +3,28 @@
 //
 // Similar to http://golang.org/src/pkg/io/multi.go.
 
-package main
+package lib
 
 import (
 	"io"
 	"sync"
 )
 
-// Initialize using newMultiWriter.
-type multiWriter struct {
+// Initialize using NewMultiWriter.
+type MultiWriter struct {
 	writers []io.Writer
 	mu      sync.Mutex
 	wrote   bool
 }
 
-var _ io.Writer = (*multiWriter)(nil)
+var _ io.Writer = (*MultiWriter)(nil)
 
-func newMultiWriter() *multiWriter {
-	return &multiWriter{writers: []io.Writer{}}
+func NewMultiWriter() *MultiWriter {
+	return &MultiWriter{writers: []io.Writer{}}
 }
 
 // Returns self for convenience.
-func (t *multiWriter) Add(w io.Writer) *multiWriter {
+func (t *MultiWriter) Add(w io.Writer) *MultiWriter {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	if t.wrote {
@@ -34,7 +34,7 @@ func (t *multiWriter) Add(w io.Writer) *multiWriter {
 	return t
 }
 
-func (t *multiWriter) Write(p []byte) (n int, err error) {
+func (t *MultiWriter) Write(p []byte) (n int, err error) {
 	t.mu.Lock()
 	t.wrote = true
 	t.mu.Unlock()

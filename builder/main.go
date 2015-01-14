@@ -1,5 +1,5 @@
-// Compiles and runs code for the Veyron playground. Code is passed via os.Stdin
-// as a JSON encoded request struct.
+// Compiles and runs code for the Vanadium playground. Code is passed via
+// os.Stdin as a JSON encoded request struct.
 
 // NOTE(nlacasse): We use log.Panic() instead of log.Fatal() everywhere in this
 // file.  We do this because log.Panic calls panic(), which allows any deferred
@@ -32,8 +32,9 @@ import (
 	"syscall"
 	"time"
 
-	"v.io/playground/event"
 	"v.io/core/veyron/lib/flags/consts"
+	"v.io/playground/lib"
+	"v.io/playground/lib/event"
 )
 
 const runTimeout = 3 * time.Second
@@ -44,6 +45,9 @@ var (
 	includeServiceOutput = flag.Bool("includeServiceOutput", false, "Whether to stream service (mounttable, wspr, proxy) output to clients.")
 
 	includeVeyronEnv = flag.Bool("includeVeyronEnv", false, "Whether to log the output of \"v23 env\" before compilation.")
+
+	// Sink for writing events (debug and run output) to stdout as JSON, one event per line.
+	out event.Sink
 
 	// Whether we have stopped execution of running files.
 	stopped = false
@@ -89,9 +93,7 @@ type exit struct {
 }
 
 func debug(args ...interface{}) {
-	if *verbose {
-		writeEvent("", "debug", fmt.Sprintln(args...))
-	}
+	event.Debug(out, args...)
 }
 
 func panicOnError(err error) {
@@ -102,7 +104,7 @@ func panicOnError(err error) {
 
 func logVeyronEnv() error {
 	if *includeVeyronEnv {
-		return makeCmd("", false, "v23", "env").Run()
+		return makeCmd("<environment>", false, "v23", "env").Run()
 	}
 	return nil
 }
@@ -229,13 +231,13 @@ func runFiles(files []*codeFile) {
 	for running > 0 {
 		select {
 		case <-timeout:
-			panicOnError(writeEvent("", "stderr", "Ran for too long; terminated."))
+			panicOnError(out.Write(event.New("", "stderr", "Ran for too long; terminated.")))
 			stopAll(files)
 		case status := <-exit:
 			if status.err == nil {
-				panicOnError(writeEvent(status.name, "stdout", "Exited cleanly."))
+				panicOnError(out.Write(event.New(status.name, "stdout", "Exited cleanly.")))
 			} else {
-				panicOnError(writeEvent(status.name, "stderr", fmt.Sprintf("Exited with error: %v", status.err)))
+				panicOnError(out.Write(event.New(status.name, "stderr", fmt.Sprintf("Exited with error: %v", status.err))))
 			}
 			running--
 			stopAll(files)
@@ -357,59 +359,29 @@ func (f *codeFile) stop() {
 }
 
 // Creates a cmd whose outputs (stdout and stderr) are streamed to stdout as
-// json-encoded Event objects. If you want to watch the output streams yourself,
-// add your own writer(s) to the multiWriter before starting the command.
+// Event objects. If you want to watch the output streams yourself, add your
+// own writer(s) to the MultiWriter before starting the command.
 func makeCmd(fileName string, isService bool, progName string, args ...string) *exec.Cmd {
 	cmd := exec.Command(progName, args...)
 	cmd.Env = os.Environ()
-	stdout, stderr := newMultiWriter(), newMultiWriter()
-	// TODO(sadovsky): Maybe annotate service output in the event stream.
+	stdout, stderr := lib.NewMultiWriter(), lib.NewMultiWriter()
+	prefix := ""
+	if isService {
+		prefix = "svc-"
+	}
 	if !isService || *includeServiceOutput {
-		stdout.Add(newEventStreamer(fileName, "stdout"))
-		stderr.Add(newEventStreamer(fileName, "stderr"))
+		stdout.Add(event.NewStreamWriter(out, fileName, prefix+"stdout"))
+		stderr.Add(event.NewStreamWriter(out, fileName, prefix+"stderr"))
 	}
 	cmd.Stdout, cmd.Stderr = stdout, stderr
 	return cmd
 }
 
-// Initialize using newEventStreamer.
-type eventStreamer struct {
-	fileName   string
-	streamName string
-}
-
-var _ io.Writer = (*eventStreamer)(nil)
-
-func newEventStreamer(fileName, streamName string) *eventStreamer {
-	return &eventStreamer{fileName: fileName, streamName: streamName}
-}
-
-func (es *eventStreamer) Write(p []byte) (n int, err error) {
-	if err := writeEvent(es.fileName, es.streamName, string(p)); err != nil {
-		return 0, err
-	}
-	return len(p), nil
-}
-
-func writeEvent(fileName, streamName, message string) error {
-	e := event.Event{
-		File:      fileName,
-		Message:   message,
-		Stream:    streamName,
-		Timestamp: time.Now().UnixNano(),
-	}
-	jsonEvent, err := json.Marshal(e)
-	if err != nil {
-		return err
-	}
-	// TODO(nlacasse): When we switch over to actually streaming events, we'll
-	// probably need to trigger a flush here.
-	os.Stdout.Write(append(jsonEvent, '\n'))
-	return nil
-}
-
 func main() {
 	flag.Parse()
+
+	out = event.NewJsonSink(os.Stdout, !*verbose)
+
 	r, err := parseRequest(os.Stdin)
 	panicOnError(err)
 
@@ -431,7 +403,7 @@ func main() {
 	// Panic on internal error, but not on user error.
 	panicOnError(err)
 	if badInput {
-		writeEvent("<compile>", "stderr", "Compilation error.")
+		panicOnError(out.Write(event.New("<compile>", "stderr", "Compilation error.")))
 		return
 	}
 

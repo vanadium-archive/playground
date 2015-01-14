@@ -1,5 +1,6 @@
-// Functions to start services needed by the Veyron playground.
+// Functions to start services needed by the Vanadium playground.
 // These should never trigger program exit.
+// TODO(ivanpi): Use the modules library to start the services instead.
 
 package main
 
@@ -17,13 +18,14 @@ import (
 	"time"
 
 	"v.io/core/veyron/lib/flags/consts"
+	"v.io/playground/lib"
 )
 
 var (
 	proxyName = "proxy"
 )
 
-// Note: This was copied from release/go/src/veyron/tools/findunusedport.
+// Note: This was copied from release/go/src/v.io/core/veyron/tools/findunusedport.
 // I would like to be able to import that package directly, but it defines a
 // main(), so can't be imported.  An alternative solution would be to call the
 // 'findunusedport' binary, but that would require starting another process and
@@ -50,7 +52,7 @@ func findUnusedPort() (int, error) {
 // variable to the mounttable's location.  We run one mounttabled process for
 // the entire environment.
 func startMount(timeLimit time.Duration) (proc *os.Process, err error) {
-	cmd := makeCmd("", true, "mounttabled", "-veyron.tcp.address=127.0.0.1:0")
+	cmd := makeCmd("<mounttabled>", true, "mounttabled", "-veyron.tcp.address=127.0.0.1:0")
 	matches, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile("Mount table .+ endpoint: (.+)\n"))
 	if err != nil {
 		return nil, fmt.Errorf("Error starting mounttabled: %v", err)
@@ -65,7 +67,7 @@ func startMount(timeLimit time.Duration) (proc *os.Process, err error) {
 // startProxy starts a proxyd process.  We run one proxyd process for the
 // entire environment.
 func startProxy() (proc *os.Process, err error) {
-	cmd := makeCmd("", true, "proxyd", "-name="+proxyName, "-address=127.0.0.1:0", "-http=")
+	cmd := makeCmd("<proxyd>", true, "proxyd", "-name="+proxyName, "-address=127.0.0.1:0", "-http=")
 	err = cmd.Start()
 	if err != nil {
 		return nil, err
@@ -80,7 +82,7 @@ func startWspr(fileName, credentials string) (proc *os.Process, port int, err er
 	if err != nil {
 		return nil, port, err
 	}
-	cmd := makeCmd(fileName, true,
+	cmd := makeCmd("<wsprd>:"+fileName, true,
 		"wsprd",
 		// Verbose logging so we can watch the output for "Listening" log line.
 		"-v=3",
@@ -114,8 +116,8 @@ func startAndWaitFor(cmd *exec.Cmd, timeout time.Duration, outputRegexp *regexp.
 	reader, writer := io.Pipe()
 	// TODO(sadovsky): Why must we listen to both stdout and stderr? We should
 	// know which one produces the "Listening" log line...
-	cmd.Stdout.(*multiWriter).Add(writer)
-	cmd.Stderr.(*multiWriter).Add(writer)
+	cmd.Stdout.(*lib.MultiWriter).Add(writer)
+	cmd.Stderr.(*lib.MultiWriter).Add(writer)
 	err := cmd.Start()
 	if err != nil {
 		return nil, err

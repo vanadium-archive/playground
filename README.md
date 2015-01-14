@@ -21,10 +21,14 @@ Build the playground Docker image (this will take a while...):
 
     $ cp ~/.gitcookies $VANADIUM_ROOT/release/go/src/v.io/playground/builder/gitcookies
     $ cp ~/.hgrc $VANADIUM_ROOT/release/go/src/v.io/playground/builder/hgrc
-    $ sudo docker build -t playground $VANADIUM_ROOT/release/go/src/v.io/playground/builder/.
+    $ sudo docker build -t playground $VANADIUM_ROOT/release/go/src/v.io/playground/.
 
 Note: If you want to ensure an up-to-date version of Vanadium is installed in
 the Docker image, run the above command with the "--no-cache" flag.
+
+The 'docker build' command above will compile builder from the main Vanadium
+repository. If you want to use local code instead, open Dockerfile and
+uncomment marked lines before running the command.
 
 Test your image (without running compilerd):
 

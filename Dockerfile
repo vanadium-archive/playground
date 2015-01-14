@@ -19,11 +19,11 @@ ENV VDLPATH $GOPATH
 # Note: This will be cached! If you want to re-build the docker image using
 # fresh Vanadium code, you must pass "--no-cache" to the docker build command.
 # See README.md.
-ADD gitcookies /root/.gitcookies
+ADD builder/gitcookies /root/.gitcookies
 RUN git config --global http.cookiefile ~/.gitcookies
 RUN curl -u vanadium:D6HT]P,LrJ7e https://dev.v.io/noproxy/vanadium-setup.sh | bash
 RUN rm /root/.gitcookies
-ADD hgrc /root/.hgrc
+ADD builder/hgrc /root/.hgrc
 RUN $VANADIUM_ROOT/bin/v23 profile setup web
 RUN rm /root/.hgrc
 
@@ -48,13 +48,13 @@ RUN v23 go install v.io/playground/...
 # your local version of the code. This is useful when developing and testing
 # local changes.
 #RUN rm $VANADIUM_ROOT/release/go/bin/builder
-#ADD main.go $VANADIUM_ROOT/release/go/src/v.io/playground/builder/main.go
-#ADD credentials.go $VANADIUM_ROOT/release/go/src/v.io/playground/builder/credentials.go
-#ADD services.go $VANADIUM_ROOT/release/go/src/v.io/playground/builder/services.go
-#ADD multi_writer.go $VANADIUM_ROOT/release/go/src/v.io/playground/builder/multi_writer.go
-#RUN v23 go install v.io/playground/builder
+#RUN rm -rf $VANADIUM_ROOT/release/go/src/v.io/playground/builder/
+#RUN rm -rf $VANADIUM_ROOT/release/go/src/v.io/playground/lib/
+#ADD builder/ $VANADIUM_ROOT/release/go/src/v.io/playground/builder/
+#ADD lib/ $VANADIUM_ROOT/release/go/src/v.io/playground/lib/
+#RUN v23 go install v.io/playground/builder/...
 
-# Copy proxyd's main.go to builder/proxyd_main.go, then uncomment the following
+# Copy proxyd's main.go to ./proxyd_main.go, then uncomment the following
 # lines to install a version of proxyd (used by the builder tool) using your
 # local version of the code. This is useful when developing and testing local
 # changes.

@@ -54,12 +54,12 @@ function main() {
   sudo mount /dev/sdb1 /mnt
 
   # Build the docker image.
-  cd ${VANADIUM_ROOT}/release/go/src/v.io/playground/builder
-  cp ~/.gitcookies ./gitcookies
-  cp ~/.hgrc ./hgrc
+  cd ${VANADIUM_ROOT}/release/go/src/v.io/playground
+  cp ~/.gitcookies ./builder/gitcookies
+  cp ~/.hgrc ./builder/hgrc
   sudo docker build --no-cache -t playground .
-  rm -f ./gitcookies
-  rm -f ./hgrc
+  rm -f ./builder/gitcookies
+  rm -f ./builder/hgrc
 
   # Export the docker image to disk.
   sudo docker save -o /mnt/playground.tar.gz playground
@@ -81,7 +81,7 @@ function main() {
   unmount
 
   # Update the template to use the new disk.
-  cd ../compilerd
+  cd compilerd
   sed -i -e s/pg-data-20140820/${DISK}/ pool_template.json
   gcloud preview replica-pools --zone=us-central1-a update-template --template=pool_template.json playground-pool
   git checkout -- pool_template.json

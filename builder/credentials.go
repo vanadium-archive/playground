@@ -86,7 +86,7 @@ func (c credentials) pipe(from, to *exec.Cmd) error {
 }
 
 func (c credentials) toolCmd(as string, args ...string) *exec.Cmd {
-	cmd := makeCmd("", false, "principal", args...)
+	cmd := makeCmd("<principal>", false, "principal", args...)
 	if as != "" {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("%v=%s", consts.VeyronCredentials, path.Join("credentials", as)))
 	}
