@@ -207,17 +207,18 @@ EmbeddedPlayground.prototype.run = function() {
       appendToConsole(makeEvent('syserr', 'HTTP status ' + res.statusCode));
     }
     // Holds partial prefix of next line.
-    var line = {buffer: ''};
+    var partialLine = '';
     res.on('data', ifRunActive(function(chunk) {
       // Each complete line is one JSON Event.
-      var eventsJson = (line.buffer + chunk).split('\n');
-      line.buffer = eventsJson.pop();
+      var eventsJson = (partialLine + chunk).split('\n');
+      partialLine = eventsJson.pop();
       var events = [];
-      _.forEach(eventsJson, function(el) {
-        // Ignore empty and invalid lines.
-        if (el && el.charAt(0) === '{') {
+      _.forEach(eventsJson, function(line) {
+        // Ignore empty lines.
+        line = line.trim();
+        if (line) {
           try {
-            events.push(JSON.parse(el));
+            events.push(JSON.parse(line));
           } catch (err) {
             console.error(err);
             events.push(makeEvent('syserr', 'Error parsing server response.'));
