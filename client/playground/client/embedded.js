@@ -151,16 +151,25 @@ EmbeddedPlayground.prototype.run = function() {
   // messages, for usability.
   var that = this, state = this.state_;
 
-  // If the user has stopped this run or reset the playground, returns false.
-  var isRunActive = function() {
-    return runId === state.nextRunId();
+  // If the user stops the current run or resets the playground, functions
+  // wrapped with ifRunActive become no-ops.
+  var ifRunActive = function(foo) {
+    return function() {
+      if (runId === state.nextRunId()) {
+        foo.apply(this, arguments);
+      }
+    };
   };
+
   var appendToConsole = function(events) {
     state.consoleEvents.set(state.consoleEvents().concat(events));
   };
   var makeEvent = function(stream, message) {
     return {Stream: stream, Message: message};
   };
+  var endRunIfActive = ifRunActive(function() {
+    that.endRun_();
+  });
 
   var optp = url.parse(compileUrl);
 
@@ -180,61 +189,48 @@ EmbeddedPlayground.prototype.run = function() {
 
   var req = http.request(options);
 
-  var endRunIfActive = function() {
-    if (isRunActive()) {
-      that.endRun_();
-    }
-  };
+  // error and close callbacks call endRunIfActive in the next tick to ensure
+  // that if both events are triggered, both are executed before the run is
+  // ended by one of them.
+  req.on('error', ifRunActive(function(err) {
+    console.log(err);
+    appendToConsole(makeEvent('syserr', 'Error connecting to server.'));
+    process.nextTick(endRunIfActive);
+  }));
 
-  req.on('error', function(err) {
-    if (isRunActive()) {
-      console.log(err);
-      appendToConsole(makeEvent('syserr', 'Error connecting to server.'));
-      process.nextTick(endRunIfActive);
-    }
-  });
+  req.on('close', ifRunActive(function() {
+    process.nextTick(endRunIfActive);
+  }));
 
-  req.on('response', function(res) {
-    if (isRunActive()) {
-      if (res.statusCode !== 0 && res.statusCode !== 200) {
-        appendToConsole(makeEvent('syserr', 'HTTP status ' + res.statusCode));
-      }
-      // Holds partial prefix of next line.
-      var line = { buffer: '' };
-      res.on('data', function(chunk) {
-        if (isRunActive()) {
-          // Each complete line is one JSON Event.
-          var eventsJson = (line.buffer + chunk).split('\n');
-          line.buffer = eventsJson.pop();
-          var events = [];
-          _.forEach(eventsJson, function(el) {
-            // Ignore empty and invalid lines.
-            if (el && el.charAt(0) === '{') {
-              try {
-                events.push(JSON.parse(el));
-              } catch (err) {
-                console.error(err);
-                events.push(makeEvent('syserr',
-                    'Error parsing server response.'));
-                endRunIfActive();
-                return false;
-              }
-            }
-          });
-          appendToConsole(events);
+  req.on('response', ifRunActive(function(res) {
+    if (res.statusCode !== 0 && res.statusCode !== 200) {
+      appendToConsole(makeEvent('syserr', 'HTTP status ' + res.statusCode));
+    }
+    // Holds partial prefix of next line.
+    var line = {buffer: ''};
+    res.on('data', ifRunActive(function(chunk) {
+      // Each complete line is one JSON Event.
+      var eventsJson = (line.buffer + chunk).split('\n');
+      line.buffer = eventsJson.pop();
+      var events = [];
+      _.forEach(eventsJson, function(el) {
+        // Ignore empty and invalid lines.
+        if (el && el.charAt(0) === '{') {
+          try {
+            events.push(JSON.parse(el));
+          } catch (err) {
+            console.error(err);
+            events.push(makeEvent('syserr', 'Error parsing server response.'));
+            endRunIfActive();
+            return false;
+          }
         }
       });
-    }
-  });
-
-  req.on('close', function() {
-    if (isRunActive()) {
-      process.nextTick(endRunIfActive);
-    }
-  });
+      appendToConsole(events);
+    }));
+  }));
 
   req.write(JSON.stringify(reqData));
-
   req.end();
 };
 
