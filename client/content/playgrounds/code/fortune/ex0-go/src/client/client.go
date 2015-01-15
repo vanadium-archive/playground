@@ -6,19 +6,15 @@ import (
 	"time"
 
 	_ "v.io/core/veyron/profiles"
-	"v.io/core/veyron2/rt"
+	"v.io/core/veyron2"
 
 	"fortune"
 )
 
 func main() {
-	// Create the runtime and context.
-	runtime, err := rt.New()
-	if err != nil {
-		panic(err)
-	}
-	defer runtime.Cleanup()
-	ctx := runtime.NewContext()
+	// Initialize Vanadium.
+	ctx, shutdown := veyron2.Init()
+	defer shutdown()
 
 	// Create a new stub that binds to address without
 	// using the name service.
@@ -28,6 +24,7 @@ func main() {
 	// We do this in a loop to give the server time to start up.
 	var fortune string
 	for {
+		var err error
 		if fortune, err = stub.Get(ctx); err == nil {
 			break
 		}
