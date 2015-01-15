@@ -193,21 +193,18 @@ EmbeddedPlayground.prototype.run = function() {
   // that if both events are triggered, both are executed before the run is
   // ended by either.
   req.on('error', ifRunActive(function(err) {
-    console.log('Connection error: ' + err.message + '\n' + err.stack);
+    console.error('Connection error: ' + err.message + '\n' + err.stack);
     appendToConsole(makeEvent('syserr', 'Error connecting to server.'));
     process.nextTick(endRunIfActive);
   }));
 
-  req.on('close', ifRunActive(function() {
-    process.nextTick(endRunIfActive);
-  }));
+  // Holds partial prefix of next response line.
+  var partialLine = '';
 
   req.on('response', ifRunActive(function(res) {
     if (res.statusCode !== 0 && res.statusCode !== 200) {
       appendToConsole(makeEvent('syserr', 'HTTP status ' + res.statusCode));
     }
-    // Holds partial prefix of next line.
-    var partialLine = '';
     res.on('data', ifRunActive(function(chunk) {
       // Each complete line is one JSON Event.
       var eventsJson = (partialLine + chunk).split('\n');
@@ -217,18 +214,30 @@ EmbeddedPlayground.prototype.run = function() {
         // Ignore empty lines.
         line = line.trim();
         if (line) {
+          var ev;
           try {
-            events.push(JSON.parse(line));
+            ev = JSON.parse(line);
           } catch (err) {
-            console.error(err);
+            console.error('Error parsing line: ' + line + '\n' + err.message);
             events.push(makeEvent('syserr', 'Error parsing server response.'));
             endRunIfActive();
             return false;
           }
+          events.push(ev);
         }
       });
       appendToConsole(events);
     }));
+  }));
+
+  req.on('close', ifRunActive(function() {
+    // partialLine should be empty when connection is closed.
+    partialLine = partialLine.trim();
+    if (partialLine) {
+      console.error('Connection closed without newline after: ' + partialLine);
+      appendToConsole(makeEvent('syserr', 'Error parsing server response.'));
+    }
+    process.nextTick(endRunIfActive);
   }));
 
   req.write(JSON.stringify(reqData));
