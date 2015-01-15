@@ -37,7 +37,7 @@ var fortuneService = {
  * 2) Publish the fortune service
  */
 
-// Create a Veyron runtime using the configuration
+// Create a Vanadium runtime using the configuration
 veyron.init().then(function(rt){
   // Serve the fortune server under a name. Serve returns a Promise object
   rt.serve('bakery/cookie/fortune', fortuneService).then(function() {

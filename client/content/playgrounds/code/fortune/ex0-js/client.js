@@ -2,7 +2,7 @@ var veyron = require('veyron');
 var context = veyron.context;
 
 /**
- * Create a Veyron runtime using the configuration defined in config.js,
+ * Create a Vanadium runtime using the configuration defined in config.js,
  * and bind it to the bakery/cookie/fortune service.
  */
 veyron.init(function(err, rt){

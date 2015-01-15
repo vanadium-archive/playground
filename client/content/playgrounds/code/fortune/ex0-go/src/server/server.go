@@ -10,7 +10,6 @@ import (
 	vflag "v.io/core/veyron/security/flag"
 	"v.io/core/veyron2"
 	"v.io/core/veyron2/ipc"
-	"v.io/core/veyron2/rt"
 
 	"fortune"
 )
@@ -48,13 +47,9 @@ func (f *fortuned) Add(_ ipc.ServerContext, Fortune string) error {
 
 // Main - Set everything up.
 func main() {
-	// Create the runtime and context.
-	runtime, err := rt.New()
-	if err != nil {
-		panic(err)
-	}
-	defer runtime.Cleanup()
-	ctx := runtime.NewContext()
+	// Create the Vanadium context.
+	ctx, shutdown := veyron2.InitForTest()
+	defer shutdown()
 	log := veyron2.GetLogger(ctx)
 
 	// Create a new instance of the runtime's server functionality.
