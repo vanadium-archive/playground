@@ -153,10 +153,10 @@ EmbeddedPlayground.prototype.run = function() {
 
   // If the user stops the current run or resets the playground, functions
   // wrapped with ifRunActive become no-ops.
-  var ifRunActive = function(foo) {
+  var ifRunActive = function(cb) {
     return function() {
       if (runId === state.nextRunId()) {
-        foo.apply(this, arguments);
+        cb.apply(this, arguments);
       }
     };
   };
@@ -171,14 +171,14 @@ EmbeddedPlayground.prototype.run = function() {
     that.endRun_();
   });
 
-  var optp = url.parse(compileUrl);
+  var urlp = url.parse(compileUrl);
 
   var options = {
     method: 'POST',
-    protocol: optp.protocol,
-    hostname: optp.hostname,
-    port: optp.port || (optp.protocol === 'https:' ? '443' : '80'),
-    path: optp.path,
+    protocol: urlp.protocol,
+    hostname: urlp.hostname,
+    port: urlp.port || (urlp.protocol === 'https:' ? '443' : '80'),
+    path: urlp.path,
     // TODO(ivanpi): Change once deployed.
     withCredentials: false,
     headers: {
@@ -191,9 +191,9 @@ EmbeddedPlayground.prototype.run = function() {
 
   // error and close callbacks call endRunIfActive in the next tick to ensure
   // that if both events are triggered, both are executed before the run is
-  // ended by one of them.
+  // ended by either.
   req.on('error', ifRunActive(function(err) {
-    console.log(err);
+    console.log('Connection error: ' + err.message + '\n' + err.stack);
     appendToConsole(makeEvent('syserr', 'Error connecting to server.'));
     process.nextTick(endRunIfActive);
   }));
