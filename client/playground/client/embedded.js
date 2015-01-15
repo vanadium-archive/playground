@@ -231,7 +231,7 @@ EmbeddedPlayground.prototype.run = function() {
   }));
 
   req.on('close', ifRunActive(function() {
-    // partialLine should be empty when connection is closed.
+    // Sanity check: partialLine should be empty when connection is closed.
     partialLine = partialLine.trim();
     if (partialLine) {
       console.error('Connection closed without newline after: ' + partialLine);
