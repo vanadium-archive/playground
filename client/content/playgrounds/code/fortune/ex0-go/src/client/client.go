@@ -12,8 +12,8 @@ import (
 )
 
 func main() {
-	// Create the Vanadium context.
-	ctx, shutdown := veyron2.InitForTest()
+	// Initialize Vanadium.
+	ctx, shutdown := veyron2.Init()
 	defer shutdown()
 
 	// Create a new stub that binds to address without

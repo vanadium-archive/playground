@@ -47,8 +47,8 @@ func (f *fortuned) Add(_ ipc.ServerContext, Fortune string) error {
 
 // Main - Set everything up.
 func main() {
-	// Create the Vanadium context.
-	ctx, shutdown := veyron2.InitForTest()
+	// Initialize Vanadium.
+	ctx, shutdown := veyron2.Init()
 	defer shutdown()
 	log := veyron2.GetLogger(ctx)
 
