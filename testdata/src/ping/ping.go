@@ -13,7 +13,6 @@ import (
 func main() {
 	ctx, shutdown := veyron2.InitForTest()
 	defer shutdown()
-
 	log := veyron2.GetLogger(ctx)
 
 	s := pingpong.PingPongClient("pingpong")

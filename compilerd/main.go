@@ -104,7 +104,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		// The response is hard limited to 2*maxSize: maxSize for builder stdout,
 		// and another maxSize for compilerd error and status messages.
 		return newResponseEventSink(lib.NewLimitedWriter(w, 2*maxSize, lib.DoOnce(func() {
-			log.Println("Hard response size limit reached, response JSON potentially invalid.")
+			log.Println("Hard response size limit reached.")
 		})), !wantDebug)
 	}
 

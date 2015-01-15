@@ -44,7 +44,7 @@ var (
 
 	includeServiceOutput = flag.Bool("includeServiceOutput", false, "Whether to stream service (mounttable, wspr, proxy) output to clients.")
 
-	includeVeyronEnv = flag.Bool("includeVeyronEnv", false, "Whether to log the output of \"v23 env\" before compilation.")
+	includeV23Env = flag.Bool("includeV23Env", false, "Whether to log the output of \"v23 env\" before compilation.")
 
 	// Sink for writing events (debug and run output) to stdout as JSON, one event per line.
 	out event.Sink
@@ -102,8 +102,8 @@ func panicOnError(err error) {
 	}
 }
 
-func logVeyronEnv() error {
-	if *includeVeyronEnv {
+func logV23Env() error {
+	if *includeV23Env {
 		return makeCmd("<environment>", false, "v23", "env").Run()
 	}
 	return nil
@@ -397,7 +397,7 @@ func main() {
 
 	panicOnError(writeFiles(r.Files))
 
-	logVeyronEnv()
+	logV23Env()
 
 	badInput, err := compileFiles(r.Files)
 	// Panic on internal error, but not on user error.

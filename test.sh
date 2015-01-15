@@ -59,7 +59,7 @@ test_with_files() {
   local -r ORIG_DIR=$(pwd)
   pushd $(shell::tmp_dir)
   ln -s "${ORIG_DIR}/node_modules" ./  # for release/javascript/core
-  "${shell_test_BIN_DIR}/builder" -v=0 --includeVeyronEnv=true < "${PGBUNDLE_DIR}/bundle.json" 2>&1 | tee builder.out
+  "${shell_test_BIN_DIR}/builder" -v=0 --includeV23Env=true < "${PGBUNDLE_DIR}/bundle.json" 2>&1 | tee builder.out
   # Move builder output to original dir for verification.
   mv builder.out "${ORIG_DIR}"
   popd
