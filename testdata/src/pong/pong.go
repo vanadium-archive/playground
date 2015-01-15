@@ -8,7 +8,6 @@ import (
 	"v.io/core/veyron/profiles"
 	"v.io/core/veyron2"
 	"v.io/core/veyron2/ipc"
-	"v.io/core/veyron2/rt"
 
 	"pingpong"
 )
@@ -22,13 +21,8 @@ func (f *pongd) Ping(ctx ipc.ServerContext, message string) (result string, err 
 }
 
 func main() {
-	r, err := rt.New()
-	if err != nil {
-		panic(err)
-	}
-	defer r.Cleanup()
-
-	ctx := r.NewContext()
+	ctx, shutdown := veyron2.InitForTest()
+	defer shutdown()
 
 	log := veyron2.GetLogger(ctx)
 	s, err := veyron2.NewServer(ctx)
