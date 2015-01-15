@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	ctx, shutdown := veyron2.InitForTest()
+	ctx, shutdown := veyron2.Init()
 	defer shutdown()
 	log := veyron2.GetLogger(ctx)
 

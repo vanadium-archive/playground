@@ -21,7 +21,7 @@ func (f *pongd) Ping(ctx ipc.ServerContext, message string) (result string, err 
 }
 
 func main() {
-	ctx, shutdown := veyron2.InitForTest()
+	ctx, shutdown := veyron2.Init()
 	defer shutdown()
 	log := veyron2.GetLogger(ctx)
 
