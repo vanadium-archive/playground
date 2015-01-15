@@ -1,10 +1,10 @@
 module.exports = EmbeddedPlayground;
 
 var _ = require('lodash');
+var http = require('http');
 var mercury = require('mercury');
 var moment = require('moment');
 var path = require('path');
-var request = require('superagent');
 var url = require('url');
 
 var Editor = require('./editor');
@@ -135,7 +135,7 @@ EmbeddedPlayground.prototype.run = function() {
   }
 
   var editors = this.editors_;
-  var req = {
+  var reqData = {
     files: _.map(this.files_, function(file, i) {
       var editor = editors[i];
       return {
@@ -150,31 +150,89 @@ EmbeddedPlayground.prototype.run = function() {
   // current time) and introduce a fake delay. Also, switch to streaming
   // messages, for usability.
   var that = this, state = this.state_;
-  request
-      .post(compileUrl)
-      .type('json')
-      .accept('json')
-      .send(req)
-      .end(function(err, res) {
-        // If the user has stopped this run or reset the playground, do nothing.
-        if (runId !== state.nextRunId()) {
-          return;
-        }
-        that.endRun_();
-        // TODO(sadovsky): Show system errors to the user somehow.
-        if (err) {
-          return console.error(err);
-        }
-        if (res.error) {
-          return console.error(res.error);
-        }
-        if (res.body.Errors) {
-          return state.consoleEvents.set([{Message: res.body.Errors}]);
-        }
-        if (res.body.Events) {
-          return state.consoleEvents.set(res.body.Events);
+
+  // If the user stops the current run or resets the playground, functions
+  // wrapped with ifRunActive become no-ops.
+  var ifRunActive = function(cb) {
+    return function() {
+      if (runId === state.nextRunId()) {
+        cb.apply(this, arguments);
+      }
+    };
+  };
+
+  var appendToConsole = function(events) {
+    state.consoleEvents.set(state.consoleEvents().concat(events));
+  };
+  var makeEvent = function(stream, message) {
+    return {Stream: stream, Message: message};
+  };
+  var endRunIfActive = ifRunActive(function() {
+    that.endRun_();
+  });
+
+  var urlp = url.parse(compileUrl);
+
+  var options = {
+    method: 'POST',
+    protocol: urlp.protocol,
+    hostname: urlp.hostname,
+    port: urlp.port || (urlp.protocol === 'https:' ? '443' : '80'),
+    path: urlp.path,
+    // TODO(ivanpi): Change once deployed.
+    withCredentials: false,
+    headers: {
+      'accept': 'application/json',
+      'content-type': 'application/json'
+    }
+  };
+
+  var req = http.request(options);
+
+  // error and close callbacks call endRunIfActive in the next tick to ensure
+  // that if both events are triggered, both are executed before the run is
+  // ended by either.
+  req.on('error', ifRunActive(function(err) {
+    console.log('Connection error: ' + err.message + '\n' + err.stack);
+    appendToConsole(makeEvent('syserr', 'Error connecting to server.'));
+    process.nextTick(endRunIfActive);
+  }));
+
+  req.on('close', ifRunActive(function() {
+    process.nextTick(endRunIfActive);
+  }));
+
+  req.on('response', ifRunActive(function(res) {
+    if (res.statusCode !== 0 && res.statusCode !== 200) {
+      appendToConsole(makeEvent('syserr', 'HTTP status ' + res.statusCode));
+    }
+    // Holds partial prefix of next line.
+    var partialLine = '';
+    res.on('data', ifRunActive(function(chunk) {
+      // Each complete line is one JSON Event.
+      var eventsJson = (partialLine + chunk).split('\n');
+      partialLine = eventsJson.pop();
+      var events = [];
+      _.forEach(eventsJson, function(line) {
+        // Ignore empty lines.
+        line = line.trim();
+        if (line) {
+          try {
+            events.push(JSON.parse(line));
+          } catch (err) {
+            console.error(err);
+            events.push(makeEvent('syserr', 'Error parsing server response.'));
+            endRunIfActive();
+            return false;
+          }
         }
       });
+      appendToConsole(events);
+    }));
+  }));
+
+  req.write(JSON.stringify(reqData));
+  req.end();
 };
 
 // Clears the console and resets all editors to their original contents.

@@ -100,8 +100,17 @@
   color: #d01716;
 }
 
+.pg .console .text .svc-stderr {
+  color: #d01716;
+}
+
 .pg .console .text .debug {
   color: #455ede;
+}
+
+.pg .console .text .syserr {
+  color: #d01716;
+  font-weight: bold;
 }
 
 .pg .console.open {
