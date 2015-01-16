@@ -167,9 +167,6 @@ EmbeddedPlayground.prototype.run = function() {
   var makeEvent = function(stream, message) {
     return {Stream: stream, Message: message};
   };
-  var endRunIfActive = ifRunActive(function() {
-    that.endRun_();
-  });
 
   var urlp = url.parse(compileUrl);
 
@@ -189,6 +186,31 @@ EmbeddedPlayground.prototype.run = function() {
 
   var req = http.request(options);
 
+  var watchdog = null;
+  // The heartbeat function clears the existing timeout (if any) and, if the run
+  // is still active, starts a new timeout.
+  var heartbeat = function() {
+    if (watchdog !== null) {
+      clearTimeout(watchdog);
+    }
+    watchdog = null;
+    ifRunActive(function() {
+      // TODO(ivanpi): Reduce timeout duration when server heartbeat is added.
+      watchdog = setTimeout(function() {
+        process.nextTick(ifRunActive(function() {
+          req.destroy();
+          appendToConsole(makeEvent('syserr', 'Server response timed out.'));
+        }));
+      }, 10500);
+    })();
+  };
+
+  var endRunIfActive = ifRunActive(function() {
+    that.endRun_();
+    // Cleanup watchdog timer.
+    heartbeat();
+  });
+
   // error and close callbacks call endRunIfActive in the next tick to ensure
   // that if both events are triggered, both are executed before the run is
   // ended by either.
@@ -202,10 +224,12 @@ EmbeddedPlayground.prototype.run = function() {
   var partialLine = '';
 
   req.on('response', ifRunActive(function(res) {
+    heartbeat();
     if (res.statusCode !== 0 && res.statusCode !== 200) {
       appendToConsole(makeEvent('syserr', 'HTTP status ' + res.statusCode));
     }
     res.on('data', ifRunActive(function(chunk) {
+      heartbeat();
       // Each complete line is one JSON Event.
       var eventsJson = (partialLine + chunk).split('\n');
       partialLine = eventsJson.pop();
@@ -242,6 +266,9 @@ EmbeddedPlayground.prototype.run = function() {
 
   req.write(JSON.stringify(reqData));
   req.end();
+
+  // Start watchdog.
+  heartbeat();
 };
 
 // Clears the console and resets all editors to their original contents.
