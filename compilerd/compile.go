@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"crypto/sha1"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -33,8 +32,8 @@ var (
 	// Playground execution speed needs to be optimized.
 	maxTime = 10 * time.Second
 
-	// In-memory LRU cache of request/response bodies. Keys are sha1 sums of
-	// request bodies (20 bytes each), values are of type CachedResponse.
+	// In-memory LRU cache of request/response bodies. Keys are sha256 sums of
+	// request bodies (32 bytes each), values are of type CachedResponse.
 	// NOTE(nlacasse): The cache size (10k) was chosen arbitrarily and should
 	// perhaps be optimized.
 	cache = lru.New(10000)
@@ -78,7 +77,7 @@ func handlerCompile(w http.ResponseWriter, r *http.Request) {
 	// response status and body.
 	// NOTE(sadovsky): In the client we may shift timestamps (based on current
 	// time) and introduce a fake delay.
-	requestBodyHash := sha1.Sum(requestBody)
+	requestBodyHash := rawHash(requestBody)
 	if cachedResponse, ok := cache.Get(requestBodyHash); ok {
 		if cachedResponseStruct, ok := cachedResponse.(CachedResponse); ok {
 			res := openResponse(cachedResponseStruct.Status)

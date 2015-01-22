@@ -2,7 +2,11 @@ package main
 
 import (
 	"bytes"
+	crand "crypto/rand"
+	"crypto/sha256"
+	"encoding/binary"
 	"flag"
+	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -32,6 +36,17 @@ var (
 	maxSize = 1 << 16
 )
 
+// Seeds the non-secure random number generator.
+func seedRNG() error {
+	var seed int64
+	err := binary.Read(crand.Reader, binary.LittleEndian, &seed)
+	if err != nil {
+		return fmt.Errorf("reseed failed: %v", err)
+	}
+	rand.Seed(seed)
+	return nil
+}
+
 //// HTTP server
 
 func healthz(w http.ResponseWriter, r *http.Request) {
@@ -45,6 +60,10 @@ func healthz(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	flag.Parse()
+
+	if err := seedRNG(); err != nil {
+		panic(err)
+	}
 
 	if *enableShutdown {
 		limit_min := 60
@@ -137,4 +156,10 @@ func getPostBody(w http.ResponseWriter, r *http.Request) []byte {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(r.Body)
 	return buf.Bytes()
+}
+
+//// Shared helper functions
+
+func rawHash(data []byte) [32]byte {
+	return sha256.Sum256(data)
 }
