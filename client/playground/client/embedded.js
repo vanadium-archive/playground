@@ -87,7 +87,14 @@ function renderConsoleEvent(event) {
   if (event.File) {
     children.push(h('span.filename', path.basename(event.File) + ': '));
   }
-  children.push(h('span.' + (event.Stream || 'unknown'), event.Message));
+  // A single trailing newline is always ignored.
+  // Ignoring the last character, check if there are any newlines in message.
+  if (event.Message.slice(0, -1).indexOf('\n') !== -1) {
+    // Multiline messages are marked with U+23CE and started in a new line.
+    children.push('\u23ce'/* U+23CE RETURN SYMBOL */, h('br'));
+  }
+  children.push(h('span.message.' + (event.Stream || 'unknown'),
+                  event.Message));
   return h('div', children);
 }
 

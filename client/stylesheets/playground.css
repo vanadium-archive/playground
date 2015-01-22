@@ -96,6 +96,13 @@
   font-weight: bold;
 }
 
+/* Known bug: Chrome doesn't show tabs; refer to
+   https://code.google.com/p/chromium/issues/detail?id=398274 */
+.pg .console .text .message {
+  white-space: pre-wrap;
+  tab-size: 4;
+}
+
 .pg .console .text .stderr {
   color: #d01716;
 }
