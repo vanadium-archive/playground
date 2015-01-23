@@ -89,12 +89,12 @@ func startWspr(fileName, credentials string) (proc *os.Process, port int, err er
 		"-veyron.proxy="+proxyName,
 		"-veyron.tcp.address=127.0.0.1:0",
 		"-port="+strconv.Itoa(port),
-		// Retry RPC calls for 3 seconds. If a client makes an RPC call before the
+		// Retry RPC calls for 1 second. If a client makes an RPC call before the
 		// server is running, it won't immediately fail, but will retry while the
 		// server is starting.
 		// TODO(nlacasse): Remove this when javascript can tell wspr how long to
 		// retry for. Right now it's a global setting in wspr.
-		"-retry-timeout=3",
+		"-retry-timeout=1",
 		// The identd server won't be used, so pass a fake name.
 		"-identd=/unused")
 	if credentials != "" {
