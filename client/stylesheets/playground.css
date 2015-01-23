@@ -1,0 +1,132 @@
+/* CSS rules for elements inside EmbeddedPlayground instances. */
+
+.pg {
+  width: 100%;
+}
+
+.pg .top-bar {
+  position: relative;
+}
+
+.pg .btn,
+.pg .tab {
+  cursor: pointer;
+  display: inline-block;
+  font-size: 14px;
+  font-weight: normal;
+  padding: 6px 12px;
+  user-select: none;
+}
+
+.pg .tab {
+  background-color: #bbb;
+  margin-right: 2px;
+}
+
+.pg .tab.active {
+  background-color: #ddd;
+}
+
+.pg .btns {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.pg .btn {
+  background-color: #0277bd;
+  color: #fff;
+  border: 0;
+  margin-left: 2px;
+}
+
+/* TODO(sadovsky): Add .no-touch once we integrate Modernizr. */
+.pg .btn:hover {
+  background-color: #01579b;
+}
+
+.pg .btn:focus,
+.pg .btn:active {
+  outline: 0;
+}
+
+.pg .btn:active {
+  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+}
+
+/* TODO(sadovsky): Make this reactive. */
+.pg .editors {
+  position: relative;
+  border-top: 4px solid #ddd;
+  height: 200px;
+}
+
+.pg .editor {
+  position: absolute;  /* stack editors one on top of the other */
+  width: 100%;
+  height: 100%;
+}
+
+.pg .ace_editor {
+  width: 100%;
+  height: 100%;
+}
+
+.pg .console {
+  background-color: #ddd;
+  width: 100%;
+  height: 4px;  /* matches .editors border-top; expands on run */
+  transition: height 0.2s;
+}
+
+.pg .console .text {
+  color: #222;
+  font-family: "Source Code Pro", monospace;
+  font-size: 13px;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.pg .console .text .timestamp {
+  color: #9e9e9e;
+}
+
+.pg .console .text .filename {
+  font-weight: bold;
+}
+
+/* Known bug: Chrome doesn't show tabs; refer to
+   https://code.google.com/p/chromium/issues/detail?id=398274 */
+.pg .console .text .message {
+  white-space: pre-wrap;
+  tab-size: 4;
+}
+
+.pg .console .text .stderr {
+  color: #d01716;
+}
+
+.pg .console .text .svc-stderr {
+  color: #d01716;
+}
+
+.pg .console .text .debug {
+  color: #455ede;
+}
+
+.pg .console .text .syserr {
+  color: #d01716;
+  font-weight: bold;
+}
+
+.pg .console.open {
+  height: 200px;
+  overflow: auto;
+}
+
+.clearfix {
+  display: table;
+  clear: both;
+  content: "";
+}
