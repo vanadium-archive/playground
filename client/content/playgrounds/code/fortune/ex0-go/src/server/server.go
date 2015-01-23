@@ -1,3 +1,5 @@
+// +build OMIT
+
 // index=1
 package main
 
