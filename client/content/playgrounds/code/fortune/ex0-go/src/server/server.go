@@ -8,7 +8,7 @@ import (
 	"math/rand"
 
 	"v.io/core/veyron/lib/signals"
-	"v.io/core/veyron/profiles"
+	_ "v.io/core/veyron/profiles"
 	vflag "v.io/core/veyron/security/flag"
 	"v.io/core/veyron2"
 	"v.io/core/veyron2/ipc"
@@ -64,7 +64,7 @@ func main() {
 	fortuneServer := fortune.FortuneServer(newFortuned())
 
 	// Create an endpoint and begin listening.
-	if endpoint, err := server.Listen(profiles.LocalListenSpec); err == nil {
+	if endpoint, err := server.Listen(veyron2.GetListenSpec(ctx)); err == nil {
 		fmt.Printf("Listening at: %v\n", endpoint)
 	} else {
 		log.Panic("error listening to service: ", err)

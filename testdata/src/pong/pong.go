@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"v.io/core/veyron/lib/signals"
-	"v.io/core/veyron/profiles"
+	_ "v.io/core/veyron/profiles"
 	"v.io/core/veyron2"
 	"v.io/core/veyron2/ipc"
 
@@ -34,7 +34,7 @@ func main() {
 
 	serverPong := pingpong.PingPongServer(&pongd{})
 
-	if endpoint, err := s.Listen(profiles.LocalListenSpec); err == nil {
+	if endpoint, err := s.Listen(veyron2.GetListenSpec(ctx)); err == nil {
 		fmt.Printf("Listening at: %v\n", endpoint)
 	} else {
 		log.Fatal("error listening to service: ", err)
