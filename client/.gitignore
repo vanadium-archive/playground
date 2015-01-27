@@ -1,0 +1,8 @@
+bundles/*/*/bin
+bundles/*/*/pkg
+src/example_bundles
+bundle.json
+node_modules
+npm-debug.log
+build
+public

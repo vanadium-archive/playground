@@ -51,7 +51,7 @@ Editor.prototype.mount = function(el, type, text) {
   editor.setTheme('ace/theme/monokai');
   // https://github.com/ajaxorg/ace/wiki/Configuring-Ace
   editor.setOptions({
-    fontFamily: 'Source Code Pro',
+    fontFamily: '"Source Code Pro", monospace',
     fontSize: '13px'
   });
 

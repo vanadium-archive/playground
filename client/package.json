@@ -1,0 +1,27 @@
+{
+  "name": "vanadium-pg-client",
+  "description": "Source for the Vanadium playground client",
+  "version": "0.0.0",
+  "dependencies": {
+    "brace": "^0.4.0",
+    "browserify": "^8.1.1",
+    "lodash": "^3.0.0",
+    "mercury": "^12.0.0",
+    "minifyify": "^6.1.0",
+    "moment": "^2.9.0",
+    "pgbundle": "0.0.1",
+    "superagent": "^0.21.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://vanadium.googlesource.com/release.go.playground"
+  },
+  "scripts": {
+    "start": "echo \"Serving http://localhost:8088\" && http-server ./public/ -p 8088 -d --cors",
+    "test": "make test"
+  },
+  "devDependencies": {
+    "http-server": "^0.7.4",
+    "jshint": "^2.6.0"
+  }
+}
