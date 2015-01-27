@@ -25,7 +25,7 @@ main() {
 
   for d in $EXAMPLE_DIRS; do
     echo -e "\n\n>>>>> Test ${d}\n\n"
-    test_pg_example "${d}" "-v=false" || shell_test::fail "${d}: failed to run"
+    test_pg_example "${d}" "-v=true" || shell_test::fail "${d}: failed to run"
     # TODO(sadovsky): Make this "clean exit" check more robust.
     grep -q "\"Exited cleanly.\"" builder.out || shell_test::fail "${d}: did not exit cleanly"
     rm -f builder.out
