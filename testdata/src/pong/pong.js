@@ -1,8 +1,8 @@
 var veyron = require('veyron');
 
 var pingPongService = {
-  ping: function(ctx, msg){
-    console.log('['+ctx.remoteBlessingStrings+'] '+msg);
+  ping: function(ctx, msg) {
+    console.log('[' + ctx.remoteBlessingStrings + '] ' + msg);
     return 'PONG';
   }
 };

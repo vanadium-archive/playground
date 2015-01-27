@@ -5,7 +5,7 @@ var context = veyron.context;
  * Create a Vanadium runtime using the configuration defined in config.js,
  * and bind it to the bakery/cookie/fortune service.
  */
-veyron.init(function(err, rt){
+veyron.init(function(err, rt) {
   if (err) { return error(err); }
 
   var ctx = new context.Context();
@@ -25,8 +25,9 @@ veyron.init(function(err, rt){
 function retryBindTo(ctx, rt, cb) {
   rt.bindTo(ctx, 'bakery/cookie/fortune', function(err, fortuneService) {
     if (err) {
+      console.error(err + '\nRetrying...');
       // Try again in 100ms
-      return setTimeout(function(){
+      return setTimeout(function() {
         retryBindTo(ctx, rt, cb);
       }, 100);
     }

@@ -2,7 +2,8 @@
 
 # Tests the playground builder tool.
 
-source "$(go list -f {{.Dir}} v.io/core/shell/lib)/shell_test.sh"
+# v.io/core/shell/lib/shell_test.sh sourced via v.io/playground/lib/pg_test_util.sh
+# (shell_test.sh has side effects, should not be sourced again)
 source "$(go list -f {{.Dir}} v.io/playground)/lib/pg_test_util.sh"
 
 # Sets up a directory with the given files, then runs builder.
