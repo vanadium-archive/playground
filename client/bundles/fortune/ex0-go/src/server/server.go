@@ -12,6 +12,7 @@ import (
 	vflag "v.io/core/veyron/security/flag"
 	"v.io/core/veyron2"
 	"v.io/core/veyron2/ipc"
+	"v.io/core/veyron2/vlog"
 
 	"fortune"
 )
@@ -52,12 +53,11 @@ func main() {
 	// Initialize Vanadium.
 	ctx, shutdown := veyron2.Init()
 	defer shutdown()
-	log := veyron2.GetLogger(ctx)
 
 	// Create a new instance of the runtime's server functionality.
 	server, err := veyron2.NewServer(ctx)
 	if err != nil {
-		log.Panic("failure creating server: ", err)
+		vlog.Panic("failure creating server: ", err)
 	}
 
 	// Create the fortune server stub.
@@ -67,12 +67,12 @@ func main() {
 	if endpoint, err := server.Listen(veyron2.GetListenSpec(ctx)); err == nil {
 		fmt.Printf("Listening at: %v\n", endpoint)
 	} else {
-		log.Panic("error listening to service: ", err)
+		vlog.Panic("error listening to service: ", err)
 	}
 
 	// Start the fortune server at "fortune".
 	if err := server.Serve("fortune", fortuneServer, vflag.NewAuthorizerOrDie()); err != nil {
-		log.Panic("error serving service: ", err)
+		vlog.Panic("error serving service: ", err)
 	}
 
 	// Wait forever.

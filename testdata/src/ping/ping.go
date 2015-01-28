@@ -7,6 +7,7 @@ import (
 
 	_ "v.io/core/veyron/profiles"
 	"v.io/core/veyron2"
+	"v.io/core/veyron2/vlog"
 
 	"pingpong"
 )
@@ -14,12 +15,11 @@ import (
 func main() {
 	ctx, shutdown := veyron2.Init()
 	defer shutdown()
-	log := veyron2.GetLogger(ctx)
 
 	s := pingpong.PingPongClient("pingpong")
 	pong, err := s.Ping(ctx, "PING")
 	if err != nil {
-		log.Fatal("error pinging: ", err)
+		vlog.Fatal("error pinging: ", err)
 	}
 	fmt.Println(pong)
 }
