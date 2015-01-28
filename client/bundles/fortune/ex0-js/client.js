@@ -1,5 +1,4 @@
 var veyron = require('veyron');
-var context = veyron.context;
 
 /**
  * Create a Vanadium runtime using the configuration defined in config.js,
@@ -8,9 +7,10 @@ var context = veyron.context;
 veyron.init(function(err, rt) {
   if (err) { return error(err); }
 
-  var ctx = new context.Context();
+  var ctx = rt.getContext();
+  var client = rt.newClient();
 
-  retryBindTo(ctx, rt, function(err, fortuneService) {
+  retryBindTo(ctx, client, function(err, fortuneService) {
     if (err) { return error(err); }
 
     fortuneService.getRandomFortune(ctx, function(err, fortune) {
@@ -22,13 +22,13 @@ veyron.init(function(err, rt) {
   });
 });
 
-function retryBindTo(ctx, rt, cb) {
-  rt.bindTo(ctx, 'bakery/cookie/fortune', function(err, fortuneService) {
+function retryBindTo(ctx, client, cb) {
+  client.bindTo(ctx, 'bakery/cookie/fortune', function(err, fortuneService) {
     if (err) {
       console.error(err + '\nRetrying...');
       // Try again in 100ms
       return setTimeout(function() {
-        retryBindTo(ctx, rt, cb);
+        retryBindTo(ctx, client, cb);
       }, 100);
     }
 

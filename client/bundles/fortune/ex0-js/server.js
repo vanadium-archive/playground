@@ -39,8 +39,9 @@ var fortuneService = {
 
 // Create a Vanadium runtime using the configuration
 veyron.init().then(function(rt) {
+  var server = rt.newServer();
   // Serve the fortune server under a name. Serve returns a Promise object
-  rt.serve('bakery/cookie/fortune', fortuneService).then(function() {
+  server.serve('bakery/cookie/fortune', fortuneService).then(function() {
     console.log('Fortune server serving under: bakery/cookie/fortune \n');
   }).catch(function(err) {
     console.error('Failed to serve the fortune server because: \n', err);

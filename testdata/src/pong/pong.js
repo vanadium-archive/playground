@@ -10,7 +10,7 @@ var pingPongService = {
 veyron.init(function(err, rt) {
   if (err) throw err;
 
-  rt.serve('pingpong', pingPongService, function(err) {
+  rt.newServer().serve('pingpong', pingPongService, function(err) {
     if (err) throw err;
   });
 });
