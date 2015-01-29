@@ -1,4 +1,5 @@
 var veyron = require('veyron');
+var vom = require('vom');
 
 /**
  * 1) Implement a simple fortune service
@@ -30,6 +31,32 @@ var fortuneService = {
     }
     console.info('Adding:', fortune);
     this.fortunes.push(fortune);
+  },
+
+  // Describes the fortune service.
+  // TODO(alexfandrianto): The correct way to do this is to generate the JS code
+  // from the VDL file and inherit from the generated service stub.
+  _serviceDescription: {
+    methods: [
+      {
+        name: 'GetRandomFortune',
+        outArgs: [
+          {
+            type: vom.Types.STRING
+          }
+        ]
+      },
+      {
+        name: 'AddNewFortune',
+        inArgs: [
+          {
+            name: 'fortune',
+            type: vom.Types.STRING
+          }
+        ],
+        outArgs: []
+      }
+    ]
   }
 };
 

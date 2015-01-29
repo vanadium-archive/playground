@@ -27,8 +27,8 @@ install_vanadium_js() {
   pushd "${VANADIUM_ROOT}/release/javascript/vom"
   npm link
   popd
-  pushd "${VANADIUM_ROOT}/release/javascript/core"
   npm link vom
+  pushd "${VANADIUM_ROOT}/release/javascript/core"
   npm link
   popd
   npm link veyron
