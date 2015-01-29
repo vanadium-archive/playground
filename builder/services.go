@@ -66,18 +66,23 @@ func startMount(timeLimit time.Duration) (proc *os.Process, err error) {
 
 // startProxy starts a proxyd process.  We run one proxyd process for the
 // entire environment.
-func startProxy() (proc *os.Process, err error) {
-	cmd := makeCmd("<proxyd>", true, "proxyd", "-name="+proxyName, "-address=127.0.0.1:0", "-http=")
-	err = cmd.Start()
-	if err != nil {
-		return nil, err
+func startProxy(timeLimit time.Duration) (proc *os.Process, err error) {
+	cmd := makeCmd("<proxyd>", true,
+		"proxyd",
+		// Verbose logging so we can watch the output for "Proxy listening" log line.
+		"-v=1",
+		"-name="+proxyName,
+		"-address=127.0.0.1:0",
+		"-http=")
+	if _, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile("Proxy listening")); err != nil {
+		return nil, fmt.Errorf("Error starting proxy: %v", err)
 	}
-	return cmd.Process, err
+	return cmd.Process, nil
 }
 
 // startWspr starts a wsprd process. We run one wsprd process for each
 // javascript file being run.
-func startWspr(fileName, credentials string) (proc *os.Process, port int, err error) {
+func startWspr(fileName, credentials string, timeLimit time.Duration) (proc *os.Process, port int, err error) {
 	port, err = findUnusedPort()
 	if err != nil {
 		return nil, port, err
@@ -85,7 +90,7 @@ func startWspr(fileName, credentials string) (proc *os.Process, port int, err er
 	cmd := makeCmd("<wsprd>:"+fileName, true,
 		"wsprd",
 		// Verbose logging so we can watch the output for "Listening" log line.
-		"-v=3",
+		"-v=1",
 		"-veyron.proxy="+proxyName,
 		"-veyron.tcp.address=127.0.0.1:0",
 		"-port="+strconv.Itoa(port),
@@ -100,7 +105,7 @@ func startWspr(fileName, credentials string) (proc *os.Process, port int, err er
 	if credentials != "" {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("%v=%s", consts.VeyronCredentials, path.Join("credentials", credentials)))
 	}
-	if _, err := startAndWaitFor(cmd, 3*time.Second, regexp.MustCompile("Listening")); err != nil {
+	if _, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile("Listening")); err != nil {
 		return nil, 0, fmt.Errorf("Error starting wspr: %v", err)
 	}
 	return cmd.Process, port, nil

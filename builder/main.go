@@ -37,14 +37,15 @@ import (
 	"v.io/playground/lib/event"
 )
 
-const runTimeout = 3 * time.Second
-
 var (
 	verbose = flag.Bool("v", true, "Whether to output debug messages.")
 
 	includeServiceOutput = flag.Bool("includeServiceOutput", false, "Whether to stream service (mounttable, wspr, proxy) output to clients.")
 
 	includeV23Env = flag.Bool("includeV23Env", false, "Whether to log the output of \"v23 env\" before compilation.")
+
+	// TODO(ivanpi): Separate out mounttable, proxy, wspr timeouts. Add compile timeout. Revise default.
+	runTimeout = flag.Int64("runTimeout", 3000, "Time limit for running user code, in milliseconds.")
 
 	// Sink for writing events (debug and run output) to stdout as JSON, one event per line.
 	out event.Sink
@@ -54,6 +55,10 @@ var (
 
 	mu sync.Mutex
 )
+
+func getRunTimeout() time.Duration {
+	return time.Duration(*runTimeout) * time.Millisecond
+}
 
 // Type of data sent to the builder on stdin.  Input should contain Files.  We
 // look for a file whose Name ends with .id, and parse that into credentials.
@@ -226,7 +231,7 @@ func runFiles(files []*codeFile) {
 		}
 	}
 
-	timeout := time.After(runTimeout)
+	timeout := time.After(getRunTimeout())
 
 	for running > 0 {
 		select {
@@ -287,7 +292,7 @@ func (f *codeFile) write() error {
 }
 
 func (f *codeFile) startJs() error {
-	wsprProc, wsprPort, err := startWspr(f.Name, f.credentials)
+	wsprProc, wsprPort, err := startWspr(f.Name, f.credentials, getRunTimeout())
 	if err != nil {
 		return fmt.Errorf("Error starting wspr: %v", err)
 	}
@@ -387,11 +392,11 @@ func main() {
 
 	panicOnError(createCredentials(r.Credentials))
 
-	mt, err := startMount(runTimeout)
+	mt, err := startMount(getRunTimeout())
 	panicOnError(err)
 	defer mt.Kill()
 
-	proxy, err := startProxy()
+	proxy, err := startProxy(getRunTimeout())
 	panicOnError(err)
 	defer proxy.Kill()
 

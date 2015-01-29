@@ -18,7 +18,7 @@ test_with_files() {
     cp "${TESTDATA_DIR}/${f}" "${fdir}/"
   done
 
-  test_pg_example "${PGBUNDLE_DIR}" "-v=true --includeServiceOutput=true --includeV23Env=true"
+  test_pg_example "${PGBUNDLE_DIR}" "-v=true --includeServiceOutput=true --includeV23Env=true --runTimeout=5000"
 }
 
 main() {

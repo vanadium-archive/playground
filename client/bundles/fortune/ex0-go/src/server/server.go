@@ -40,10 +40,13 @@ func newFortuned() *fortuned {
 
 // Methods that get called by RPC requests.
 func (f *fortuned) Get(_ ipc.ServerContext) (Fortune string, err error) {
-	return f.fortunes[f.random.Intn(len(f.fortunes))], nil
+	Fortune = f.fortunes[f.random.Intn(len(f.fortunes))]
+	fmt.Printf("Serving: %s\n", Fortune)
+	return Fortune, nil
 }
 
 func (f *fortuned) Add(_ ipc.ServerContext, Fortune string) error {
+	fmt.Printf("Adding: %s\n", Fortune)
 	f.fortunes = append(f.fortunes, Fortune)
 	return nil
 }
@@ -67,12 +70,14 @@ func main() {
 	if endpoint, err := server.Listen(veyron2.GetListenSpec(ctx)); err == nil {
 		fmt.Printf("Listening at: %v\n", endpoint)
 	} else {
-		vlog.Panic("error listening to service: ", err)
+		vlog.Panic("error listening at endpoint: ", err)
 	}
 
 	// Start the fortune server at "fortune".
-	if err := server.Serve("fortune", fortuneServer, vflag.NewAuthorizerOrDie()); err != nil {
-		vlog.Panic("error serving service: ", err)
+	if err := server.Serve("fortune", fortuneServer, vflag.NewAuthorizerOrDie()); err == nil {
+		fmt.Printf("Fortune server serving under: fortune\n")
+	} else {
+		vlog.Panic("error serving fortune server: ", err)
 	}
 
 	// Wait forever.

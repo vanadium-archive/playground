@@ -30,17 +30,19 @@ func main() {
 	if err != nil {
 		vlog.Fatal("failure creating server: ", err)
 	}
-	vlog.Info("Waiting for ping")
 
 	serverPong := pingpong.PingPongServer(&pongd{})
 
+	fmt.Printf("Starting server\n")
 	if endpoint, err := s.Listen(veyron2.GetListenSpec(ctx)); err == nil {
 		fmt.Printf("Listening at: %v\n", endpoint)
 	} else {
 		vlog.Fatal("error listening to service: ", err)
 	}
 
-	if err := s.Serve("pingpong", serverPong, nil); err != nil {
+	if err := s.Serve("pingpong", serverPong, nil); err == nil {
+		fmt.Printf("Serving pingpong\n")
+	} else {
 		vlog.Fatal("error serving service: ", err)
 	}
 

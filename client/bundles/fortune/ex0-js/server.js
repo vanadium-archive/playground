@@ -42,13 +42,13 @@ veyron.init().then(function(rt) {
   var server = rt.newServer();
   // Serve the fortune server under a name. Serve returns a Promise object
   server.serve('bakery/cookie/fortune', fortuneService).then(function() {
-    console.log('Fortune server serving under: bakery/cookie/fortune \n');
+    console.log('Fortune server serving under: bakery/cookie/fortune');
   }).catch(function(err) {
-    console.error('Failed to serve the fortune server because: \n', err);
+    console.error('Failed to serve the fortune server because:\n', err);
     process.exit(1);
   });
 }).catch(function(err) {
-  console.error('Failed to start the fortune server because:', err);
+  console.error('Failed to start the fortune server because:\n', err);
   process.exit(1);
 });
 

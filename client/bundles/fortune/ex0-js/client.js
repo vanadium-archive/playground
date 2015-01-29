@@ -10,13 +10,15 @@ veyron.init(function(err, rt) {
   var ctx = rt.getContext();
   var client = rt.newClient();
 
+  console.info('Binding to service');
   retryBindTo(ctx, client, function(err, fortuneService) {
     if (err) { return error(err); }
 
+    console.info('Issuing request');
     fortuneService.getRandomFortune(ctx, function(err, fortune) {
       if (err) { return error(err); }
 
-      console.log(fortune);
+      console.log('Received: ' + fortune);
       process.exit(0);
     });
   });
@@ -25,8 +27,7 @@ veyron.init(function(err, rt) {
 function retryBindTo(ctx, client, cb) {
   client.bindTo(ctx, 'bakery/cookie/fortune', function(err, fortuneService) {
     if (err) {
-      console.error(err + '\nRetrying...');
-      // Try again in 100ms
+      console.error(err + '\nRetrying in 100ms...');
       return setTimeout(function() {
         retryBindTo(ctx, client, cb);
       }, 100);

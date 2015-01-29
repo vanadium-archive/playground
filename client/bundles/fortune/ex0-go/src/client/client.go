@@ -24,13 +24,15 @@ func main() {
 
 	// Issue a Get() RPC.
 	// We do this in a loop to give the server time to start up.
+	fmt.Printf("Issuing request\n")
 	var fortune string
 	for {
 		var err error
 		if fortune, err = stub.Get(ctx); err == nil {
 			break
 		}
+		fmt.Printf("%v\nRetrying in 100ms...\n", err)
 		time.Sleep(100 * time.Millisecond)
 	}
-	fmt.Println(fortune)
+	fmt.Printf("Received: %s\n", fortune)
 }
