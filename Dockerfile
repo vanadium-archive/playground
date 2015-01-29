@@ -30,10 +30,14 @@ RUN rm /root/.hgrc
 # Install the release/javascript/core library.
 # TODO(nlacasse): Switch to "npm install -g veyron" once release/javascript/core is publicly
 # visible in NPM.
-WORKDIR /usr/local/vanadium/release/javascript/core
 # NOTE(sadovsky): NPM is flaky. If any of the NPM commands below fail, simply
 # retry them.
+WORKDIR /usr/local/vanadium/release/javascript/vom
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm install --production
+RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link
+WORKDIR /usr/local/vanadium/release/javascript/core
+RUN $VANADIUM_ROOT/environment/cout/node/bin/npm install --production
+RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link vom
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link
 WORKDIR /home/playground
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link veyron
@@ -42,6 +46,7 @@ RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link veyron
 WORKDIR /usr/local/vanadium/release
 ENV PATH $VANADIUM_ROOT/release/go/bin:$VANADIUM_ROOT/bin:$PATH
 RUN v23 go install v.io/core/...
+RUN v23 go install v.io/wspr/...
 RUN v23 go install v.io/playground/...
 
 # Uncomment the following lines to install a version of the builder tool using
