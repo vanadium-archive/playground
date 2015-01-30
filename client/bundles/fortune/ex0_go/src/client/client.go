@@ -1,6 +1,6 @@
-// +build OMIT
+// +build ignore
 
-// index=3
+// index=2
 package main
 
 import (

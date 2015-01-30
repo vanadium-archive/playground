@@ -1,3 +1,4 @@
+// index=1
 var veyron = require('veyron');
 var vom = require('vom');
 

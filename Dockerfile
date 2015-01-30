@@ -40,6 +40,7 @@ RUN $VANADIUM_ROOT/environment/cout/node/bin/npm install --production
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link vom
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link
 WORKDIR /home/playground
+RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link vom
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link veyron
 
 # Install Vanadium Go dependencies.
