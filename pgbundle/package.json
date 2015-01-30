@@ -4,17 +4,17 @@
   "version": "0.0.1",
   "bin": "./bin/pgbundle",
   "bugs": {
-    "url": "https://github.com/veyron/pgbundle/issues"
+    "url": "https://github.com/veyron/release-issues/issues"
   },
   "dependencies": {
-    "glob": "^4.0.6",
-    "lodash": "^2.4.1",
+    "glob": "^4.3.5",
+    "lodash": "^3.0.0",
     "minimist": "^1.1.0"
   },
-  "homepage": "https://github.com/veyron/pgbundle",
+  "homepage": "https://vanadium.googlesource.com/release.js.pgbundle",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/veyron/pgbundle.git"
+    "url": "https://vanadium.googlesource.com/release.js.pgbundle"
   }
 }

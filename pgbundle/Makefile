@@ -1,11 +1,15 @@
-export SHELL := /bin/bash -euo pipefail
+PATH := $(PATH):$(VANADIUM_ROOT)/environment/cout/node/bin
+SHELL := /bin/bash -euo pipefail
 
 node_modules: package.json
-	npm prune
+	@npm prune
 	npm install
-	touch node_modules
+	@touch node_modules
 
-lint:
-	jshint .
+.PHONY: clean
+clean:
+	@$(RM) -rf node_modules
 
 .PHONY: lint
+lint:
+	@jshint .

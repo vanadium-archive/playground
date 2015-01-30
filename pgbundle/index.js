@@ -15,20 +15,28 @@ function usage() {
   process.exit(1);
 }
 
-// If the first line is "// +build OMIT", strip the line and return the
+// If the first line is "// +build ignore", strip the line and return the
 // remaining lines.
-function stripBuildOmit(lines) {
-  if (lines[0] === '// +build OMIT') {
+function stripBuildIgnore(lines) {
+  if (lines.length > 0 && _.trim(lines[0]) === '// +build ignore') {
     return _.rest(lines);
   }
   return lines;
+}
+
+// Strip all blank lines at the beginning of the file.
+function stripLeadingBlankLines(lines) {
+  var nb = 0;
+  for (; nb < lines.length && _.trim(lines[nb]) === ''; ++nb) /* no-op */;
+  return _.slice(lines, nb);
 }
 
 // If the first line is an index comment, strip the line and return the index
 // and remaining lines.
 function getIndex(lines) {
   var index = null;
-  var match = lines[0].match(/^\/\/\s*index=(\d+)/);
+  var match = lines.length > 0 &&
+              _.trim(lines[0]).match(/^\/\/\s*index=(\d+)/);
   if (match && match[1]) {
     index = match[1];
     lines = _.rest(lines);
@@ -48,8 +56,8 @@ function shouldIgnore(fileName) {
   if (fileName === BUNDLE_NAME) {
     return true;
   }
-  // Ignore generated .vdl.go files.
-  if ((/\.vdl\.go$/i).test(fileName)) {
+  // Ignore generated .vdl.go and .vdl.js files.
+  if ((/\.vdl\.(go|js)$/i).test(fileName)) {
     return true;
   }
   // Ignore files inside "bin" and "pkg" directories.
@@ -94,7 +102,8 @@ function run() {
       var text = fs.readFileSync(abspath, {encoding: 'utf8'});
 
       var lines = text.split('\n');
-      lines = stripBuildOmit(lines);
+      lines = stripBuildIgnore(lines);
+      lines = stripLeadingBlankLines(lines);
       var indexAndLines = getIndex(lines);
       var index = indexAndLines.index;
       lines = indexAndLines.lines;
