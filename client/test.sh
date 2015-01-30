@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Tests that all embedded playgrounds execute successfully.
+# Tests that embedded playground examples execute successfully.
+# If any new examples are added, they should be appended to $EXAMPLES below.
 
 # To debug playground compile errors you can build examples locally, e.g.:
 # $ cd bundles/fortune/ex0_go/src
@@ -19,11 +20,12 @@ main() {
   install_vanadium_js
   install_pgbundle
 
-  local -r PG_CLIENT_DIR="$(go list -f {{.Dir}} v.io/playground)/client"
-  local -r EXAMPLE_DIRS=$(find "${PG_CLIENT_DIR}/bundles" -maxdepth 2 -mindepth 2)
-  [ -n "${EXAMPLE_DIRS}" ] || shell_test::fail "no playground examples found"
+  local -r PG_BUNDLES_DIR="$(go list -f {{.Dir}} v.io/playground)/client/bundles"
 
-  for d in $EXAMPLE_DIRS; do
+  local -r EXAMPLES="fortune/ex0_go fortune/ex0_js"
+
+  for e in $EXAMPLES; do
+    local d="${PG_BUNDLES_DIR}/${e}"
     echo -e "\n\n>>>>> Test ${d}\n\n"
     test_pg_example "${d}" "-v=true --includeServiceOutput=true --runTimeout=5000" || shell_test::fail "${d}: failed to run"
     # TODO(sadovsky): Make this "clean exit" check more robust.
