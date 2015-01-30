@@ -3,7 +3,7 @@
 # Tests that all embedded playgrounds execute successfully.
 
 # To debug playground compile errors you can build examples locally, e.g.:
-# $ cd bundles/fortune/ex0-go/src
+# $ cd bundles/fortune/ex0_go/src
 # $ GOPATH=$(dirname $(pwd)) VDLPATH=$(dirname $(pwd)) v23 go install ./...
 
 # v.io/core/shell/lib/shell_test.sh sourced via v.io/playground/lib/pg_test_util.sh

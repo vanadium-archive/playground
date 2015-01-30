@@ -71,8 +71,8 @@ the server a chance to start up.
 
 ### Code
 
-<div class="lang-go playground" data-srcdir="/fortune/ex0-go"></div>
+<div class="lang-go playground" data-srcdir="/fortune/ex0_go"></div>
 
 <!--
-<div class="lang-js playground" data-srcdir="/fortune/ex0-js"></div>
+<div class="lang-js playground" data-srcdir="/fortune/ex0_js"></div>
 -->

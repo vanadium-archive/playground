@@ -137,7 +137,7 @@ var FortuneDesc __ipc.InterfaceDesc = descFortune
 // descFortune hides the desc to keep godoc clean.
 var descFortune = __ipc.InterfaceDesc{
 	Name:    "Fortune",
-	PkgPath: "v.io/playground/client/bundles/fortune/ex0-go/src/fortune",
+	PkgPath: "v.io/playground/client/bundles/fortune/ex0_go/src/fortune",
 	Methods: []__ipc.MethodDesc{
 		{
 			Name: "Get",

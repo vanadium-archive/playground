@@ -32,7 +32,7 @@ uncomment marked lines before running the command.
 
 Test your image (without running compilerd):
 
-    $ sudo docker run -i playground < /usr/local/google/home/sadovsky/dev/veyron-www/content/playgrounds/code/fortune/ex0-go/bundle.json
+    $ sudo docker run -i playground < /usr/local/google/home/sadovsky/dev/veyron-www/content/playgrounds/code/fortune/ex0_go/bundle.json
 
 ## Running the playground server (compilerd)
 
