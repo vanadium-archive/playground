@@ -37,7 +37,7 @@ install_vanadium_js() {
 
 # Installs the pgbundle tool.
 install_pgbundle() {
-  pushd "${VANADIUM_ROOT}/release/javascript/pgbundle"
+  pushd "$(go list -f {{.Dir}} v.io/playground)/pgbundle"
   npm link
   popd
   npm link pgbundle

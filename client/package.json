@@ -1,7 +1,10 @@
 {
   "name": "vanadium-pg-client",
-  "description": "Source for the Vanadium playground client",
+  "description": "Vanadium playground web client",
   "version": "0.0.0",
+  "bugs": {
+    "url": "https://github.com/veyron/release-issues/issues"
+  },
   "dependencies": {
     "brace": "^0.4.0",
     "browserify": "^8.1.1",
@@ -12,6 +15,7 @@
     "pgbundle": "0.0.1",
     "superagent": "^0.21.0"
   },
+  "homepage": "https://vanadium.googlesource.com/release.go.playground/+/master/client",
   "repository": {
     "type": "git",
     "url": "https://vanadium.googlesource.com/release.go.playground"

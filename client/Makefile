@@ -42,7 +42,7 @@ src/example_bundles: $(example_code_files) node_modules
 node_modules: package.json
 	@npm prune
 	# Temporary workaround: install pgbundle directly from source.
-	@cd "${VANADIUM_ROOT}/release/javascript/pgbundle" && npm link
+	@cd "${VANADIUM_ROOT}/release/go/src/v.io/playground/pgbundle" && npm link
 	npm link pgbundle
 	@touch $<
 	# End workaround.
