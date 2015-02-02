@@ -1,3 +1,10 @@
+// Handler for HTTP requests to compile and run playground examples.
+//
+// handlerCompile() handles a POST request with bundled example source code.
+// The bundle is passed to the builder command, which is run inside a Docker
+// sandbox. Builder output is streamed back to the client in realtime and
+// cached.
+
 package main
 
 import (
@@ -19,11 +26,6 @@ import (
 	"v.io/playground/lib/event"
 )
 
-type CachedResponse struct {
-	Status int
-	Events []event.Event
-}
-
 var (
 	useDocker = flag.Bool("use-docker", true, "Whether to use Docker to run builder; if false, we run the builder directly.")
 
@@ -38,6 +40,9 @@ var (
 	// perhaps be optimized.
 	cache = lru.New(10000)
 )
+
+//////////////////////////////////////////
+// HTTP request handler
 
 // POST request that compiles and runs the bundle and streams output to client.
 func handlerCompile(w http.ResponseWriter, r *http.Request) {
@@ -225,6 +230,14 @@ func handlerCompile(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//////////////////////////////////////////
+// Event write and cache support
+
+type CachedResponse struct {
+	Status int
+	Events []event.Event
+}
+
 // Each line written to the returned writer, up to limit bytes total, is parsed
 // into an Event and written to Sink.
 // If the limit is reached or an invalid line read, the corresponding callback
@@ -301,6 +314,9 @@ func (r *responseEventSink) popWrittenEvents() []event.Event {
 	r.written = nil
 	return events
 }
+
+//////////////////////////////////////////
+// Miscellaneous helper functions
 
 func docker(args ...string) *exec.Cmd {
 	fullArgs := []string{"docker"}
