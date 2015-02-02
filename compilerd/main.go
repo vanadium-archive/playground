@@ -1,3 +1,5 @@
+// HTTP server for saving, loading, and executing playground examples.
+
 package main
 
 import (
@@ -5,6 +7,7 @@ import (
 	crand "crypto/rand"
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"log"
@@ -47,7 +50,8 @@ func seedRNG() error {
 	return nil
 }
 
-//// HTTP server
+//////////////////////////////////////////
+// HTTP server
 
 func healthz(w http.ResponseWriter, r *http.Request) {
 	select {
@@ -75,8 +79,14 @@ func main() {
 		go waitForShutdown(time.Minute * time.Duration(delay_min))
 	}
 
+	if err := initDBHandles(); err != nil {
+		log.Fatal(err)
+	}
+
 	http.HandleFunc("/healthz", healthz)
 	http.HandleFunc("/compile", handlerCompile)
+	http.HandleFunc("/load", handlerLoad)
+	http.HandleFunc("/save", handlerSave)
 
 	log.Printf("Serving %s\n", *address)
 	http.ListenAndServe(*address, nil)
@@ -123,7 +133,8 @@ Loop:
 	os.Exit(0)
 }
 
-//// HTTP request helpers
+//////////////////////////////////////////
+// HTTP request helpers
 
 // Handles CORS options and pre-flight requests.
 // Returns false iff response processing should not continue.
@@ -145,6 +156,17 @@ func handleCORS(w http.ResponseWriter, r *http.Request) bool {
 	return true
 }
 
+// Checks if the GET method was used.
+// Returns false iff response processing should not continue.
+func checkGetMethod(w http.ResponseWriter, r *http.Request) bool {
+	if r.Method != "GET" {
+		w.WriteHeader(http.StatusBadRequest)
+		return false
+	}
+
+	return true
+}
+
 // Checks if the POST method was used and returns the request body.
 // Returns nil iff response processing should not continue.
 func getPostBody(w http.ResponseWriter, r *http.Request) []byte {
@@ -158,7 +180,13 @@ func getPostBody(w http.ResponseWriter, r *http.Request) []byte {
 	return buf.Bytes()
 }
 
-//// Shared helper functions
+//////////////////////////////////////////
+// Shared helper functions
+
+func stringHash(data []byte) string {
+	hv := rawHash(data)
+	return hex.EncodeToString(hv[:])
+}
 
 func rawHash(data []byte) [32]byte {
 	return sha256.Sum256(data)
