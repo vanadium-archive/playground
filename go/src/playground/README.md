@@ -19,9 +19,9 @@ Start (or restart) the Docker daemon:
 
 Build the playground Docker image (this will take a while...):
 
-    $ cp ~/.gitcookies $VANADIUM_ROOT/release/go/src/v.io/playground/builder/gitcookies
-    $ cp ~/.hgrc $VANADIUM_ROOT/release/go/src/v.io/playground/builder/hgrc
-    $ sudo docker build -t playground $VANADIUM_ROOT/release/go/src/v.io/playground/.
+    $ cp ~/.gitcookies $VANADIUM_ROOT/release/projects/playground/go/src/playground/builder/gitcookies
+    $ cp ~/.hgrc $VANADIUM_ROOT/release/projects/playground/go/src/playground/builder/hgrc
+    $ sudo docker build -t playground $VANADIUM_ROOT/release/projects/playground/go/src/playground/.
 
 Note: If you want to ensure an up-to-date version of Vanadium is installed in
 the Docker image, run the above command with the "--no-cache" flag.
@@ -32,26 +32,28 @@ uncomment marked lines before running the command.
 
 Test your image (without running compilerd):
 
-    $ sudo docker run -i playground < /usr/local/google/home/sadovsky/dev/veyron-www/content/playgrounds/code/fortune/ex0_go/bundle.json
+    $ cd $VANADIUM_ROOT/release/projects/playground/client && make src/example_bundles
+    $ sudo docker run -i playground < $VANADIUM_ROOT/release/projects/playground/client/bundles/fortune/ex0_go/bundle.json
 
 ## Running the playground server (compilerd)
 
 Install the playground binaries:
 
-    $ v23 go install v.io/playground/...
+    $ GOPATH=$VANADIUM_ROOT/release/projects/playground/go v23 go install playground/...
 
 Run the compiler binary as root:
 
-    $ sudo $VANADIUM_ROOT/release/go/bin/compilerd --shutdown=false --address=localhost:8181
+    $ sudo $VANADIUM_ROOT/release/projects/playground/go/bin/compilerd --shutdown=false --address=localhost:8181
 
 Or, run it without Docker (for faster iterations during development):
 
     $ cd $(mktemp -d "/tmp/XXXXXXXX")
-    $ PATH=$VANADIUM_ROOT/release/go/bin:$PATH compilerd --shutdown=false --address=localhost:8181 --use-docker=false
+    $ PATH=$VANADIUM_ROOT/release/go/bin:$VANADIUM_ROOT/release/projects/playground/go/bin:$PATH compilerd --shutdown=false --address=localhost:8181 --use-docker=false
 
 The server should now be running at http://localhost:8181 and responding to
 compile requests at http://localhost:8181/compile.
 
-Add `?pgaddr=//localhost:8181` to any veyron-www page to make its embedded
-playgrounds talk to your server. Add `?debug=1` to see debug info from the
-builder.
+Add `?pgaddr=//localhost:8181` to any playground page to make the client talk
+to your server. Add `?debug=1` to see debug info from the builder.
+
+TODO: storage

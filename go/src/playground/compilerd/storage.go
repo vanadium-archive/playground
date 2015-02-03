@@ -18,8 +18,8 @@ import (
 	"log"
 	"net/http"
 
-	"v.io/playground/lib"
-	"v.io/playground/lib/lsql"
+	"playground/lib"
+	"playground/lib/lsql"
 )
 
 var (

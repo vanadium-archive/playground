@@ -33,8 +33,9 @@ import (
 	"time"
 
 	"v.io/core/veyron/lib/flags/consts"
-	"v.io/playground/lib"
-	"v.io/playground/lib/event"
+
+	"playground/lib"
+	"playground/lib/event"
 )
 
 var (

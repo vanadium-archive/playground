@@ -11,11 +11,11 @@
     "lodash": "^3.0.0",
     "minimist": "^1.1.0"
   },
-  "homepage": "https://vanadium.googlesource.com/release.go.playground/+/master/pgbundle",
+  "homepage": "https://vanadium.googlesource.com/release.projects.playground/+/master/pgbundle",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://vanadium.googlesource.com/release.go.playground"
+    "url": "https://vanadium.googlesource.com/release.projects.playground"
   },
   "devDependencies": {
     "jshint": "^2.6.0"

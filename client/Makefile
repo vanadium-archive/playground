@@ -1,6 +1,8 @@
 PATH := bin:node_modules/.bin:$(PATH)
 PATH := $(PATH):$(VANADIUM_ROOT)/environment/cout/node/bin
 SHELL := /bin/bash -euo pipefail
+export GOPATH := $(realpath $(shell pwd)/../go):$(GOPATH)
+export VDLPATH := $(GOPATH)
 
 .DELETE_ON_ERROR:
 
@@ -42,7 +44,7 @@ src/example_bundles: $(example_code_files) node_modules
 node_modules: package.json
 	@npm prune
 	# Temporary workaround: install pgbundle directly from source.
-	@cd "${VANADIUM_ROOT}/release/go/src/v.io/playground/pgbundle" && npm link
+	@cd ../pgbundle && npm link
 	npm link pgbundle
 	@touch $<
 	# End workaround.

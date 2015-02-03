@@ -7,7 +7,7 @@
 #   gcutil ssh --project google.com:veyron playground-master
 #   sudo su - veyron
 #   v23 update
-#   bash $VANADIUM_ROOT/release/go/src/v.io/playground/compilerd/update.sh
+#   bash $VANADIUM_ROOT/release/projects/playground/go/src/playground/compilerd/update.sh
 
 set -e
 set -u
@@ -54,7 +54,7 @@ function main() {
   sudo mount /dev/sdb1 /mnt
 
   # Build the docker image.
-  cd ${VANADIUM_ROOT}/release/go/src/v.io/playground
+  cd ${VANADIUM_ROOT}/release/projects/playground/go/src/playground
   cp ~/.gitcookies ./builder/gitcookies
   cp ~/.hgrc ./builder/hgrc
   sudo docker build --no-cache -t playground .
@@ -73,7 +73,7 @@ function main() {
   # Annoyingly, the only way to create the container is to run the image.
   # TODO(sadovsky): Why don't we just build compilerd using "v23 go install"?
   sudo docker run --name=${DISK} playground &> /dev/null || true
-  sudo docker cp ${DISK}:/usr/local/vanadium/release/go/bin/compilerd /tmp
+  sudo docker cp ${DISK}:/usr/local/vanadium/release/projects/playground/go/bin/compilerd /tmp
   sudo mv /tmp/compilerd /mnt/compilerd
   sudo docker rm ${DISK}
 

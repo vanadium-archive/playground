@@ -1,7 +1,12 @@
 #!/bin/bash
 
 # Utilities for testing the playground builder tool.
-# Used by tests in v.io/playground and veyron-www.
+# Used by tests in client and go/src/playground.
+
+# PLAYGROUND_ROOT is obtained relative to the playground package in
+# ${PLAYGROUND_ROOT}/go/src/playground .
+# Assumes the playground package is included in GOPATH.
+PLAYGROUND_ROOT="$(realpath $(go list -f {{.Dir}} playground)/../../..)"
 
 source "$(go list -f {{.Dir}} v.io/core/shell/lib)/shell_test.sh"
 
@@ -37,7 +42,7 @@ install_vanadium_js() {
 
 # Installs the pgbundle tool.
 install_pgbundle() {
-  pushd "$(go list -f {{.Dir}} v.io/playground)/pgbundle"
+  pushd "${PLAYGROUND_ROOT}/pgbundle"
   npm link
   popd
   npm link pgbundle
@@ -49,8 +54,8 @@ build_go_binaries() {
   shell_test::build_go_binary 'v.io/core/veyron/services/proxy/proxyd'
   shell_test::build_go_binary 'v.io/core/veyron/services/mounttable/mounttabled'
   shell_test::build_go_binary 'v.io/core/veyron2/vdl/vdl'
-  shell_test::build_go_binary 'v.io/playground/builder'
   shell_test::build_go_binary 'v.io/wspr/veyron/services/wsprd'
+  shell_test::build_go_binary 'playground/builder'
 }
 
 # Bundles a playground example and tests it using builder.

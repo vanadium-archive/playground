@@ -1,5 +1,5 @@
-builder/gitcookies
-builder/hgrc
+go/bin
+go/pkg
 
 # Vanadium
 /.v23

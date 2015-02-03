@@ -1,4 +1,4 @@
-# release.go.playground/client
+# release.projects.playground/client
 
 Source code for the Vanadium playground web client.
 

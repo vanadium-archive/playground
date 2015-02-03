@@ -12,7 +12,7 @@ ENV PATH /usr/local/go/bin:$PATH
 
 ENV HOME /root
 ENV VANADIUM_ROOT /usr/local/vanadium
-ENV GOPATH /home/playground:$VANADIUM_ROOT/release/go
+ENV GOPATH /home/playground:$VANADIUM_ROOT/release/go:$VANADIUM_ROOT/release/projects/playground/go
 ENV VDLPATH $GOPATH
 
 # Setup Vanadium and Vanadium profiles.
@@ -28,8 +28,8 @@ RUN $VANADIUM_ROOT/bin/v23 profile setup web
 RUN rm /root/.hgrc
 
 # Install the release/javascript/core library.
-# TODO(nlacasse): Switch to "npm install -g veyron" once release/javascript/core is publicly
-# visible in NPM.
+# TODO(nlacasse): Switch to "npm install -g veyron" once release/javascript/core
+# is publicly visible in NPM.
 # NOTE(sadovsky): NPM is flaky. If any of the NPM commands below fail, simply
 # retry them.
 WORKDIR /usr/local/vanadium/release/javascript/vom
@@ -45,20 +45,20 @@ RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link veyron
 
 # Install Vanadium Go dependencies.
 WORKDIR /usr/local/vanadium/release
-ENV PATH $VANADIUM_ROOT/release/go/bin:$VANADIUM_ROOT/bin:$PATH
+ENV PATH $VANADIUM_ROOT/release/go/bin:$VANADIUM_ROOT/release/projects/playground/go/bin:$VANADIUM_ROOT/bin:$PATH
 RUN v23 go install v.io/core/...
 RUN v23 go install v.io/wspr/...
-RUN v23 go install v.io/playground/...
+RUN v23 go install playground/...
 
 # Uncomment the following lines to install a version of the builder tool using
 # your local version of the code. This is useful when developing and testing
 # local changes.
-#RUN rm $VANADIUM_ROOT/release/go/bin/builder
-#RUN rm -rf $VANADIUM_ROOT/release/go/src/v.io/playground/builder/
-#RUN rm -rf $VANADIUM_ROOT/release/go/src/v.io/playground/lib/
-#ADD builder/ $VANADIUM_ROOT/release/go/src/v.io/playground/builder/
-#ADD lib/ $VANADIUM_ROOT/release/go/src/v.io/playground/lib/
-#RUN v23 go install v.io/playground/builder/...
+#RUN rm -f $VANADIUM_ROOT/release/projects/playground/go/bin/builder
+#RUN rm -rf $VANADIUM_ROOT/release/projects/playground/go/src/playground/builder/
+#RUN rm -rf $VANADIUM_ROOT/release/projects/playground/go/src/playground/lib/
+#ADD builder/ $VANADIUM_ROOT/release/projects/playground/go/src/playground/builder/
+#ADD lib/ $VANADIUM_ROOT/release/projects/playground/go/src/playground/lib/
+#RUN v23 go install playground/builder/...
 
 # Copy proxyd's main.go to ./proxyd_main.go, then uncomment the following
 # lines to install a version of proxyd (used by the builder tool) using your
@@ -70,4 +70,4 @@ RUN v23 go install v.io/playground/...
 
 USER playground
 WORKDIR /home/playground
-ENTRYPOINT /usr/local/vanadium/release/go/bin/builder
+ENTRYPOINT /usr/local/vanadium/release/projects/playground/go/bin/builder

@@ -15,10 +15,10 @@
     "pgbundle": "0.0.1",
     "superagent": "^0.21.0"
   },
-  "homepage": "https://vanadium.googlesource.com/release.go.playground/+/master/client",
+  "homepage": "https://vanadium.googlesource.com/release.projects.playground/+/master/client",
   "repository": {
     "type": "git",
-    "url": "https://vanadium.googlesource.com/release.go.playground"
+    "url": "https://vanadium.googlesource.com/release.projects.playground"
   },
   "scripts": {
     "start": "echo \"Serving http://localhost:8088\" && http-server ./public/ -p 8088 -d --cors",

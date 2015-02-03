@@ -22,8 +22,8 @@ import (
 
 	"github.com/golang/groupcache/lru"
 
-	"v.io/playground/lib"
-	"v.io/playground/lib/event"
+	"playground/lib"
+	"playground/lib/event"
 )
 
 var (

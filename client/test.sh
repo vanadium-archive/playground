@@ -7,9 +7,9 @@
 # $ cd bundles/fortune/ex0_go/src
 # $ GOPATH=$(dirname $(pwd)) VDLPATH=$(dirname $(pwd)) v23 go install ./...
 
-# v.io/core/shell/lib/shell_test.sh sourced via v.io/playground/lib/pg_test_util.sh
+# v.io/core/shell/lib/shell_test.sh sourced via playground/lib/pg_test_util.sh
 # (shell_test.sh has side effects, should not be sourced again)
-source "$(go list -f {{.Dir}} v.io/playground)/lib/pg_test_util.sh"
+source "$(go list -f {{.Dir}} playground)/lib/pg_test_util.sh"
 
 main() {
   cd "${shell_test_WORK_DIR}"
@@ -20,7 +20,7 @@ main() {
   install_vanadium_js
   install_pgbundle
 
-  local -r PG_BUNDLES_DIR="$(go list -f {{.Dir}} v.io/playground)/client/bundles"
+  local -r PG_BUNDLES_DIR="${PLAYGROUND_ROOT}/client/bundles"
 
   local -r EXAMPLES="fortune/ex0_go fortune/ex0_js"
 
