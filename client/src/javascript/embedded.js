@@ -2,15 +2,14 @@ module.exports = EmbeddedPlayground;
 
 var _ = require('lodash');
 var http = require('http');
-var mercury = require('mercury');
 var moment = require('moment');
 var path = require('path');
 var url = require('url');
 
-var Editor = require('./editor');
+var m = require('mercury');
+var h = m.h;
 
-var m = mercury;
-var h = mercury.h;
+var Editor = require('./editor');
 
 // Shows each file in a tab.
 // * el: The DOM element to mount on.
@@ -27,36 +26,37 @@ function EmbeddedPlayground(el, id, files) {
   this.editors_ = _.map(this.files_, function(file) {
     return new Editor(file.type, file.body);
   });
-  this.state_ = m.struct({
+  var state = m.state({
     activeTab: m.value(0),
     nextRunId: m.value(0),
     running: m.value(false),
     hasRun: m.value(false),
-    consoleEvents: m.value([])
+    consoleEvents: m.value([]),
+    channels: {
+      run: this.run.bind(this),
+      reset: this.reset.bind(this),
+      switchTab: this.switchTab.bind(this)
+    }
   });
-  mercury.app(el, this.state_, this.render_.bind(this));
+  m.app(el, state, this.render_.bind(this));
 }
 
 EmbeddedPlayground.prototype.renderTopBar_ = function(state) {
-  var that = this;
-
   var tabs = _.map(this.files_, function(file, i) {
     var selector = 'div.tab';
     if (i === state.activeTab) {
       selector += '.active';
     }
     return h(selector, {
-      'ev-click': function() {
-        that.state_.activeTab.set(i);
-      }
+      'ev-click': m.sendClick(state.channels.switchTab, {index: i})
     }, file.basename);
   });
 
   var runBtn = h('button.btn', {
-    'ev-click': that.run.bind(that)
+    'ev-click': m.sendClick(state.channels.run)
   }, 'Run');
   var resetBtn = h('button.btn', {
-    'ev-click': that.reset.bind(that)
+    'ev-click': m.sendClick(state.channels.reset)
   }, 'Reset');
 
   return h('div.top-bar', [h('div', tabs), h('div.btns', [runBtn, resetBtn])]);
@@ -115,19 +115,23 @@ EmbeddedPlayground.prototype.render_ = function(state) {
   ]);
 };
 
+EmbeddedPlayground.prototype.switchTab = function(state, data) {
+  state.activeTab.set(data.index);
+};
+
 // Sends the files to the backend, then injects the response in the console.
-EmbeddedPlayground.prototype.run = function() {
-  if (this.state_.running()) {
+EmbeddedPlayground.prototype.run = function(state) {
+  if (state.running()) {
     console.log('Already running', this.id_);
     return;
   }
-  var runId = this.state_.nextRunId();
+  var runId = state.nextRunId();
 
   // TODO(sadovsky): Visually disable the "Run" button or change it to a "Stop"
   // button.
-  this.state_.running.set(true);
-  this.state_.hasRun.set(true);
-  this.state_.consoleEvents.set([{Message: 'Running...'}]);
+  state.running.set(true);
+  state.hasRun.set(true);
+  state.consoleEvents.set([{Message: 'Running...'}]);
 
   var myUrl = url.parse(window.location.href, true);
   var pgaddr = myUrl.query.pgaddr;
@@ -156,7 +160,7 @@ EmbeddedPlayground.prototype.run = function() {
   // TODO(sadovsky): To deal with cached responses, shift timestamps (based on
   // current time) and introduce a fake delay. Also, switch to streaming
   // messages, for usability.
-  var that = this, state = this.state_;
+  var that = this;
 
   // If the user stops the current run or resets the playground, functions
   // wrapped with ifRunActive become no-ops.
@@ -213,7 +217,7 @@ EmbeddedPlayground.prototype.run = function() {
   };
 
   var endRunIfActive = ifRunActive(function() {
-    that.endRun_();
+    that.endRun_(state);
     // Cleanup watchdog timer.
     heartbeat();
   });
@@ -279,16 +283,16 @@ EmbeddedPlayground.prototype.run = function() {
 };
 
 // Clears the console and resets all editors to their original contents.
-EmbeddedPlayground.prototype.reset = function() {
-  this.state_.consoleEvents.set([]);
+EmbeddedPlayground.prototype.reset = function(state) {
+  state.consoleEvents.set([]);
   _.forEach(this.editors_, function(editor) {
     editor.reset();
   });
-  this.endRun_();
-  this.state_.hasRun.set(false);
+  this.endRun_(state);
+  state.hasRun.set(false);
 };
 
-EmbeddedPlayground.prototype.endRun_ = function() {
-  this.state_.nextRunId.set(this.state_.nextRunId() + 1);
-  this.state_.running.set(false);
+EmbeddedPlayground.prototype.endRun_ = function(state) {
+  state.nextRunId.set(state.nextRunId() + 1);
+  state.running.set(false);
 };
