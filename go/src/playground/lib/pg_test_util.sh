@@ -6,7 +6,7 @@
 # PLAYGROUND_ROOT is obtained relative to the playground package in
 # ${PLAYGROUND_ROOT}/go/src/playground .
 # Assumes the playground package is included in GOPATH.
-PLAYGROUND_ROOT="$(realpath $(go list -f {{.Dir}} playground)/../../..)"
+PLAYGROUND_ROOT="$(CDPATH="" cd -P $(go list -f {{.Dir}} playground)/../../.. && pwd)"
 
 source "$(go list -f {{.Dir}} v.io/core/shell/lib)/shell_test.sh"
 
