@@ -1,6 +1,6 @@
 // index=1
 var veyron = require('veyron');
-var vom = require('vom');
+var vom = veyron.vom;
 
 /**
  * 1) Implement a simple fortune service

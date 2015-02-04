@@ -32,15 +32,10 @@ RUN rm /root/.hgrc
 # is publicly visible in NPM.
 # NOTE(sadovsky): NPM is flaky. If any of the NPM commands below fail, simply
 # retry them.
-WORKDIR /usr/local/vanadium/release/javascript/vom
-RUN $VANADIUM_ROOT/environment/cout/node/bin/npm install --production
-RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link
 WORKDIR /usr/local/vanadium/release/javascript/core
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm install --production
-RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link vom
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link
 WORKDIR /home/playground
-RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link vom
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link veyron
 
 # Install Vanadium Go dependencies.

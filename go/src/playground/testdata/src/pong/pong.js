@@ -1,5 +1,5 @@
 var veyron = require('veyron');
-var vom = require('vom');
+var vom = veyron.vom;
 
 var pingPongService = {
   ping: function(ctx, msg) {

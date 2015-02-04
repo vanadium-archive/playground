@@ -29,14 +29,9 @@ install_vanadium_js() {
   # TODO(nlacasse): Once release/javascript/core is publicly available in npm, replace this
   # with "npm install vanadium".
 
-  pushd "${VANADIUM_ROOT}/release/javascript/vom"
-  npm link
-  popd
   pushd "${VANADIUM_ROOT}/release/javascript/core"
-  npm link vom
   npm link
   popd
-  npm link vom
   npm link veyron
 }
 
