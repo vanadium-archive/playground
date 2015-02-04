@@ -26,6 +26,9 @@ function EmbeddedPlayground(el, id, files) {
   this.editors_ = _.map(this.files_, function(file) {
     return new Editor(file.type, file.body);
   });
+  // scrollState_ changes should not trigger render_, thus are not monitored
+  // by mercury.
+  this.scrollState_ = {bottom: true};
   var state = m.state({
     activeTab: m.value(0),
     nextRunId: m.value(0),
@@ -39,6 +42,8 @@ function EmbeddedPlayground(el, id, files) {
     }
   });
   m.app(el, state, this.render_.bind(this));
+  // Enable ev-scroll listening.
+  m.Delegator().listenTo('scroll');
 }
 
 EmbeddedPlayground.prototype.renderTopBar_ = function(state) {
@@ -77,7 +82,7 @@ EmbeddedPlayground.prototype.renderEditors_ = function(state) {
   return h('div.editors', editors);
 };
 
-function renderConsoleEvent(event) {
+EmbeddedPlayground.prototype.renderConsoleEvent_ = function(event) {
   var children = [];
   if (event.Timestamp) {
     // Convert UTC to local time.
@@ -96,12 +101,38 @@ function renderConsoleEvent(event) {
   children.push(h('span.message.' + (event.Stream || 'unknown'),
                   event.Message));
   return h('div', children);
+};
+
+// ScrollHandle provides a hook to keep the console scrolled to the bottom
+// unless the user has scrolled up, and the update method to detect the
+// user scrolling up.
+function ScrollHandle(scrollState) {
+  this.scrollState_ = scrollState;
 }
+
+ScrollHandle.prototype.hook = function(elem, propname) {
+  var scrollState = this.scrollState_;
+  process.nextTick(function() {
+    if (scrollState.bottom) {
+      elem.scrollTop = elem.scrollHeight - elem.clientHeight;
+    }
+  });
+};
+
+ScrollHandle.prototype.update = function(ev) {
+  var elem = ev.target;
+  this.scrollState_.bottom =
+      elem.scrollTop === elem.scrollHeight - elem.clientHeight;
+};
 
 EmbeddedPlayground.prototype.renderConsole_ = function(state) {
   if (state.hasRun) {
-    return h('div.console.open', [
-      h('div.text', _.map(state.consoleEvents, renderConsoleEvent))
+    var scrollHandle = new ScrollHandle(this.scrollState_);
+    return h('div.console.open', {
+      'ev-scroll': scrollHandle.update.bind(scrollHandle),
+      'scrollhook': scrollHandle
+    }, [
+      h('div.text', _.map(state.consoleEvents, this.renderConsoleEvent_))
     ]);
   }
   return h('div.console');
@@ -132,6 +163,7 @@ EmbeddedPlayground.prototype.run = function(state) {
   state.running.set(true);
   state.hasRun.set(true);
   state.consoleEvents.set([{Message: 'Running...'}]);
+  this.scrollState_.bottom = true;
 
   var myUrl = url.parse(window.location.href, true);
   var pgaddr = myUrl.query.pgaddr;
@@ -285,6 +317,7 @@ EmbeddedPlayground.prototype.run = function(state) {
 // Clears the console and resets all editors to their original contents.
 EmbeddedPlayground.prototype.reset = function(state) {
   state.consoleEvents.set([]);
+  this.scrollState_.bottom = true;
   _.forEach(this.editors_, function(editor) {
     editor.reset();
   });
