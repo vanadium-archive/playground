@@ -15,8 +15,13 @@ require('brace/theme/monokai');
 function Editor(type, text) {
   this.type_ = type;
   this.text_ = text;
+  // Every explicitly created (not copied) editor has a unique nonce.
+  this.nonce_ = Editor.nonceSeed_;
+  Editor.nonceSeed_ = (Editor.nonceSeed_ + 1) & 0x7fffffff;
   this.aceEditor_ = null;
 }
+
+Editor.nonceSeed_ = 0;
 
 // This tells Mercury to treat Editor as a widget and not try to render its
 // internals.
@@ -29,8 +34,15 @@ Editor.prototype.init = function() {
   return el;
 };
 
-Editor.prototype.update = function() {
+Editor.prototype.update = function(prev, el) {
   console.log('EditorWidget.update');
+  // If update is called with the currently mounted Editor instance or its
+  // copy (detected by nonce), remount would reset any edits. Remount should
+  // only happen if a new editor instance (with a new nonce) is explicitly
+  // created.
+  if (this.nonce_ !== prev.nonce_) {
+    this.mount(el, this.type_, this.text_);
+  }
 };
 
 Editor.prototype.getText = function() {

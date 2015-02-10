@@ -1,8 +1,8 @@
 var _ = require('lodash');
 var path = require('path');
-var request = require('superagent');
+var superagent = require('superagent');
 
-var EmbeddedPlayground = require('./embedded');
+var Playground = require('./playground');
 
 _.forEach(document.querySelectorAll('.playground'), function(el) {
   var srcdir = el.getAttribute('data-srcdir');
@@ -14,14 +14,14 @@ _.forEach(document.querySelectorAll('.playground'), function(el) {
         '<br>Bundle not found: <strong>' + srcdir + '</strong></p></div>';
       return;
     }
-    new EmbeddedPlayground(el, srcdir, bundle.files);  // jshint ignore:line
+    new Playground(el, srcdir, bundle);  // jshint ignore:line
   });
 });
 
 function fetchBundle(loc, cb) {
   var basePath = '/bundles';
   console.log('Fetching bundle', loc);
-  request
+  superagent
     .get(path.join(basePath, loc, 'bundle.json'))
     .accept('json')
     .end(function(err, res) {

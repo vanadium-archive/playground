@@ -13,6 +13,7 @@
     "minifyify": "^6.1.0",
     "moment": "^2.9.0",
     "pgbundle": "0.0.1",
+    "spin.js": "^2.0.2",
     "superagent": "^0.21.0"
   },
   "homepage": "https://vanadium.googlesource.com/release.projects.playground/+/master/client",

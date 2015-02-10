@@ -1,11 +1,13 @@
-/* CSS rules for elements inside EmbeddedPlayground instances. */
+/* CSS rules for elements inside Playground instances. */
 
 .pg {
   width: 100%;
 }
 
-.pg .top-bar {
+.pg .widget-bar {
   position: relative;
+  margin-top: 2px;
+  overflow: auto;
 }
 
 .pg .btn,
@@ -28,9 +30,7 @@
 }
 
 .pg .btns {
-  position: absolute;
-  top: 0;
-  right: 0;
+  float: right;
 }
 
 .pg .btn {
@@ -38,6 +38,7 @@
   color: #fff;
   border: 0;
   margin-left: 2px;
+  min-width: 70px;
 }
 
 /* TODO(sadovsky): Add .no-touch once we integrate Modernizr. */
@@ -51,8 +52,11 @@
 }
 
 .pg .btn:active {
-  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
   box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+}
+
+.pg .btn:disabled {
+  background-color: #bbb;
 }
 
 /* TODO(sadovsky): Make this reactive. */
@@ -125,6 +129,35 @@
 .pg .console.open {
   height: 200px;
   overflow: auto;
+}
+
+.pg .bundleid {
+  color: #0033ff;
+  width: 64ch; /* input size doesn't work properly in Chrome */
+  font-family: monospace;
+  font-size: 12px;
+  user-select: all;
+}
+
+.pg .spinner-overlay {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  z-index: 1999999999; /* one less than spinner-internal */
+  background-color: #000;
+  opacity: 0.5;
+}
+
+.pg .notif {
+  font-size: 14px;
+}
+
+.pg .notif.success {
+  color: #33cc33;
+}
+
+.pg .notif.error {
+  color: #d01716;
 }
 
 .clearfix {

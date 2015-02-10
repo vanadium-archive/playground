@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Tests that embedded playground examples execute successfully.
+# Tests that default playground examples execute successfully.
 # If any new examples are added, they should be appended to $EXAMPLES below.
 
 # To debug playground compile errors you can build examples locally, e.g.:

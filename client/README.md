@@ -9,7 +9,7 @@ Source code for the Vanadium playground web client.
 * _package.json_ - Used by `npm install` to grab playground dependencies.
 * `public` - Deployed client website, served by `npm start`.
 * `src/javascript` - Scripts implementing the playground client.
-* `src/static` - HTML and other static resources for a simple embedded client instance.
+* `src/static` - HTML and other static resources for a simple page with a client instance.
 * `src/stylesheets` - CSS for playground editor and output.
 * _test.sh_ - Script testing correctness of default playground examples.
 
