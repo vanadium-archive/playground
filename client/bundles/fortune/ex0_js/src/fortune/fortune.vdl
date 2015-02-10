@@ -1,0 +1,10 @@
+// index=3
+package fortune
+
+type Fortune interface {
+	// Returns a random fortune.
+	GetRandomFortune() (Fortune string | error)
+
+	// Adds a fortune to the set used by GetRandomFortune().
+	AddNewFortune(Fortune string) error
+}

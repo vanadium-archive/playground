@@ -18,7 +18,7 @@ test_with_files() {
     cp "${TESTDATA_DIR}/${f}" "${fdir}/"
   done
 
-  test_pg_example "${PGBUNDLE_DIR}" "-v=true --includeServiceOutput=true --includeV23Env=true --runTimeout=5000"
+  test_pg_example "${PGBUNDLE_DIR}" "-v=true --includeV23Env=true --runTimeout=5000"
 }
 
 main() {
@@ -32,11 +32,11 @@ main() {
 
   echo -e "\n\n>>>>> Test as the same principal\n\n"
 
-  test_with_files "src/pingpong/wire.vdl" "src/pong/pong.go" "src/ping/ping.go" || shell_test::fail "line ${LINENO}: basic ping (go -> go)"
+  test_with_files "src/pong/pong.go" "src/ping/ping.go" "src/pingpong/wire.vdl" || shell_test::fail "line ${LINENO}: basic ping (go -> go)"
   grep -q PING builder.out || shell_test::fail "line ${LINENO}: no PING"
   grep -q PONG builder.out || shell_test::fail "line ${LINENO}: no PONG"
 
-  test_with_files "src/pong/pong.js" "src/ping/ping.js" || shell_test::fail "line ${LINENO}: basic ping (js -> js)"
+  test_with_files "src/pong/pong.js" "src/ping/ping.js" "src/pingpong/wire.vdl" || shell_test::fail "line ${LINENO}: basic ping (js -> js)"
   grep -q PING builder.out || shell_test::fail "line ${LINENO}: no PING"
   grep -q PONG builder.out || shell_test::fail "line ${LINENO}: no PONG"
 
@@ -54,7 +54,7 @@ main() {
   grep -q PING builder.out || shell_test::fail "line ${LINENO}: no PING"
   grep -q PONG builder.out || shell_test::fail "line ${LINENO}: no PONG"
 
-  test_with_files "src/pong/pong.js" "src/ping/ping.js" "src/ids/authorized.id" || shell_test::fail "line ${LINENO}: authorized id (js -> js)"
+  test_with_files "src/pong/pong.js" "src/ping/ping.js" "src/pingpong/wire.vdl" "src/ids/authorized.id" || shell_test::fail "line ${LINENO}: authorized id (js -> js)"
   grep -q PING builder.out || shell_test::fail "line ${LINENO}: no PING"
   grep -q PONG builder.out || shell_test::fail "line ${LINENO}: no PONG"
 
@@ -63,7 +63,7 @@ main() {
   test_with_files "src/pong/pong.go" "src/ping/ping.go" "src/pingpong/wire.vdl" "src/ids/expired.id" || shell_test::fail  "line ${LINENO}: expired id (go -> go)"
   grep -q "not authorized" builder.out || shell_test::fail "line ${LINENO}: rpc with expired id succeeded (go -> go)"
 
-  test_with_files "src/pong/pong.js" "src/ping/ping.js" "src/ids/expired.id" || shell_test::fail  "line ${LINENO}: expired id (js -> js)"
+  test_with_files "src/pong/pong.js" "src/ping/ping.js" "src/pingpong/wire.vdl" "src/ids/expired.id" || shell_test::fail  "line ${LINENO}: expired id (js -> js)"
   grep -q "not authorized" builder.out || shell_test::fail "line ${LINENO}: rpc with expired id succeeded (js -> js)"
 
   echo -e "\n\n>>>>> Test with unauthorized blessings\n\n"
@@ -71,7 +71,7 @@ main() {
   test_with_files "src/pong/pong.go" "src/ping/ping.go" "src/pingpong/wire.vdl" "src/ids/unauthorized.id" || shell_test::fail  "line ${LINENO}: unauthorized id (go -> go)"
   grep -q "not authorized" builder.out || shell_test::fail "line ${LINENO}: rpc with unauthorized id succeeded (go -> go)"
 
-  test_with_files "src/pong/pong.js" "src/ping/ping.js" "src/ids/unauthorized.id" || shell_test::fail  "line ${LINENO}: unauthorized id (js -> js)"
+  test_with_files "src/pong/pong.js" "src/ping/ping.js" "src/pingpong/wire.vdl" "src/ids/unauthorized.id" || shell_test::fail  "line ${LINENO}: unauthorized id (js -> js)"
   grep -q "not authorized" builder.out || shell_test::fail "line ${LINENO}: rpc with unauthorized id succeeded (js -> js)"
 
   shell_test::pass

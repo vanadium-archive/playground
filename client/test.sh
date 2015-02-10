@@ -27,7 +27,7 @@ main() {
   for e in $EXAMPLES; do
     local d="${PG_BUNDLES_DIR}/${e}"
     echo -e "\n\n>>>>> Test ${d}\n\n"
-    test_pg_example "${d}" "-v=true --includeServiceOutput=true --runTimeout=5000" || shell_test::fail "${d}: failed to run"
+    test_pg_example "${d}" "-v=true --runTimeout=5000" || shell_test::fail "${d}: failed to run"
     # TODO(sadovsky): Make this "clean exit" check more robust.
     grep -q "\"Exited cleanly.\"" builder.out || shell_test::fail "${d}: did not exit cleanly"
     rm -f builder.out

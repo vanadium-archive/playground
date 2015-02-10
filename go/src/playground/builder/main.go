@@ -115,6 +115,8 @@ func logV23Env() error {
 	return nil
 }
 
+// All .go and .vdl files must have paths at least two directories deep,
+// beginning with "src/".
 func parseRequest(in io.Reader) (r request, err error) {
 	debug("Parsing input")
 	data, err := ioutil.ReadAll(in)
@@ -189,36 +191,58 @@ func writeFiles(files []*codeFile) error {
 }
 
 // If compilation failed due to user error (bad input), returns badInput=true
-// and err=nil. Only internal errors return non-nil err.
-func compileFiles(files []*codeFile) (badInput bool, err error) {
-	needToCompile := false
+// and cerr=nil. Only internal errors return non-nil cerr.
+func compileFiles(files []*codeFile) (badInput bool, cerr error) {
+	found := make(map[string]bool)
 	for _, f := range files {
-		if f.lang == "vdl" || f.lang == "go" {
-			needToCompile = true
-			break
-		}
+		found[f.lang] = true
 	}
-	if !needToCompile {
-		return
+	if !found["go"] && !found["vdl"] {
+		// No need to compile.
+		return false, nil
 	}
 
 	debug("Compiling files")
 	pwd, err := os.Getwd()
 	if err != nil {
-		return
+		return false, fmt.Errorf("Error getting current directory: %v", err)
+	}
+	srcd := filepath.Join(pwd, "src")
+	if err = os.Chdir(srcd); err != nil {
+		panicOnError(out.Write(event.New("", "stderr", ".go or .vdl files outside src/ directory.")))
+		return true, nil
 	}
 	os.Setenv("GOPATH", pwd+":"+os.Getenv("GOPATH"))
 	os.Setenv("VDLPATH", pwd+":"+os.Getenv("VDLPATH"))
 	// We set isService=false for compilation because "go install" only produces
 	// output on error, and we always want clients to see such errors.
-	err = makeCmd("<compile>", false, "v23", "go", "install", "./...").Run()
 	// TODO(ivanpi): We assume *exec.ExitError results from uncompilable input
 	// files; other cases can result from bugs in playground backend or compiler
 	// itself.
-	if _, ok := err.(*exec.ExitError); ok {
-		badInput, err = true, nil
+	if found["js"] && found["vdl"] {
+		debug("Generating VDL for Javascript")
+		err = makeCmd("<compile>", false,
+			"vdl", "generate", "-lang=Javascript", "-js_out_dir="+srcd, "./...").Run()
+		if _, ok := err.(*exec.ExitError); ok {
+			return true, nil
+		} else if err != nil {
+			return false, err
+		}
 	}
-	return
+	if found["go"] {
+		debug("Generating VDL for Go and compiling Go")
+		err = makeCmd("<compile>", false,
+			"v23", "go", "install", "./...").Run()
+		if _, ok := err.(*exec.ExitError); ok {
+			return true, nil
+		} else if err != nil {
+			return false, err
+		}
+	}
+	if err = os.Chdir(pwd); err != nil {
+		return false, fmt.Errorf("Error returning to parent directory: %v", err)
+	}
+	return false, nil
 }
 
 func runFiles(files []*codeFile) {
