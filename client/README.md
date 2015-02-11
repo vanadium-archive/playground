@@ -17,7 +17,7 @@ Requires [npm] and [Node.js].
 
 Build the playground web client:
 
-    make deploy
+    make public
 
 The command above automatically fetches node dependencies, browserifies Javascript, and
 copies all client resources (browserified Javascript, CSS, static files, example bundles)
@@ -33,6 +33,20 @@ Alternatively, build and start the server in one command with:
 
 As of dec-2014, the playground doc is [here][playground-doc].
 
+# Deploy
+
+If you do not have access to the vanadium-staging GCE account ping jasoncampbell@. Once you have access you will need to login to the account via the command line.
+
+    gcloud auth login
+
+To deploy the playground client to https://staging.playground.v.io use the make target `deploy-staging`.
+
+    make deploy-staging
+
+This will sync the public directory to the private Google Storage bucket `gs://staging.playground.v.io` which gets automatically updated to the nginx front-end servers. Currently all static content is protected by OAuth. For more details on the deployment infrastructure see [this doc][deploy] and the [infrastructure] repository.
+
 [Node.js]: http://nodejs.org/
 [npm]: https://www.npmjs.com/
 [playground-doc]: https://docs.google.com/document/d/1OYuE3XLc5CvDKoJSJ2mYjb9wm9IzTttZtP8coJ_t0Wg/edit#heading=h.i9kd9dq3kqco
+[deploy]: http://goo.gl/QfD4gl
+[infrastructure]: https://vanadium.googlesource.com/infrastructure/+/master/nginx/README.md

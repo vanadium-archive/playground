@@ -10,9 +10,13 @@ js_files := $(shell find src/javascript -name "*.js")
 css_files := $(shell find src/stylesheets -name "*.css")
 static_files := $(shell find src/static -name "*")
 
-.PHONY: deploy
-deploy: public
-	@true  # silences watch
+.DEFAULT_GOAL := public
+
+.PHONY: deploy-staging
+deploy-staging: public
+	git rev-parse --verify HEAD >> public/version
+	gcloud config set account vanadium-staging
+	gsutil -m rsync -d -r public gs://staging.playground.v.io
 
 public: build/playground.js $(css_files) $(static_files) src/example_bundles
 	$(RM) -rf $@ build/$@
