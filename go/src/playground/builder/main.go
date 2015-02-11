@@ -184,7 +184,7 @@ func writeFiles(files []*codeFile) error {
 	debug("Writing files")
 	for _, f := range files {
 		if err := f.write(); err != nil {
-			return fmt.Errorf("Error writing %s: %v", f.Name, err)
+			return fmt.Errorf("Error writing %q: %v", f.Name, err)
 		}
 	}
 	return nil
@@ -342,7 +342,7 @@ func (f *codeFile) run(ch chan exit) {
 		mu.Lock()
 		defer mu.Unlock()
 		if stopped {
-			return fmt.Errorf("Execution has stopped; not running %s", f.Name)
+			return fmt.Errorf("Execution has stopped; not running %q", f.Name)
 		}
 
 		switch f.lang {

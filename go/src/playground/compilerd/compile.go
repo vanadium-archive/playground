@@ -267,7 +267,7 @@ func limitedEventRelay(sink event.Sink, limit int, limitCallback func(), errorCa
 			var e event.Event
 			err = json.Unmarshal(line, &e)
 			if err != nil {
-				err = fmt.Errorf("failed unmarshalling event: %s", line)
+				err = fmt.Errorf("failed unmarshalling event: %q", line)
 				break
 			}
 			sink.Write(e)

@@ -24,10 +24,8 @@ import (
 )
 
 var (
-	// Database connection string as specified in
-	// https://github.com/go-sql-driver/mysql/#dsn-data-source-name
-	// Query parameters are not supported.
-	sqlConf = flag.String("sqlconf", "", "The go-sql-driver database connection string. If empty, load and save requests are disabled.")
+	// Path to SQL configuration file, as described in playground/lib/mysql.go.
+	sqlConf = flag.String("sqlconf", "", "Path to SQL configuration file. If empty, load and save requests are disabled. "+lib.SqlConfigFileDescription)
 
 	// Testing parameter, use default value for production.
 	// Name of dataset to use. Used as table name prefix (a single SQL database
@@ -345,7 +343,7 @@ var (
 	dbhRead *lsql.DBHandle
 )
 
-func newDBHandle(sqlConfig, txIsolation string, dataTypes []lsql.SqlData, setupdb, readonly bool) (*lsql.DBHandle, error) {
+func newDBHandle(sqlConfig *lib.SqlConfig, txIsolation string, dataTypes []lsql.SqlData, setupdb, readonly bool) (*lsql.DBHandle, error) {
 	// Create a database handle.
 	dbc, err := lib.NewDBConn(sqlConfig, txIsolation)
 	if err != nil {
@@ -375,15 +373,20 @@ func initDBHandles() error {
 		return nil
 	}
 
-	var err error
+	// Parse SQL configuration file.
+	sqlConfig, err := lib.ParseSqlConfigFromFile(*sqlConf)
+	if err != nil {
+		return err
+	}
+
 	// If setupDB is set, tables should be initialized only once, on the handle
 	// that is opened first.
-	if dbhSeq, err = newDBHandle(*sqlConf, "SERIALIZABLE", dataTypes, *setupDB, false); err != nil {
+	if dbhSeq, err = newDBHandle(sqlConfig, "SERIALIZABLE", dataTypes, *setupDB, false); err != nil {
 		return err
 	}
 	// The READ-COMMITTED connection is used only for reads, so it is not
 	// necessary to prepare writing statements such as INSERT.
-	if dbhRead, err = newDBHandle(*sqlConf, "READ-COMMITTED", dataTypes, false, true); err != nil {
+	if dbhRead, err = newDBHandle(sqlConfig, "READ-COMMITTED", dataTypes, false, true); err != nil {
 		return err
 	}
 
