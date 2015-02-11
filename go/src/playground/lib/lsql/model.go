@@ -48,19 +48,17 @@ type SqlColumn struct {
 // Initialize using NewSqlTable.
 type SqlTable struct {
 	tableName   string
-	keyName     string
 	columns     []SqlColumn
 	constraints []string
 }
 
 // proto: Instance of the corresponding data entity.
-// keyName: Name of the primary key column.
 // columns: SqlColumn specifications for each column.
+// The first column is used as the primary key.
 // constraints: Table constraints in SQL syntax (excluding PRIMARY KEY).
-func NewSqlTable(proto SqlData, keyName string, columns []SqlColumn, constraints []string) *SqlTable {
+func NewSqlTable(proto SqlData, columns []SqlColumn, constraints []string) *SqlTable {
 	return &SqlTable{
 		tableName:   proto.TableName(),
-		keyName:     keyName,
 		columns:     columns,
 		constraints: constraints,
 	}
@@ -71,7 +69,7 @@ func (t *SqlTable) TableName() string {
 }
 
 func (t *SqlTable) KeyName() string {
-	return t.keyName
+	return t.columns[0].Name
 }
 
 // List of column names.
@@ -136,6 +134,17 @@ func (t *SqlTable) GetInsertQuery() string {
 		" (" + strings.Join(colNames, ",") + ")" +
 		" VALUES (?" + strings.Repeat(",?", len(colNames)-1) + ")"
 	return query
+}
+
+// UPDATE query for entity. Updates all columns (except the primary key).
+func (t *SqlTable) GetUpdateQuery(whereClause string) string {
+	query := "UPDATE " + t.TableName() + " SET "
+	colUps := t.ColumnNames()[1:]
+	for i := range colUps {
+		colUps[i] += "=?"
+	}
+	query += strings.Join(colUps, ",")
+	return appendWhere(query, whereClause)
 }
 
 func appendWhere(query, whereClause string) string {

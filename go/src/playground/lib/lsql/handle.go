@@ -4,7 +4,7 @@
 // DBHandle wraps a SQL database connection. It provides Prepare*() and Get*()
 // methods, which allow saving and retrieving prepared SQL statements keyed by
 // a label and, optionally, SqlData type.
-// Q*() methods are convenience methods for common CRUD operations on a SqlData
+// E*() methods are convenience methods for common CRUD operations on a SqlData
 // entity. The entity type must be registered beforehand using RegisterType()
 // and the corresponding table created.
 // RunInTransaction() supports executing a sequence of operations inside of a
@@ -20,10 +20,15 @@ import (
 )
 
 var (
-	// Error returned by QFetch when no entity is found for the given key.
+	// Error returned by EFetch when no entity is found for the given key.
 	ErrNoSuchEntity = errors.New("lsql: no such entity")
 	// Error returned by RunInTransaction when retries are exhausted.
 	ErrTooManyRetries = errors.New("lsql: too many retries")
+	// Error returned by EInsert and EUpdate when no rows are affected.
+	// Note: In case of EUpdate, this can happen if the entity had been deleted,
+	// but also (depending on database configuration) if the entity was unchanged
+	// by the update.
+	ErrNoRowsAffected = errors.New("lsql: no rows affected")
 	// Error that should be returned from a transaction callback to trigger a
 	// rollback and retry. Other errors cause a rollback and abort.
 	RetryTransaction = errors.New("lsql: retry transaction")
@@ -186,6 +191,9 @@ func (h *DBHandle) RegisterType(proto SqlData, readonly bool) error {
 		if err := h.PrepareFor(proto, "insert", t.GetInsertQuery()); err != nil {
 			return err
 		}
+		if err := h.PrepareFor(proto, "update", t.GetUpdateQuery(t.GetWhereKey())); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -195,7 +203,7 @@ func (h *DBHandle) RegisterType(proto SqlData, readonly bool) error {
 
 // Fetches the entity with the given key and stores it into dst.
 // If no entity for key is found, returns ErrNoSuchEntity.
-func (h *DBHandle) QFetch(key interface{}, dst SqlData) error {
+func (h *DBHandle) EFetch(key interface{}, dst SqlData) error {
 	err := h.GetFor(dst, "fetch").QueryRow(key).Scan(dst.QueryRefs()...)
 	if err == sql.ErrNoRows {
 		err = ErrNoSuchEntity
@@ -205,14 +213,43 @@ func (h *DBHandle) QFetch(key interface{}, dst SqlData) error {
 
 // Checks if an entity of the given SqlData prototype with the given key
 // exists in the database.
-func (h *DBHandle) QExists(key interface{}, proto SqlData) (bool, error) {
+func (h *DBHandle) EExists(key interface{}, proto SqlData) (bool, error) {
 	var cnt int
 	err := h.GetFor(proto, "exists").QueryRow(key).Scan(&cnt)
 	return cnt > 0, err
 }
 
 // Inserts the entity stored in src into the database.
-func (h *DBHandle) QInsert(src SqlData) error {
-	_, err := h.GetFor(src, "insert").Exec(src.QueryRefs()...)
+func (h *DBHandle) EInsert(src SqlData) error {
+	res, err := h.GetFor(src, "insert").Exec(src.QueryRefs()...)
+	if err == nil {
+		err = checkOneRowAffected(res)
+	}
 	return err
+}
+
+// Updates the database record for the entity stored in src.
+func (h *DBHandle) EUpdate(src SqlData) error {
+	qrefs := src.QueryRefs()
+	// Move primary key reference to the end for WHERE clause.
+	qrefs = append(qrefs[1:], qrefs[0])
+	res, err := h.GetFor(src, "update").Exec(qrefs...)
+	if err == nil {
+		err = checkOneRowAffected(res)
+	}
+	return err
+}
+
+func checkOneRowAffected(res sql.Result) error {
+	raf, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("lsql: failed checking number of rows affected: %v", err)
+	}
+	if raf > 1 {
+		return fmt.Errorf("lsql: more than one row affected")
+	}
+	if raf == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
 }

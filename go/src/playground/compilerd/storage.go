@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"playground/lib"
 	"playground/lib/lsql"
@@ -48,9 +49,10 @@ var (
 // number of BundleIDs.
 // BundleIDs are mapped to Jsons via the BundleHash, which is a hash value of
 // the Json. The bundleLink table stores records of BundleID (primary key) and
-// BundleHash. The bundleData table stores records of BundleHash (primary key)
-// and Json. The bundleLink.BundleHash column references bundleData.BundleHash,
-// but can be set to NULL to allow deletion of bundleData entries.
+// BundleHash, as well as creation and last access timestamps for each record.
+// The bundleData table stores records of BundleHash (primary key) and Json.
+// The bundleLink.BundleHash column references bundleData.BundleHash, but can
+// be set to NULL to allow deletion of bundleData entries.
 // The additional layer of indirection allows storing identical bundles more
 // efficiently and makes the bundle ID independent of its contents, allowing
 // implementation of change history, sharing, expiration etc.
@@ -58,6 +60,7 @@ var (
 // === Schema type details ===
 // The BundleID is a 64-character string consisting of URL-friendly characters
 // (alphanumeric, '-', '_', '.', '~'), beginning with an underscore.
+// The timestamps are UTC DATETIME values.
 // The BundleHash is a raw (sequence of 32 bytes) SHA256 hash.
 // The Json is a MEDIUMTEXT (up to 16 MiB) Unicode (utf8mb4) blob.
 // Note: If bundles larger than ~1 MiB are to be stored, the max_allowed_packed
@@ -79,7 +82,7 @@ func (bd *bundleData) TableName() string {
 }
 
 func (bd *bundleData) TableDef() *lsql.SqlTable {
-	return lsql.NewSqlTable(bd, "BundleHash", []lsql.SqlColumn{
+	return lsql.NewSqlTable(bd, []lsql.SqlColumn{
 		{Name: "BundleHash", Type: "BINARY(32)", Null: false},
 		{Name: "Json", Type: "MEDIUMTEXT", Null: false},
 	}, []string{})
@@ -94,7 +97,10 @@ type bundleLink struct {
 	BundleID string // primary key
 	// Raw SHA256 of the bundle contents
 	BundleHash []byte // foreign key => bundleData.BundleHash
-	// TODO(ivanpi): Add creation (and expiration, last access?) timestamps.
+	// Link record creation time
+	TCreated time.Time
+	// Link record last access time
+	TLastAccessed time.Time
 }
 
 func (bl *bundleLink) TableName() string {
@@ -102,16 +108,18 @@ func (bl *bundleLink) TableName() string {
 }
 
 func (bl *bundleLink) TableDef() *lsql.SqlTable {
-	return lsql.NewSqlTable(bl, "BundleID", []lsql.SqlColumn{
+	return lsql.NewSqlTable(bl, []lsql.SqlColumn{
 		{Name: "BundleID", Type: "CHAR(64) CHARACTER SET ascii", Null: false},
 		{Name: "BundleHash", Type: "BINARY(32)", Null: true},
+		{Name: "TCreated", Type: "DATETIME", Null: false},
+		{Name: "TLastAccessed", Type: "DATETIME", Null: false},
 	}, []string{
 		"FOREIGN KEY (BundleHash) REFERENCES " + (&bundleData{}).TableName() + "(BundleHash) ON DELETE SET NULL",
 	})
 }
 
 func (bl *bundleLink) QueryRefs() []interface{} {
-	return []interface{}{&bl.BundleID, &bl.BundleHash}
+	return []interface{}{&bl.BundleID, &bl.BundleHash, &bl.TCreated, &bl.TLastAccessed}
 }
 
 //////////////////////////////////////////
@@ -139,7 +147,7 @@ func handlerLoad(w http.ResponseWriter, r *http.Request) {
 
 	var bLink bundleLink
 	// Get the entry for the provided id.
-	err := dbhRead.QFetch(bId, &bLink)
+	err := dbhRead.EFetch(bId, &bLink)
 	if err == lsql.ErrNoSuchEntity {
 		storageError(w, http.StatusNotFound, "No data found for provided id.")
 		return
@@ -153,9 +161,26 @@ func handlerLoad(w http.ResponseWriter, r *http.Request) {
 	// Note: This can fail if the bundle is deleted between fetching bundleLink
 	// and bundleData. However, it is highly unlikely, costly to mitigate (using
 	// a serializable transaction), and unimportant (error 500 instead of 404).
-	err = dbhRead.QFetch(bLink.BundleHash, &bData)
+	err = dbhRead.EFetch(bLink.BundleHash, &bData)
 	if err != nil {
 		storageInternalError(w, "Error getting bundleData for id", bId, ":", err)
+		return
+	}
+
+	// Update the last access timestamp for the link.
+	// Since we don't use transactions, this might get clobbered by a slightly
+	// older timestamp.
+	for try := 0; try < 3; try++ {
+		bLink.TLastAccessed = time.Now()
+		// Ignore no rows affected. It means either the timestamp is up to date (no
+		// change was needed) or the record had been deleted.
+		if err = dbhSeq.EUpdate(&bLink); err == nil || err == lsql.ErrNoRowsAffected {
+			err = nil
+			break
+		}
+	}
+	if err != nil {
+		storageInternalError(w, "Error updating last access timestamp for id", bId, ":", err)
 		return
 	}
 
@@ -215,7 +240,7 @@ func handlerSave(w http.ResponseWriter, r *http.Request) {
 	err := dbhSeq.RunInTransaction(3, func(txh *lsql.DBHandle) error {
 		// If a bundleLink entry exists for the generated BundleID, regenerate
 		// BundleID and retry. Buying lottery ticket optional.
-		bLinkFound, err := txh.QExists(bNewLink.BundleID, &bNewLink)
+		bLinkFound, err := txh.EExists(bNewLink.BundleID, &bNewLink)
 		if err != nil {
 			log.Println("error checking bundleLink existence for id", bNewLink.BundleID, ":", err)
 			return err
@@ -226,13 +251,13 @@ func handlerSave(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Check if a bundleData entry exists for this BundleHash.
-		bDataFound, err := txh.QExists(bNewData.BundleHash, &bNewData)
+		bDataFound, err := txh.EExists(bNewData.BundleHash, &bNewData)
 		if err != nil {
 			log.Println("error checking bundleData existence for hash", hex.EncodeToString(bHash), ":", err)
 			return err
 		} else if !bDataFound {
 			// If not, save the bundleData.
-			err = txh.QInsert(&bNewData)
+			err = txh.EInsert(&bNewData)
 			if err != nil {
 				log.Println("error storing bundleData for hash", hex.EncodeToString(bHash), ":", err)
 				return err
@@ -240,8 +265,10 @@ func handlerSave(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Save the bundleLink with the generated BundleID referring to the
-		// bundleData.
-		err = txh.QInsert(&bNewLink)
+		// bundleData. Assign timestamps just before saving.
+		bNewLink.TCreated = time.Now()
+		bNewLink.TLastAccessed = bNewLink.TCreated
+		err = txh.EInsert(&bNewLink)
 		if err != nil {
 			log.Println("error storing bundleLink for id", bNewLink.BundleID, ":", err)
 			return err
