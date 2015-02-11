@@ -7,7 +7,7 @@ function PingPongService() {}
 
 inherits(PingPongService, pingpong.PingPong);
 
-PingPongService.prototype.Ping = function(ctx, message) {
+PingPongService.prototype.ping = function(ctx, message) {
   console.log('[' + ctx.remoteBlessingStrings + '] ' + message);
   return 'PONG';
 };

@@ -16,7 +16,7 @@ function FortuneService() {
 inherits(FortuneService, fortune.Fortune);
 
 // Gets a random fortune
-FortuneService.prototype.GetRandomFortune = function(ctx) {
+FortuneService.prototype.getRandomFortune = function(ctx) {
   var numExistingfortunes = this.fortunes.length;
   if(numExistingfortunes === 0) {
     throw new Error('Sorry! No fortune available :(');
@@ -28,7 +28,7 @@ FortuneService.prototype.GetRandomFortune = function(ctx) {
 };
 
 // Adds a new fortune
-FortuneService.prototype.AddNewFortune = function(ctx, fortune) {
+FortuneService.prototype.addNewFortune = function(ctx, fortune) {
   if(!fortune || fortune.trim() === '') {
     throw new Error('Sorry! Can\'t add empty or null fortune!');
   }
@@ -63,5 +63,5 @@ veyron.init().then(function(rt) {
   'Everything will now come your way.',
   'Conquer your fears or they will conquer you.'
 ].forEach(function(fortune) {
-  fortuneService.AddNewFortune(null, fortune);
+  fortuneService.addNewFortune(null, fortune);
 });
