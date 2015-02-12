@@ -15,7 +15,7 @@ static_files := $(shell find src/static -name "*")
 .PHONY: deploy-staging
 deploy-staging: public
 	git rev-parse --verify HEAD >> public/version
-	gcloud config set account vanadium-staging
+	gcloud config set project vanadium-staging
 	gsutil -m rsync -d -r public gs://staging.playground.v.io
 
 public: build/playground.js $(css_files) $(static_files) src/example_bundles
