@@ -19,13 +19,14 @@ import (
 	"net/http"
 	"time"
 
-	"playground/lib"
+	"v.io/lib/dbutil"
+
 	"playground/lib/lsql"
 )
 
 var (
 	// Path to SQL configuration file, as described in playground/lib/mysql.go.
-	sqlConf = flag.String("sqlconf", "", "Path to SQL configuration file. If empty, load and save requests are disabled. "+lib.SqlConfigFileDescription)
+	sqlConf = flag.String("sqlconf", "", "Path to SQL configuration file. If empty, load and save requests are disabled. "+dbutil.SqlConfigFileDescription)
 
 	// Testing parameter, use default value for production.
 	// Name of dataset to use. Used as table name prefix (a single SQL database
@@ -343,9 +344,9 @@ var (
 	dbhRead *lsql.DBHandle
 )
 
-func newDBHandle(sqlConfig *lib.SqlConfig, txIsolation string, dataTypes []lsql.SqlData, setupdb, readonly bool) (*lsql.DBHandle, error) {
+func newDBHandle(sqlConfig *dbutil.SqlConfig, txIsolation string, dataTypes []lsql.SqlData, setupdb, readonly bool) (*lsql.DBHandle, error) {
 	// Create a database handle.
-	dbc, err := lib.NewDBConn(sqlConfig, txIsolation)
+	dbc, err := dbutil.NewSqlDBConn(sqlConfig, txIsolation)
 	if err != nil {
 		return nil, err
 	}
@@ -353,7 +354,7 @@ func newDBHandle(sqlConfig *lib.SqlConfig, txIsolation string, dataTypes []lsql.
 	if setupdb {
 		// Create missing database tables.
 		for _, t := range dataTypes {
-			if err := dbh.CreateTable(t, true, lib.CreateTableSuffix); err != nil {
+			if err := dbh.CreateTable(t, true, dbutil.SqlCreateTableSuffix); err != nil {
 				return nil, fmt.Errorf("failed initializing database tables: %v", err)
 			}
 			// TODO(ivanpi): Initialize database with fixed-ID examples?
@@ -374,13 +375,13 @@ func initDBHandles() error {
 	}
 
 	// Parse SQL configuration file.
-	sqlConfig, err := lib.ParseSqlConfigFromFile(*sqlConf)
+	sqlConfig, err := dbutil.ParseSqlConfigFromFile(*sqlConf)
 	if err != nil {
 		return err
 	}
 
-	// If setupDB is set, tables should be initialized only once, on the handle
-	// that is opened first.
+	// When setupDB is set, tables should be initialized only once, on the
+	// handle that is opened first.
 	if dbhSeq, err = newDBHandle(sqlConfig, "SERIALIZABLE", dataTypes, *setupDB, false); err != nil {
 		return err
 	}
