@@ -56,7 +56,7 @@ node_modules: package.json
 	@touch $@
 
 .PHONY: start
-start: deploy
+start: public
 	npm start
 
 .PHONY: clean

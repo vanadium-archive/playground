@@ -144,6 +144,7 @@ Playground.prototype.getBackendUrl_ = function() {
   if (pgaddr) {
     console.log('Using pgaddr', pgaddr);
   } else {
+    // TODO(ivanpi): Change to detect staging/production. Restrict pgaddr.
     pgaddr = 'https://staging.v.io/playground';
   }
   return pgaddr;
@@ -350,46 +351,40 @@ Playground.prototype.showMessage_ = function(state, prefix, msg, ok) {
 // Returns callback to be used for save and load requests. Callback loads the
 // bundle returned from the server and updates bundleId and url.
 Playground.prototype.saveLoadCallback_ = function(state, operation) {
-  var log = this.showMessage_.bind(this, state, operation);
   var that = this;
   return function(rerr, res) {
     state.requestActive.set(false);
     var processResponse = function() {
       if (rerr) {
         if (rerr.timeout) {
-          log('request timed out');
-        } else {
-          log('error connecting to server: ' + rerr);
+          return 'request timed out';
         }
-        return;
+        return 'error connecting to server: ' + rerr;
       }
       if (res.body && res.body.Error) {
-        log('error ' + res.status + ': ' + res.body.Error);
         // TODO(ivanpi): Special handling of 404? Retry on other errors?
-        return;
+        return 'error ' + res.status + ': ' + res.body.Error;
       }
       if (res.error) {
-        log('error ' + res.status + ': unknown');
-        return;
+        return 'error ' + res.status + ': unknown';
       }
       if (!res.body.Link || !res.body.Data) {
-        log('invalid response format');
-        return;
+        return 'invalid response format';
       }
       var bundle;
       try {
         bundle = JSON.parse(res.body.Data);
       } catch (jerr) {
-        log('error parsing Data: ' + res.body.Data + '\n' + jerr.message);
-        return;
+        return 'error parsing Data: ' + res.body.Data + '\n' + jerr.message;
       }
       // Opens bundle in editors, updates bundleId and url.
       that.setBundle_(state, bundle, res.body.Link);
-      log('success', true);
-      return true;
+      return null;
     };
-    if (processResponse()) {
+    var errm = processResponse();
+    if (!errm) {
       state.idToLoad.set('');
+      that.showMessage_(state, operation, 'success', true);
     } else {
       // Load/save failed.
       if (state.bundleId() === false) {
@@ -399,6 +394,7 @@ Playground.prototype.saveLoadCallback_ = function(state, operation) {
         // Otherwise, reset url to previously loaded bundle.
         that.setUrlForId_(state.bundleId());
       }
+      that.showMessage_(state, operation, errm);
     }
   };
 };
