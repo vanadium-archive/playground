@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	// Path to SQL configuration file, as described in playground/lib/mysql.go.
+	// Path to SQL configuration file, as described in v.io/lib/dbutil/mysql.go.
 	sqlConf = flag.String("sqlconf", "", "Path to SQL configuration file. If empty, load and save requests are disabled. "+dbutil.SqlConfigFileDescription)
 
 	// Testing parameter, use default value for production.

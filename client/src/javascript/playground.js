@@ -286,21 +286,27 @@ Playground.prototype.renderConsoleEvent_ = function(event) {
 // user scrolling up.
 function ScrollHandle(scrollState) {
   this.scrollState_ = scrollState;
+  this.enableScrollUpdates_ = false;
 }
 
 ScrollHandle.prototype.hook = function(elem, propname) {
-  var scrollState = this.scrollState_;
+  var that = this;
   process.nextTick(function() {
-    if (scrollState.bottom) {
+    if (that.scrollState_.bottom) {
       elem.scrollTop = elem.scrollHeight - elem.clientHeight;
     }
+    that.enableScrollUpdates_ = true;
   });
 };
 
 ScrollHandle.prototype.update = function(ev) {
-  var elem = ev.currentTarget;
-  this.scrollState_.bottom =
-      elem.scrollTop === elem.scrollHeight - elem.clientHeight;
+  var el = ev.currentTarget;
+  if (this.enableScrollUpdates_) {
+    // scrollHeight and clientHeight are rounded to an integer, so we need to
+    // compare fuzzily.
+    this.scrollState_.bottom =
+        Math.abs(el.scrollHeight - el.scrollTop - el.clientHeight) <= 2.01;
+  }
 };
 
 Playground.prototype.renderConsole_ = function(state) {
