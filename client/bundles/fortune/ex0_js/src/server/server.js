@@ -2,7 +2,7 @@
 var inherits = require('util').inherits;
 var veyron = require('veyron');
 
-var fortune = require('../fortune/fortune');
+var fortune = require('../fortune');
 
 /**
  * 1) Implement a simple fortune service

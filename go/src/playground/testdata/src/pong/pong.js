@@ -1,7 +1,7 @@
 var inherits = require('util').inherits;
 var veyron = require('veyron');
 
-var pingpong = require('../pingpong/pingpong');
+var pingpong = require('../pingpong');
 
 function PingPongService() {}
 
