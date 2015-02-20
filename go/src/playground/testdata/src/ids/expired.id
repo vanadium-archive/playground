@@ -6,7 +6,7 @@
 {
   "Name": "myclient",
   "Blesser": "myserver",
-  "Duration": "0s",
+  "Duration": "1ns",
   "Files": ["ping.go", "ping.js"]
 }
 ]
