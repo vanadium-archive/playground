@@ -4,7 +4,7 @@
 
 # v.io/core/shell/lib/shell_test.sh sourced via playground/lib/pg_test_util.sh
 # (shell_test.sh has side effects, should not be sourced again)
-source "$(go list -f {{.Dir}} playground)/lib/pg_test_util.sh"
+source "$(go list -f {{.Dir}} playground)/../../../client/lib/shell/pg_test_util.sh"
 
 # Sets up a directory with the given files, then runs builder.
 test_with_files() {

@@ -8,7 +8,7 @@
 # Assumes the playground package is included in GOPATH.
 PLAYGROUND_ROOT="$(CDPATH="" cd -P $(go list -f {{.Dir}} playground)/../../.. && pwd)"
 
-source "$(go list -f {{.Dir}} v.io/core/shell/lib)/shell_test.sh"
+source "$(go list -f {{.Dir}} playground)/../../../client/lib/shell/shell_test.sh"
 
 # Sets up environment variables required for the tests.
 setup_environment() {

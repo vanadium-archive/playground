@@ -4,7 +4,7 @@
 # Unit tests for the shell functions in this directory
 #
 
-source "$(go list -f {{.Dir}} v.io/core/shell/lib)/shell_test.sh"
+source "$(go list -f {{.Dir}} playground)/../../../client/lib/shell/shell_test.sh"
 
 test_assert() {
   shell_test::assert_eq "foo" "foo" "${LINENO}"
