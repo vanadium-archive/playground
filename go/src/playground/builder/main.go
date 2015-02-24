@@ -32,6 +32,7 @@ import (
 	"syscall"
 	"time"
 
+	vexec "v.io/core/veyron/lib/exec/consts"
 	"v.io/core/veyron/lib/flags/consts"
 
 	"playground/lib"
@@ -46,6 +47,8 @@ var (
 	includeV23Env = flag.Bool("includeV23Env", false, "Whether to log the output of \"v23 env\" before compilation.")
 
 	// TODO(ivanpi): Separate out mounttable, proxy, wspr timeouts. Add compile timeout. Revise default.
+	// TODO(ivanpi): you can make this a time.Duration, implement the flag.Value
+	// interface as per veyron2/config settings.
 	runTimeout = flag.Int64("runTimeout", 3000, "Time limit for running user code, in milliseconds.")
 
 	// Sink for writing events (debug and run output) to stdout as JSON, one event per line.
@@ -410,6 +413,10 @@ func makeCmd(fileName string, isService bool, progName string, args ...string) *
 func main() {
 	flag.Parse()
 
+	// TODO(cnicolaou): remove this when the isse below is resolved:
+	// https://github.com/veyron/release-issues/issues/1157
+	os.Setenv(vexec.ExecVersionVariable, "")
+
 	out = event.NewJsonSink(os.Stdout, !*verbose)
 
 	r, err := parseRequest(os.Stdin)
@@ -436,6 +443,5 @@ func main() {
 		panicOnError(out.Write(event.New("<compile>", "stderr", "Compilation error.")))
 		return
 	}
-
 	runFiles(r.Files)
 }

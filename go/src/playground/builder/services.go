@@ -8,13 +8,11 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"math/rand"
 	"os"
 	"os/exec"
 	"path"
 	"regexp"
 	"strconv"
-	"syscall"
 	"time"
 
 	"v.io/core/veyron/lib/flags/consts"
@@ -26,35 +24,15 @@ var (
 	proxyName = "proxy"
 )
 
-// Note: This was copied from release/go/src/v.io/core/veyron/tools/findunusedport.
-// I would like to be able to import that package directly, but it defines a
-// main(), so can't be imported.  An alternative solution would be to call the
-// 'findunusedport' binary, but that would require starting another process and
-// parsing the output.  It seemed simpler to just copy the function here.
-func findUnusedPort() (int, error) {
-	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for i := 0; i < 1000; i++ {
-		port := 1024 + rnd.Int31n(64512)
-		fd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_STREAM, syscall.IPPROTO_TCP)
-		if err != nil {
-			continue
-		}
-		sa := &syscall.SockaddrInet4{Port: int(port)}
-		if err := syscall.Bind(fd, sa); err != nil {
-			continue
-		}
-		syscall.Close(fd)
-		return int(port), nil
-	}
-	return 0, fmt.Errorf("Can't find unused port.")
-}
+// TODO(ivanpi): this is all implemented in veyron/lib/modules/core, you
+// may be able to use that directly.
 
 // startMount starts a mounttabled process, and sets the NAMESPACE_ROOT env
 // variable to the mounttable's location.  We run one mounttabled process for
 // the entire environment.
 func startMount(timeLimit time.Duration) (proc *os.Process, err error) {
 	cmd := makeCmd("<mounttabled>", true, "mounttabled", "-veyron.tcp.address=127.0.0.1:0")
-	matches, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile("Mount table .+ endpoint: (.+)\n"))
+	matches, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile("NAME=(.*)"))
 	if err != nil {
 		return nil, fmt.Errorf("Error starting mounttabled: %v", err)
 	}
@@ -70,12 +48,11 @@ func startMount(timeLimit time.Duration) (proc *os.Process, err error) {
 func startProxy(timeLimit time.Duration) (proc *os.Process, err error) {
 	cmd := makeCmd("<proxyd>", true,
 		"proxyd",
-		// Verbose logging so we can watch the output for "Proxy listening" log line.
-		"-v=1",
+		"-log_dir=/tmp/logs",
 		"-name="+proxyName,
 		"-address=127.0.0.1:0",
 		"-http=")
-	if _, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile("Proxy listening")); err != nil {
+	if _, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile("NAME=(.*)")); err != nil {
 		return nil, fmt.Errorf("Error starting proxy: %v", err)
 	}
 	return cmd.Process, nil
@@ -84,17 +61,11 @@ func startProxy(timeLimit time.Duration) (proc *os.Process, err error) {
 // startWspr starts a wsprd process. We run one wsprd process for each
 // javascript file being run.
 func startWspr(fileName, credentials string, timeLimit time.Duration) (proc *os.Process, port int, err error) {
-	port, err = findUnusedPort()
-	if err != nil {
-		return nil, port, err
-	}
 	cmd := makeCmd("<wsprd>:"+fileName, true,
 		"wsprd",
-		// Verbose logging so we can watch the output for "Listening" log line.
-		"-v=1",
 		"-veyron.proxy="+proxyName,
 		"-veyron.tcp.address=127.0.0.1:0",
-		"-port="+strconv.Itoa(port),
+		"-port=0",
 		// Retry RPC calls for 1 second. If a client makes an RPC call before the
 		// server is running, it won't immediately fail, but will retry while the
 		// server is starting.
@@ -106,8 +77,14 @@ func startWspr(fileName, credentials string, timeLimit time.Duration) (proc *os.
 	if credentials != "" {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("%v=%s", consts.VeyronCredentials, path.Join("credentials", credentials)))
 	}
-	if _, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile("Listening")); err != nil {
+	parts, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile(".*port: (.*)"))
+	if err != nil {
 		return nil, 0, fmt.Errorf("Error starting wspr: %v", err)
+	}
+	portstr := parts[1]
+	port, err = strconv.Atoi(portstr)
+	if err != nil {
+		return nil, 0, fmt.Errorf("Malformed port: %q: %v", portstr, err)
 	}
 	return cmd.Process, port, nil
 }
@@ -120,20 +97,16 @@ func startWspr(fileName, credentials string, timeLimit time.Duration) (proc *os.
 // util function.
 func startAndWaitFor(cmd *exec.Cmd, timeout time.Duration, outputRegexp *regexp.Regexp) ([]string, error) {
 	reader, writer := io.Pipe()
-	// TODO(sadovsky): Why must we listen to both stdout and stderr? We should
-	// know which one produces the "Listening" log line...
 	cmd.Stdout.(*lib.MultiWriter).Add(writer)
-	cmd.Stderr.(*lib.MultiWriter).Add(writer)
-	err := cmd.Start()
-	if err != nil {
+	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
 
-	buf := bufio.NewReader(reader)
-	t := time.After(timeout)
 	ch := make(chan []string)
 	go (func() {
-		for line, err := buf.ReadString('\n'); err == nil; line, err = buf.ReadString('\n') {
+		scanner := bufio.NewScanner(reader)
+		for scanner.Scan() {
+			line := scanner.Text()
 			if matches := outputRegexp.FindStringSubmatch(line); matches != nil {
 				ch <- matches
 			}
@@ -141,8 +114,8 @@ func startAndWaitFor(cmd *exec.Cmd, timeout time.Duration, outputRegexp *regexp.
 		close(ch)
 	})()
 	select {
-	case <-t:
-		return nil, fmt.Errorf("Timeout starting service.")
+	case <-time.After(timeout):
+		return nil, fmt.Errorf("Timeout starting service: %v", cmd.Path)
 	case matches := <-ch:
 		return matches, nil
 	}
