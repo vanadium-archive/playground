@@ -7,9 +7,9 @@ import (
 
 	"v.io/core/veyron/lib/signals"
 	_ "v.io/core/veyron/profiles"
-	"v.io/core/veyron2"
-	"v.io/core/veyron2/ipc"
-	"v.io/core/veyron2/vlog"
+	"v.io/v23"
+	"v.io/v23/ipc"
+	"v.io/v23/vlog"
 
 	"pingpong"
 )
@@ -23,10 +23,10 @@ func (f *pongd) Ping(ctx ipc.ServerContext, message string) (result string, err 
 }
 
 func main() {
-	ctx, shutdown := veyron2.Init()
+	ctx, shutdown := v23.Init()
 	defer shutdown()
 
-	s, err := veyron2.NewServer(ctx)
+	s, err := v23.NewServer(ctx)
 	if err != nil {
 		vlog.Fatal("failure creating server: ", err)
 	}
@@ -34,7 +34,7 @@ func main() {
 	serverPong := pingpong.PingPongServer(&pongd{})
 
 	fmt.Printf("Starting server\n")
-	if endpoint, err := s.Listen(veyron2.GetListenSpec(ctx)); err == nil {
+	if endpoint, err := s.Listen(v23.GetListenSpec(ctx)); err == nil {
 		fmt.Printf("Listening at: %v\n", endpoint)
 	} else {
 		vlog.Fatal("error listening to service: ", err)

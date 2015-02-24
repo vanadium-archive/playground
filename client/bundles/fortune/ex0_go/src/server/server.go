@@ -10,9 +10,9 @@ import (
 	"v.io/core/veyron/lib/signals"
 	_ "v.io/core/veyron/profiles"
 	vflag "v.io/core/veyron/security/flag"
-	"v.io/core/veyron2"
-	"v.io/core/veyron2/ipc"
-	"v.io/core/veyron2/vlog"
+	"v.io/v23"
+	"v.io/v23/ipc"
+	"v.io/v23/vlog"
 
 	"fortune"
 )
@@ -54,11 +54,11 @@ func (f *fortuned) Add(_ ipc.ServerContext, Fortune string) error {
 // Main - Set everything up.
 func main() {
 	// Initialize Vanadium.
-	ctx, shutdown := veyron2.Init()
+	ctx, shutdown := v23.Init()
 	defer shutdown()
 
 	// Create a new instance of the runtime's server functionality.
-	server, err := veyron2.NewServer(ctx)
+	server, err := v23.NewServer(ctx)
 	if err != nil {
 		vlog.Panic("failure creating server: ", err)
 	}
@@ -67,7 +67,7 @@ func main() {
 	fortuneServer := fortune.FortuneServer(newFortuned())
 
 	// Create an endpoint and begin listening.
-	if endpoint, err := server.Listen(veyron2.GetListenSpec(ctx)); err == nil {
+	if endpoint, err := server.Listen(v23.GetListenSpec(ctx)); err == nil {
 		fmt.Printf("Listening at: %v\n", endpoint)
 	} else {
 		vlog.Panic("error listening at endpoint: ", err)

@@ -8,14 +8,14 @@ import (
 	"time"
 
 	_ "v.io/core/veyron/profiles"
-	"v.io/core/veyron2"
+	"v.io/v23"
 
 	"fortune"
 )
 
 func main() {
 	// Initialize Vanadium.
-	ctx, shutdown := veyron2.Init()
+	ctx, shutdown := v23.Init()
 	defer shutdown()
 
 	// Create a new stub that binds to address without

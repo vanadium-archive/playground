@@ -6,14 +6,14 @@ import (
 	"fmt"
 
 	_ "v.io/core/veyron/profiles"
-	"v.io/core/veyron2"
-	"v.io/core/veyron2/vlog"
+	"v.io/v23"
+	"v.io/v23/vlog"
 
 	"pingpong"
 )
 
 func main() {
-	ctx, shutdown := veyron2.Init()
+	ctx, shutdown := v23.Init()
 	defer shutdown()
 
 	s := pingpong.PingPongClient("pingpong")
