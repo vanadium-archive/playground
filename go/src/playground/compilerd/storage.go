@@ -344,9 +344,9 @@ var (
 	dbhRead *lsql.DBHandle
 )
 
-func newDBHandle(sqlConfig *dbutil.SqlConfig, txIsolation string, dataTypes []lsql.SqlData, setupdb, readonly bool) (*lsql.DBHandle, error) {
+func newDBHandle(sqlConfig *dbutil.ActiveSqlConfig, txIsolation string, dataTypes []lsql.SqlData, setupdb, readonly bool) (*lsql.DBHandle, error) {
 	// Create a database handle.
-	dbc, err := dbutil.NewSqlDBConn(sqlConfig, txIsolation)
+	dbc, err := sqlConfig.NewSqlDBConn(txIsolation)
 	if err != nil {
 		return nil, err
 	}
@@ -374,8 +374,8 @@ func initDBHandles() error {
 		return nil
 	}
 
-	// Parse SQL configuration file.
-	sqlConfig, err := dbutil.ParseSqlConfigFromFile(*sqlConf)
+	// Parse SQL configuration file and set up TLS.
+	sqlConfig, err := dbutil.ActivateSqlConfigFromFile(*sqlConf)
 	if err != nil {
 		return err
 	}
