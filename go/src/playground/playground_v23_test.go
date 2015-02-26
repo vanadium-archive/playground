@@ -83,7 +83,7 @@ func V23TestPlayground(i *v23tests.T) {
 	i.BuildGoPkg("v.io/core/veyron/tools/principal")
 	i.BuildGoPkg("v.io/core/veyron/tools/vdl")
 	i.BuildGoPkg("v.io/core/veyron/services/proxy/proxyd")
-	i.BuildGoPkg("v.io/wspr/veyron/services/wsprd")
+	i.BuildGoPkg("v.io/core/veyron/services/wsprd")
 
 	playgroundPkg := golist(i, "playground")
 	// strip last three directory components, much easier to read in
