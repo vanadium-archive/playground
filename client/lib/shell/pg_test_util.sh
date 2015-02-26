@@ -48,7 +48,7 @@ build_go_binaries() {
   shell_test::build_go_binary 'v.io/core/veyron/tools/principal'
   shell_test::build_go_binary 'v.io/core/veyron/services/proxy/proxyd'
   shell_test::build_go_binary 'v.io/core/veyron/services/mounttable/mounttabled'
-  shell_test::build_go_binary 'v.io/v23/vdl/vdl'
+  shell_test::build_go_binary 'v.io/core/veyron/tools/vdl'
   shell_test::build_go_binary 'v.io/wspr/veyron/services/wsprd'
   shell_test::build_go_binary 'playground/builder'
 }

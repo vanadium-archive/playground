@@ -81,8 +81,8 @@ func V23TestPlayground(i *v23tests.T) {
 	v23tests.RunRootMT(i, "--veyron.tcp.address=127.0.0.1:0")
 
 	i.BuildGoPkg("v.io/core/veyron/tools/principal")
+	i.BuildGoPkg("v.io/core/veyron/tools/vdl")
 	i.BuildGoPkg("v.io/core/veyron/services/proxy/proxyd")
-	i.BuildGoPkg("v.io/core/veyron2/vdl/vdl")
 	i.BuildGoPkg("v.io/wspr/veyron/services/wsprd")
 
 	playgroundPkg := golist(i, "playground")
