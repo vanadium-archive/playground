@@ -63,8 +63,9 @@ main() {
   test_with_files "src/pong/pong.go" "src/ping/ping.go" "src/pingpong/wire.vdl" "src/ids/expired.id" || shell_test::fail  "line ${LINENO}: expired id (go -> go)"
   grep -q "not authorized" builder.out || shell_test::fail "line ${LINENO}: rpc with expired id succeeded (go -> go)"
 
-  test_with_files "src/pong/pong.js" "src/ping/ping.js" "src/pingpong/wire.vdl" "src/ids/expired.id" || shell_test::fail  "line ${LINENO}: expired id (js -> js)"
-  grep -q "not authorized" builder.out || shell_test::fail "line ${LINENO}: rpc with expired id succeeded (js -> js)"
+# TODO(bprosnitz) Re-enable with issue #986 (once javascript supports expired blessings).
+# test_with_files "src/pong/pong.js" "src/ping/ping.js" "src/pingpong/wire.vdl" "src/ids/expired.id" || shell_test::fail  "line ${LINENO}: expired id (js -> js)"
+#  grep -q "not authorized" builder.out || shell_test::fail "line ${LINENO}: rpc with expired id succeeded (js -> js)"
 
   echo -e "\n\n>>>>> Test with unauthorized blessings\n\n"
 

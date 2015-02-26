@@ -127,8 +127,9 @@ func V23TestPlayground(i *v23tests.T) {
 	i.Logf("Test with authorized blessings")
 	runCases("src/ids/authorized.id", []string{"PING", "PONG"})
 
-	i.Logf("Test with expired blessings")
-	runCases("src/ids/expired.id", []string{"not authorized"})
+	// TODO(bprosnitz) Re-enable with issue #986 (once javascript supports expired blessings).
+	//i.Logf("Test with expired blessings")
+	//runCases("src/ids/expired.id", []string{"not authorized"})
 
 	i.Logf("Test with unauthorized blessings")
 	runCases("src/ids/unauthorized.id", []string{"not authorized"})
