@@ -12,7 +12,7 @@ import (
 	vflag "v.io/core/veyron/security/flag"
 	"v.io/v23"
 	"v.io/v23/ipc"
-	"v.io/v23/vlog"
+	"v.io/x/lib/vlog"
 
 	"fortune"
 )
