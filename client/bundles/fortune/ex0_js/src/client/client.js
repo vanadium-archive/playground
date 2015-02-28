@@ -1,11 +1,11 @@
 // index=2
-var veyron = require('veyron');
+var vanadium = require('vanadium');
 
 /**
  * Create a Vanadium runtime using the configuration defined in config.js,
  * and bind it to the bakery/cookie/fortune service.
  */
-veyron.init(function(err, rt) {
+vanadium.init(function(err, rt) {
   if (err) { return error(err); }
 
   var ctx = rt.getContext();

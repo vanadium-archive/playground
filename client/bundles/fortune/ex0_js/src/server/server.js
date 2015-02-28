@@ -1,6 +1,6 @@
 // index=1
 var inherits = require('util').inherits;
-var veyron = require('veyron');
+var vanadium = require('vanadium');
 
 var fortune = require('../fortune');
 
@@ -43,7 +43,7 @@ FortuneService.prototype.addNewFortune = function(ctx, fortune) {
 var fortuneService = new FortuneService();
 
 // Create a Vanadium runtime using the configuration
-veyron.init().then(function(rt) {
+vanadium.init().then(function(rt) {
   var server = rt.newServer();
   // Serve the fortune server under a name. Serve returns a Promise object
   server.serve('bakery/cookie/fortune', fortuneService).then(function() {

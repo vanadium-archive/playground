@@ -24,7 +24,7 @@ setup_environment() {
 
 # Installs the release/javascript/core library and makes it accessible to
 # Javascript files in the Vanadium playground test under the module name
-# 'veyron'.
+# 'vanadium'.
 install_vanadium_js() {
   # TODO(nlacasse): Once release/javascript/core is publicly available in npm, replace this
   # with "npm install vanadium".
@@ -32,7 +32,7 @@ install_vanadium_js() {
   pushd "${VANADIUM_ROOT}/release/javascript/core"
   npm link
   popd
-  npm link veyron
+  npm link vanadium
 }
 
 # Installs the pgbundle tool.

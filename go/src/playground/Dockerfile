@@ -28,7 +28,7 @@ RUN $VANADIUM_ROOT/bin/v23 profile setup web
 RUN rm /root/.hgrc
 
 # Install the release/javascript/core library.
-# TODO(nlacasse): Switch to "npm install -g veyron" once release/javascript/core
+# TODO(nlacasse): Switch to "npm install -g vanadium" once release/javascript/core
 # is publicly visible in NPM.
 # NOTE(sadovsky): NPM is flaky. If any of the NPM commands below fail, simply
 # retry them.
@@ -36,7 +36,7 @@ WORKDIR /usr/local/vanadium/release/javascript/core
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm install --production
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link
 WORKDIR /home/playground
-RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link veyron
+RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link vanadium 
 
 # Install Vanadium Go dependencies.
 WORKDIR /usr/local/vanadium/release

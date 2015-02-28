@@ -1,6 +1,6 @@
-var veyron = require('veyron');
+var vanadium = require('vanadium');
 
-veyron.init(function(err, rt) {
+vanadium.init(function(err, rt) {
   if (err) throw err;
 
   var ctx = rt.getContext();

@@ -1,5 +1,5 @@
 var inherits = require('util').inherits;
-var veyron = require('veyron');
+var vanadium = require('vanadium');
 
 var pingpong = require('../pingpong');
 
@@ -14,7 +14,7 @@ PingPongService.prototype.ping = function(ctx, message) {
 
 var pingPongService = new PingPongService();
 
-veyron.init(function(err, rt) {
+vanadium.init(function(err, rt) {
   if (err) throw err;
 
   console.log('Starting server');

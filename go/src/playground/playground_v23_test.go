@@ -92,7 +92,7 @@ func V23TestPlayground(i *v23tests.T) {
 	playgroundRoot = filepath.Dir(playgroundRoot)
 	playgroundRoot = filepath.Dir(playgroundRoot)
 
-	npmLink(i, filepath.Join(vanadiumRoot, "release/javascript/core"), "veyron")
+	npmLink(i, filepath.Join(vanadiumRoot, "release/javascript/core"), "vanadium")
 	npmLink(i, filepath.Join(playgroundRoot, "pgbundle"), "pgbundle")
 
 	cases := []struct {
