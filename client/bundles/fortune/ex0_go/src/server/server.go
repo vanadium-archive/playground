@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"math/rand"
 
-	"v.io/core/veyron/lib/signals"
-	_ "v.io/core/veyron/profiles"
-	vflag "v.io/core/veyron/security/flag"
 	"v.io/v23"
 	"v.io/v23/ipc"
 	"v.io/x/lib/vlog"
+	"v.io/x/ref/lib/signals"
+	_ "v.io/x/ref/profiles"
+	vflag "v.io/x/ref/security/flag"
 
 	"fortune"
 )

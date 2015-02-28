@@ -32,8 +32,8 @@ import (
 	"syscall"
 	"time"
 
-	vexec "v.io/core/veyron/lib/exec/consts"
-	"v.io/core/veyron/lib/flags/consts"
+	vexec "v.io/x/ref/lib/exec/consts"
+	"v.io/x/ref/lib/flags/consts"
 
 	"playground/lib"
 	"playground/lib/event"

@@ -41,7 +41,7 @@ RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link vanadium
 # Install Vanadium Go dependencies.
 WORKDIR /usr/local/vanadium/release
 ENV PATH $VANADIUM_ROOT/release/go/bin:$VANADIUM_ROOT/release/projects/playground/go/bin:$VANADIUM_ROOT/bin:$PATH
-RUN v23 go install v.io/core/...
+RUN v23 go install v.io/x/ref/...
 RUN v23 go install playground/...
 
 # Uncomment the following lines to install a version of the builder tool using
@@ -59,8 +59,8 @@ RUN v23 go install playground/...
 # local version of the code. This is useful when developing and testing local
 # changes.
 #RUN rm $VANADIUM_ROOT/release/go/bin/proxyd
-#ADD proxyd_main.go $VANADIUM_ROOT/release/go/src/v.io/core/veyron/services/proxy/proxyd/main.go
-#RUN v23 go install v.io/core/veyron/services/proxy/proxyd
+#ADD proxyd_main.go $VANADIUM_ROOT/release/go/src/v.io/x/ref/services/proxy/proxyd/main.go
+#RUN v23 go install v.io/x/ref/services/proxy/proxyd
 
 USER playground
 WORKDIR /home/playground

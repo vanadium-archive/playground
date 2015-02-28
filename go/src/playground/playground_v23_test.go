@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"v.io/core/veyron/lib/testutil/v23tests"
-	_ "v.io/core/veyron/profiles"
+	"v.io/x/ref/lib/testutil/v23tests"
+	_ "v.io/x/ref/profiles"
 )
 
 //go:generate v23 test generate
@@ -80,10 +80,10 @@ func testWithFiles(i *v23tests.T, pgRoot string, files ...string) *v23tests.Invo
 func V23TestPlayground(i *v23tests.T) {
 	v23tests.RunRootMT(i, "--veyron.tcp.address=127.0.0.1:0")
 
-	i.BuildGoPkg("v.io/core/veyron/tools/principal")
-	i.BuildGoPkg("v.io/core/veyron/tools/vdl")
-	i.BuildGoPkg("v.io/core/veyron/services/proxy/proxyd")
-	i.BuildGoPkg("v.io/core/veyron/services/wsprd")
+	i.BuildGoPkg("v.io/x/ref/tools/principal")
+	i.BuildGoPkg("v.io/x/ref/tools/vdl")
+	i.BuildGoPkg("v.io/x/ref/services/proxy/proxyd")
+	i.BuildGoPkg("v.io/x/ref/services/wsprd")
 
 	playgroundPkg := golist(i, "playground")
 	// strip last three directory components, much easier to read in

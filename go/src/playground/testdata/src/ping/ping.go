@@ -5,9 +5,9 @@ package main
 import (
 	"fmt"
 
-	_ "v.io/core/veyron/profiles"
 	"v.io/v23"
 	"v.io/x/lib/vlog"
+	_ "v.io/x/ref/profiles"
 
 	"pingpong"
 )

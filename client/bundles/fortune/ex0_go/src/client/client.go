@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	_ "v.io/core/veyron/profiles"
 	"v.io/v23"
+	_ "v.io/x/ref/profiles"
 
 	"fortune"
 )

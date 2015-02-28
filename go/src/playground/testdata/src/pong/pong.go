@@ -5,11 +5,11 @@ package main
 import (
 	"fmt"
 
-	"v.io/core/veyron/lib/signals"
-	_ "v.io/core/veyron/profiles"
 	"v.io/v23"
 	"v.io/v23/ipc"
 	"v.io/x/lib/vlog"
+	"v.io/x/ref/lib/signals"
+	_ "v.io/x/ref/profiles"
 
 	"pingpong"
 )

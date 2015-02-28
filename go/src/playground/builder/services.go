@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"time"
 
-	"v.io/core/veyron/lib/flags/consts"
+	"v.io/x/ref/lib/flags/consts"
 
 	"playground/lib"
 )
