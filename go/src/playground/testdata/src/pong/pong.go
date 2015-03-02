@@ -16,8 +16,8 @@ import (
 
 type pongd struct{}
 
-func (f *pongd) Ping(ctx ipc.ServerCall, message string) (result string, err error) {
-	remote, _ := ctx.RemoteBlessings().ForCall(ctx)
+func (f *pongd) Ping(call ipc.ServerCall, message string) (result string, err error) {
+	remote, _ := call.RemoteBlessings().ForCall(call)
 	fmt.Printf("%v: %q\n", remote, message)
 	return "PONG", nil
 }
