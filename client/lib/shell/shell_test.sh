@@ -221,7 +221,7 @@ shell_test::start_server() {
 shell_test::credentials() {
   [[ ! -n ${shell_test_RUNNING_UNDER_AGENT+1} ]] \
     || shell_test::fail "credentials called when running under enable_agent"
-  local -r PRINCIPAL_BIN="$(shell_test::build_go_binary 'v.io/x/ref/tools/principal')"
+  local -r PRINCIPAL_BIN="$(shell_test::build_go_binary 'v.io/x/ref/cmd/principal')"
   local -r CRED=$(shell::tmp_dir)
   "${PRINCIPAL_BIN}" create --overwrite=true "${CRED}" "$1" >/dev/null || shell_test::fail "line ${LINENO}: create failed"
   echo "${CRED}"
@@ -237,7 +237,7 @@ shell_test::forkcredentials() {
   [[ ! -n ${shell_test_RUNNING_UNDER_AGENT+1} ]] \
     || shell_test::fail "forkcredentials called when running under enable_agent"
 
-  local -r PRINCIPAL_BIN="$(shell_test::build_go_binary 'v.io/x/ref/tools/principal')"
+  local -r PRINCIPAL_BIN="$(shell_test::build_go_binary 'v.io/x/ref/cmd/principal')"
   local -r FORKCRED=$(shell::tmp_dir)
   "${PRINCIPAL_BIN}" create --overwrite=true "${FORKCRED}" self >/dev/null || shell_test::fail "line ${LINENO}: create failed"
   "${PRINCIPAL_BIN}" --veyron.credentials="$1" bless --require_caveats=false "${FORKCRED}" "$2" >blessing || shell_test::fail "line ${LINENO}: bless failed"
@@ -268,6 +268,6 @@ shell_test::enable_agent() {
     VEYRON_CREDENTIALS="${WORKDIR}/credentials" exec ${AGENTD} --no_passphrase --additional_principals="${WORKDIR}/childcredentials" bash -"$-" "$0" "$@"
     shell_test::fail "failed to run test under agent"
   else
-    VRUN="$(shell_test::build_go_binary 'v.io/x/ref/tools/vrun')"
+    VRUN="$(shell_test::build_go_binary 'v.io/x/ref/cmd/vrun')"
   fi
 }
