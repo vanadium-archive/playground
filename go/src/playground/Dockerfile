@@ -19,11 +19,10 @@ ENV VDLPATH $GOPATH
 # Note: This will be cached! If you want to re-build the docker image using
 # fresh Vanadium code, you must pass "--no-cache" to the docker build command.
 # See README.md.
-ADD builder/gitcookies /root/.gitcookies
-RUN git config --global http.cookiefile ~/.gitcookies
+ADD deploy/netrc /root/.netrc
 RUN curl -u vanadium:D6HT]P,LrJ7e https://dev.v.io/noproxy/vanadium-setup.sh | bash
-RUN rm /root/.gitcookies
-ADD builder/hgrc /root/.hgrc
+RUN rm /root/.netrc
+ADD deploy/hgrc /root/.hgrc
 RUN $VANADIUM_ROOT/bin/v23 profile setup web
 RUN rm /root/.hgrc
 
@@ -36,7 +35,7 @@ WORKDIR /usr/local/vanadium/release/javascript/core
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm install --production
 RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link
 WORKDIR /home/playground
-RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link vanadium 
+RUN $VANADIUM_ROOT/environment/cout/node/bin/npm link vanadium
 
 # Install Vanadium Go dependencies.
 WORKDIR /usr/local/vanadium/release
@@ -58,7 +57,7 @@ RUN v23 go install playground/...
 # lines to install a version of proxyd (used by the builder tool) using your
 # local version of the code. This is useful when developing and testing local
 # changes.
-#RUN rm $VANADIUM_ROOT/release/go/bin/proxyd
+#RUN rm -f $VANADIUM_ROOT/release/go/bin/proxyd
 #ADD proxyd_main.go $VANADIUM_ROOT/release/go/src/v.io/x/ref/services/proxy/proxyd/main.go
 #RUN v23 go install v.io/x/ref/services/proxy/proxyd
 

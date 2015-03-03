@@ -1,2 +1,2 @@
-builder/gitcookies
-builder/hgrc
+deploy/netrc
+deploy/hgrc

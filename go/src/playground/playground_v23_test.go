@@ -74,7 +74,7 @@ func testWithFiles(i *v23tests.T, pgRoot string, files ...string) *v23tests.Invo
 		}
 		i.Run("/bin/cp", filepath.Join(testdataDir, f), fdir)
 	}
-	return runPGExample(i, pgBundleDir, "-v=true", "--includeV23Env=true", "--runTimeout=5000")
+	return runPGExample(i, pgBundleDir, "-v=true", "--includeV23Env=true", "--runTimeout=5s")
 }
 
 func V23TestPlayground(i *v23tests.T) {

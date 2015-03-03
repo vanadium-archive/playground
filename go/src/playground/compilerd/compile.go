@@ -110,16 +110,13 @@ func handlerCompile(w http.ResponseWriter, r *http.Request) {
 	}
 	cmdKill := lib.DoOnce(func() {
 		event.Debug(res, "Killing program")
+		// The docker client can get in a state where stopping/killing/rm-ing
+		// the container will not kill the client. The opposite should work
+		// correctly (killing the docker client stops the container).
+		// If not, the docker rm call below will.
+		// Note, this wouldn't be sufficient if docker was called through sudo
+		// since sudo doesn't pass sigkill to child processes.
 		cmd.Process.Kill()
-		if *useDocker {
-			// Sudo doesn't pass sigkill to child processes, so we need to find and
-			// kill the docker process directly.
-			// The docker client can get in a state where stopping/killing/rm-ing
-			// the container will not kill the client. The opposite should work
-			// correctly (killing the docker client stops the container).
-			// If not, the docker rm call below will.
-			exec.Command("sudo", "pkill", "-SIGKILL", "-f", id).Run()
-		}
 	})
 
 	cmd.Stdin = bytes.NewReader(requestBody)
@@ -319,9 +316,7 @@ func (r *responseEventSink) popWrittenEvents() []event.Event {
 // Miscellaneous helper functions
 
 func docker(args ...string) *exec.Cmd {
-	fullArgs := []string{"docker"}
-	fullArgs = append(fullArgs, args...)
-	return exec.Command("sudo", fullArgs...)
+	return exec.Command("docker", args...)
 }
 
 // A channel which returns unique ids for the containers.

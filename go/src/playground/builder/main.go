@@ -47,9 +47,7 @@ var (
 	includeV23Env = flag.Bool("includeV23Env", false, "Whether to log the output of \"v23 env\" before compilation.")
 
 	// TODO(ivanpi): Separate out mounttable, proxy, wspr timeouts. Add compile timeout. Revise default.
-	// TODO(ivanpi): you can make this a time.Duration, implement the flag.Value
-	// interface as per veyron2/config settings.
-	runTimeout = flag.Int64("runTimeout", 3000, "Time limit for running user code, in milliseconds.")
+	runTimeout = flag.Duration("runTimeout", 3*time.Second, "Time limit for running user code.")
 
 	// Sink for writing events (debug and run output) to stdout as JSON, one event per line.
 	out event.Sink
@@ -59,10 +57,6 @@ var (
 
 	mu sync.Mutex
 )
-
-func getRunTimeout() time.Duration {
-	return time.Duration(*runTimeout) * time.Millisecond
-}
 
 // Type of data sent to the builder on stdin.  Input should contain Files.  We
 // look for a file whose Name ends with .id, and parse that into credentials.
@@ -259,7 +253,7 @@ func runFiles(files []*codeFile) {
 		}
 	}
 
-	timeout := time.After(getRunTimeout())
+	timeout := time.After(*runTimeout)
 
 	for running > 0 {
 		select {
@@ -320,7 +314,7 @@ func (f *codeFile) write() error {
 }
 
 func (f *codeFile) startJs() error {
-	wsprProc, wsprPort, err := startWspr(f.Name, f.credentials, getRunTimeout())
+	wsprProc, wsprPort, err := startWspr(f.Name, f.credentials, *runTimeout)
 	if err != nil {
 		return fmt.Errorf("Error starting wspr: %v", err)
 	}
@@ -424,11 +418,11 @@ func main() {
 
 	panicOnError(createCredentials(r.Credentials))
 
-	mt, err := startMount(getRunTimeout())
+	mt, err := startMount(*runTimeout)
 	panicOnError(err)
 	defer mt.Kill()
 
-	proxy, err := startProxy(getRunTimeout())
+	proxy, err := startProxy(*runTimeout)
 	panicOnError(err)
 	defer proxy.Kill()
 

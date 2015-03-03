@@ -14,21 +14,21 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"os/exec"
 	"os/signal"
 	"syscall"
 	"time"
 )
 
 var (
-	// This channel is closed when the server begins shutting down.
+	// This channel is closed when clean exit is triggered.
 	// No values are ever sent to it.
 	lameduck chan bool = make(chan bool)
 
 	address = flag.String("address", ":8181", "Address to listen on.")
 
-	// Note, shutdown triggers on SIGTERM or when the time limit is hit.
-	enableShutdown = flag.Bool("shutdown", true, "Whether to ever shutdown the machine.")
+	// compilerd exits cleanly on SIGTERM or after a random amount of time,
+	// between listenTimeout/2 and listenTimeout.
+	listenTimeout = flag.Duration("listenTimeout", 60*time.Minute, "Maximum amount of time to listen for before exiting. A value of 0 disables the timeout.")
 
 	// Maximum request and output size. Same limit as imposed by Go tour.
 	// Note: The response includes error and status messages as well as output,
@@ -37,6 +37,10 @@ var (
 	// maxSize should be large enough to fit all error and status messages
 	// written by compilerd to prevent reaching the hard limit.
 	maxSize = 1 << 16
+
+	// Time to finish serving currently running requests before exiting cleanly.
+	// No new requests are accepted during this time.
+	exitDelay = 30 * time.Second
 )
 
 // Seeds the non-secure random number generator.
@@ -69,50 +73,46 @@ func main() {
 		panic(err)
 	}
 
-	if *enableShutdown {
-		limit_min := 60
-		delay_min := limit_min/2 + rand.Intn(limit_min/2)
+	listenForNs := listenTimeout.Nanoseconds()
+	if listenForNs > 0 {
+		delayNs := listenForNs/2 + rand.Int63n(listenForNs/2)
 
 		// VMs will be periodically killed to prevent any owned VMs from causing
-		// damage. We want to shutdown cleanly before then so we don't cause
-		// requests to fail.
-		go waitForShutdown(time.Minute * time.Duration(delay_min))
+		// damage. We want to exit cleanly before then so we don't cause requests
+		// to fail. When compilerd exits, a watchdog will shut the machine down
+		// after a short delay.
+		go waitForExit(time.Nanosecond * time.Duration(delayNs))
 	}
 
 	if err := initDBHandles(); err != nil {
 		log.Fatal(err)
 	}
 
-	http.HandleFunc("/healthz", healthz)
 	http.HandleFunc("/compile", handlerCompile)
 	http.HandleFunc("/load", handlerLoad)
 	http.HandleFunc("/save", handlerSave)
+	http.HandleFunc("/healthz", healthz)
 
 	log.Printf("Serving %s\n", *address)
 	http.ListenAndServe(*address, nil)
 }
 
-func waitForShutdown(limit time.Duration) {
-	var beforeExit func() error
-
-	// Shutdown if we get a SIGTERM.
+func waitForExit(limit time.Duration) {
+	// Exit if we get a SIGTERM.
 	term := make(chan os.Signal, 1)
 	signal.Notify(term, syscall.SIGTERM)
 
 	// Or if the time limit expires.
 	deadline := time.After(limit)
-	log.Println("Shutting down at", time.Now().Add(limit))
+	log.Println("Exiting at", time.Now().Add(limit))
 Loop:
 	for {
 		select {
 		case <-deadline:
-			// Shutdown the VM.
-			log.Println("Deadline expired, shutting down.")
-			beforeExit = exec.Command("sudo", "halt").Run
+			log.Println("Deadline expired, exiting in", exitDelay)
 			break Loop
 		case <-term:
-			log.Println("Got SIGTERM, shutting down.")
-			// VM is probably already shutting down, so just exit.
+			log.Println("Got SIGTERM, exiting in", exitDelay)
 			break Loop
 		}
 	}
@@ -121,15 +121,8 @@ Loop:
 	close(lameduck)
 
 	// Give running requests time to finish.
-	time.Sleep(30 * time.Second)
+	time.Sleep(exitDelay)
 
-	// Go ahead and shutdown.
-	if beforeExit != nil {
-		err := beforeExit()
-		if err != nil {
-			panic(err)
-		}
-	}
 	os.Exit(0)
 }
 
