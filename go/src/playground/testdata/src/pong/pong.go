@@ -7,6 +7,7 @@ import (
 
 	"v.io/v23"
 	"v.io/v23/ipc"
+	"v.io/v23/security"
 	"v.io/x/lib/vlog"
 	"v.io/x/ref/lib/signals"
 	_ "v.io/x/ref/profiles"
@@ -17,7 +18,7 @@ import (
 type pongd struct{}
 
 func (f *pongd) Ping(call ipc.ServerCall, message string) (result string, err error) {
-	remote, _ := call.RemoteBlessings().ForCall(call)
+	remote, _ := security.BlessingNames(call, security.CallSideRemote)
 	fmt.Printf("%v: %q\n", remote, message)
 	return "PONG", nil
 }
