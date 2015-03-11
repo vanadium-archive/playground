@@ -142,12 +142,20 @@ Playground.prototype.setUrlForId_ = function(id) {
 Playground.prototype.getBackendUrl_ = function() {
   var pgaddr = this.url_.query.pgaddr;
   if (pgaddr) {
-    console.log('Using pgaddr', pgaddr);
-  } else {
-    // TODO(ivanpi): Change to detect staging/production. Restrict pgaddr.
-    pgaddr = 'https://staging.v.io/playground';
+    if (window.location.hostname === 'localhost') {
+      console.log('Using pgaddr', pgaddr);
+      return pgaddr;
+    } else {
+      console.error('pgaddr disabled on non-localhost clients');
+      pgaddr = '';
+    }
   }
-  return pgaddr;
+  // TODO(ivanpi): Enable HTTPS and remove port when proxy is set up.
+  var origin = 'http://' + window.location.hostname + ':8181';
+  //var origin = window.location.protocol + '//' + window.location.host;
+  var defaddr = origin.replace('playground', 'pgapi');
+  console.log('Using default backend', defaddr);
+  return defaddr;
 };
 
 // Shows notification, green if success is set, red otherwise.
