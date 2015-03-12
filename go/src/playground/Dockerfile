@@ -20,7 +20,7 @@ ENV VDLPATH $GOPATH
 # fresh Vanadium code, you must pass "--no-cache" to the docker build command.
 # See README.md.
 ADD deploy/netrc /root/.netrc
-RUN curl -u vanadium:D6HT]P,LrJ7e https://dev.v.io/noproxy/vanadium-setup.sh | bash
+RUN curl -u vanadium:D6HT]P,LrJ7e https://dev.v.io/noproxy/bootstrap-vanadium.sh | bash
 RUN rm /root/.netrc
 ADD deploy/hgrc /root/.hgrc
 RUN $VANADIUM_ROOT/bin/v23 profile setup web
