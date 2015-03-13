@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"v.io/x/ref/lib/testutil/v23tests"
 	_ "v.io/x/ref/profiles"
+	"v.io/x/ref/test/v23tests"
 )
 
 //go:generate v23 test generate
