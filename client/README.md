@@ -31,6 +31,9 @@ Alternatively, build and start the server in one command with:
 
     make start
 
+The client running on localhost needs to have the backend address configured via the
+`pgaddr=` query parameter.
+
 As of dec-2014, the playground doc is [here][playground-doc].
 
 # Deploy

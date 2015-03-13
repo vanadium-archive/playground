@@ -150,10 +150,8 @@ Playground.prototype.getBackendUrl_ = function() {
       pgaddr = '';
     }
   }
-  // TODO(ivanpi): Enable HTTPS and remove port when proxy is set up.
-  var origin = 'http://' + window.location.hostname + ':8181';
-  //var origin = window.location.protocol + '//' + window.location.host;
-  var defaddr = origin.replace('playground', 'pgapi');
+  var origin = window.location.protocol + '//' + window.location.host;
+  var defaddr = origin + '/api';
   console.log('Using default backend', defaddr);
   return defaddr;
 };

@@ -64,7 +64,8 @@ Or, run it without Docker (for faster iterations during development):
 The server should now be running at http://localhost:8181 and responding to
 compile requests at http://localhost:8181/compile.
 
-Add `?pgaddr=//localhost:8181` to any playground page to make the client talk
-to your server. Add `?debug=1` to see debug info from the builder.
+Add `?pgaddr=http://localhost:8181` to any playground page on localhost to
+make the client talk to your server. Add `?debug=1` to see debug info from
+the builder.
 
 TODO: storage
