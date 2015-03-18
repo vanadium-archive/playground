@@ -8,7 +8,7 @@ import (
 	"math/rand"
 
 	"v.io/v23"
-	"v.io/v23/ipc"
+	"v.io/v23/rpc"
 	"v.io/x/lib/vlog"
 	"v.io/x/ref/lib/signals"
 	_ "v.io/x/ref/profiles"
@@ -39,13 +39,13 @@ func newFortuned() *fortuned {
 }
 
 // Methods that get called by RPC requests.
-func (f *fortuned) GetRandomFortune(_ ipc.ServerCall) (Fortune string, err error) {
+func (f *fortuned) GetRandomFortune(rpc.ServerCall) (Fortune string, err error) {
 	Fortune = f.fortunes[f.random.Intn(len(f.fortunes))]
 	fmt.Printf("Serving: %s\n", Fortune)
 	return Fortune, nil
 }
 
-func (f *fortuned) AddNewFortune(_ ipc.ServerCall, Fortune string) error {
+func (f *fortuned) AddNewFortune(_ rpc.ServerCall, Fortune string) error {
 	fmt.Printf("Adding: %s\n", Fortune)
 	f.fortunes = append(f.fortunes, Fortune)
 	return nil
