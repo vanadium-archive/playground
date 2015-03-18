@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"net/http"
@@ -160,16 +161,17 @@ func checkGetMethod(w http.ResponseWriter, r *http.Request) bool {
 	return true
 }
 
-// Checks if the POST method was used and returns the request body.
+// Checks if the POST method was used and returns the first limit bytes of the
+// request body.
 // Returns nil iff response processing should not continue.
-func getPostBody(w http.ResponseWriter, r *http.Request) []byte {
+func getPostBody(w http.ResponseWriter, r *http.Request, limit int) []byte {
 	if r.Body == nil || r.Method != "POST" {
 		w.WriteHeader(http.StatusBadRequest)
 		return nil
 	}
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(r.Body)
+	buf.ReadFrom(io.LimitReader(r.Body, int64(limit)))
 	return buf.Bytes()
 }
 
