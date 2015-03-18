@@ -5,16 +5,16 @@ var superagent = require('superagent');
 var Playground = require('./playground');
 
 _.forEach(document.querySelectorAll('.playground'), function(el) {
-  var srcdir = el.getAttribute('data-srcdir');
-  console.log('Creating playground', srcdir);
+  var src = el.getAttribute('data-src');
+  console.log('Creating playground', src);
 
-  fetchBundle(srcdir, function(err, bundle) {
+  fetchBundle(src, function(err, bundle) {
     if (err) {
       el.innerHTML = '<div class="error"><p>Playground error.' +
-        '<br>Bundle not found: <strong>' + srcdir + '</strong></p></div>';
+        '<br>Bundle not found: <strong>' + src + '</strong></p></div>';
       return;
     }
-    new Playground(el, srcdir, bundle);  // jshint ignore:line
+    new Playground(el, src, bundle);  // jshint ignore:line
   });
 });
 
@@ -22,7 +22,7 @@ function fetchBundle(loc, cb) {
   var basePath = '/bundles';
   console.log('Fetching bundle', loc);
   superagent
-    .get(path.join(basePath, loc, 'bundle.json'))
+    .get(path.join(basePath, loc))
     .accept('json')
     .end(function(err, res) {
       if (err) {

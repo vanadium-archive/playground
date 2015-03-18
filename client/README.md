@@ -3,7 +3,7 @@
 Source code for the Vanadium playground web client.
 
 * `build` - Temporary directory used for building the client.
-* `bundles` - Default playground examples. Organized as `bundles/<group>/<example>/`.
+* `bundles` - Default playground examples. Each combination of directory and `.bundle` file forms a bundle.
 * _Makefile_ - Targets for building the client (browserifying Javascript, etc.)
 * `node_modules` - Disposable directory created by `npm install` - dependency modules.
 * _package.json_ - Used by `npm install` to grab playground dependencies.

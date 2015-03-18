@@ -1,0 +1,3 @@
+*.vdl
+client/**/*.go
+server/**/*.js

@@ -39,13 +39,13 @@ func newFortuned() *fortuned {
 }
 
 // Methods that get called by RPC requests.
-func (f *fortuned) Get(_ ipc.ServerCall) (Fortune string, err error) {
+func (f *fortuned) GetRandomFortune(_ ipc.ServerCall) (Fortune string, err error) {
 	Fortune = f.fortunes[f.random.Intn(len(f.fortunes))]
 	fmt.Printf("Serving: %s\n", Fortune)
 	return Fortune, nil
 }
 
-func (f *fortuned) Add(_ ipc.ServerCall, Fortune string) error {
+func (f *fortuned) AddNewFortune(_ ipc.ServerCall, Fortune string) error {
 	fmt.Printf("Adding: %s\n", Fortune)
 	f.fortunes = append(f.fortunes, Fortune)
 	return nil
@@ -74,8 +74,8 @@ func main() {
 	}
 
 	// Start the fortune server at "fortune".
-	if err := server.Serve("fortune", fortuneServer, vflag.NewAuthorizerOrDie()); err == nil {
-		fmt.Printf("Fortune server serving under: fortune\n")
+	if err := server.Serve("bakery/cookie/fortune", fortuneServer, vflag.NewAuthorizerOrDie()); err == nil {
+		fmt.Printf("Fortune server serving under: bakery/cookie/fortune\n")
 	} else {
 		vlog.Panic("error serving fortune server: ", err)
 	}

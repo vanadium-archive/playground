@@ -4,7 +4,7 @@
 # If any new examples are added, they should be appended to $EXAMPLES below.
 
 # To debug playground compile errors you can build examples locally, e.g.:
-# $ cd bundles/fortune/ex0_go/src
+# $ cd bundles/fortune/src
 # $ GOPATH=$(dirname $(pwd)) VDLPATH=$(dirname $(pwd)) v23 go install ./...
 
 # v.io/core/shell/lib/shell_test.sh sourced via playground/lib/pg_test_util.sh
@@ -22,15 +22,18 @@ main() {
 
   local -r PG_BUNDLES_DIR="${PLAYGROUND_ROOT}/client/bundles"
 
-  local -r EXAMPLES="fortune/ex0_go fortune/ex0_js"
+  local -r EXAMPLES="fortune"
 
-  for e in $EXAMPLES; do
-    local d="${PG_BUNDLES_DIR}/${e}"
-    echo -e "\n\n>>>>> Test ${d}\n\n"
-    test_pg_example "${d}" "-v=true --runTimeout=5s" || shell_test::fail "${d}: failed to run"
-    # TODO(sadovsky): Make this "clean exit" check more robust.
-    grep -q "\"Exited cleanly.\"" builder.out || shell_test::fail "${d}: did not exit cleanly"
-    rm -f builder.out
+  for e in ${EXAMPLES}; do
+    for p in "${PG_BUNDLES_DIR}"/*.bundle; do
+      local d="${PG_BUNDLES_DIR}/${e}"
+      local description="${e} with $(basename ${p})"
+      echo -e "\n\n>>>>> Test ${description}\n\n"
+      test_pg_example "${d}" "${p}" "-v=true --runTimeout=5s" || shell_test::fail "${description}: failed to run"
+      # TODO(sadovsky): Make this "clean exit" check more robust.
+      grep -q "\"Exited cleanly.\"" builder.out || shell_test::fail "${description}: did not exit cleanly"
+      rm -f builder.out
+    done
   done
 
   shell_test::pass

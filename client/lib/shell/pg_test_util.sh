@@ -55,19 +55,25 @@ build_go_binaries() {
 
 # Bundles a playground example and tests it using builder.
 # $1: root directory of example to test
-# $2: arguments to call builder with
+# $2: glob file with file patterns to bundle from $1
+# $3: arguments to call builder with
 test_pg_example() {
   local -r PGBUNDLE_DIR="$1"
-  local -r BUILDER_ARGS="$2"
+  local -r PATTERN_FILE="$2"
+  local -r BUILDER_ARGS="$3"
 
-  ./node_modules/.bin/pgbundle "${PGBUNDLE_DIR}"
+  # Create a fresh dir to save the bundle and run builder in.
+  local -r TEMP_DIR=$(shell::tmp_dir)
 
-  # Create a fresh dir to run builder in.
+  ./node_modules/.bin/pgbundle --verbose "${PATTERN_FILE}" "${PGBUNDLE_DIR}" > "${TEMP_DIR}/test.json" || return
+
   local -r ORIG_DIR=$(pwd)
-  pushd $(shell::tmp_dir)
+  pushd "${TEMP_DIR}"
+
   ln -s "${ORIG_DIR}/node_modules" ./  # for release/javascript/core
-  "${shell_test_BIN_DIR}/builder" ${BUILDER_ARGS} < "${PGBUNDLE_DIR}/bundle.json" 2>&1 | tee builder.out
+  "${shell_test_BIN_DIR}/builder" ${BUILDER_ARGS} < "test.json" 2>&1 | tee builder.out
   # Move builder output to original dir for verification.
   mv builder.out "${ORIG_DIR}"
+
   popd
 }

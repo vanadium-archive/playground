@@ -20,7 +20,7 @@ func main() {
 
 	// Create a new stub that binds to address without
 	// using the name service.
-	stub := fortune.FortuneClient("fortune")
+	stub := fortune.FortuneClient("bakery/cookie/fortune")
 
 	// Issue a Get() RPC.
 	// We do this in a loop to give the server time to start up.
@@ -28,7 +28,7 @@ func main() {
 	var fortune string
 	for {
 		var err error
-		if fortune, err = stub.Get(ctx); err == nil {
+		if fortune, err = stub.GetRandomFortune(ctx); err == nil {
 			break
 		}
 		fmt.Printf("%v\nRetrying in 100ms...\n", err)

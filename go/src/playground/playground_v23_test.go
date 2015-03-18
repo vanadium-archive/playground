@@ -1,8 +1,11 @@
 package playground_test
 
 import (
+	"bytes"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	_ "v.io/x/ref/profiles"
 	"v.io/x/ref/test/v23tests"
@@ -36,21 +39,19 @@ func npmLink(i *v23tests.T, dir, pkg string) {
 
 // Bundles a playground example and tests it using builder.
 // - dir is the root directory of example to test
+// - globFile is the path to the glob file with file patterns to use from dir
 // - args are the arguments to call builder with
-func runPGExample(i *v23tests.T, dir string, args ...string) *v23tests.Invocation {
-	i.Run("./node_modules/.bin/pgbundle", dir)
+func runPGExample(i *v23tests.T, globFile, dir string, args ...string) *v23tests.Invocation {
+	bundle := i.Run("./node_modules/.bin/pgbundle", "--verbose", globFile, dir)
+
 	tmp := i.NewTempDir()
 	cwd := i.Pushd(tmp)
+	defer i.Popd()
 	old := filepath.Join(cwd, "node_modules")
 	if err := os.Symlink(old, filepath.Join(".", filepath.Base(old))); err != nil {
 		i.Fatalf("%s: symlink: failed: %v", i.Caller(2), err)
 	}
-	bundleName := filepath.Join(dir, "bundle.json")
 
-	stdin, err := os.Open(bundleName)
-	if err != nil {
-		i.Fatalf("%s: open(%s) failed: %v", i.Caller(2), bundleName, err)
-	}
 	// TODO(ivanpi): move this out so it only gets invoked once even though
 	// the binary is cached.
 	builderBin := i.BuildGoPkg("playground/builder")
@@ -59,22 +60,18 @@ func runPGExample(i *v23tests.T, dir string, args ...string) *v23tests.Invocatio
 	if path := os.Getenv("PATH"); len(path) > 0 {
 		PATH += ":" + path
 	}
-	defer i.Popd()
+	stdin := bytes.NewBufferString(bundle)
 	return builderBin.WithEnv(PATH).WithStdin(stdin).Start(args...)
 }
 
-// Sets up a directory with the given files, then runs builder.
+// Sets up a glob file with the given files, then runs builder.
 func testWithFiles(i *v23tests.T, pgRoot string, files ...string) *v23tests.Invocation {
 	testdataDir := filepath.Join(pgRoot, "testdata")
-	pgBundleDir := i.NewTempDir()
-	for _, f := range files {
-		fdir := filepath.Join(pgBundleDir, filepath.Dir(f))
-		if err := os.MkdirAll(fdir, 0755); err != nil {
-			i.Fatalf("%s: mkdir(%q): failed: %v", i.Caller(1), fdir, err)
-		}
-		i.Run("/bin/cp", filepath.Join(testdataDir, f), fdir)
+	globFile := filepath.Join(i.NewTempDir(), "test.bundle")
+	if err := ioutil.WriteFile(globFile, []byte(strings.Join(files, "\n")+"\n"), 0644); err != nil {
+		i.Fatalf("%s: write(%q): failed: %v", i.Caller(1), globFile, err)
 	}
-	return runPGExample(i, pgBundleDir, "-v=true", "--includeV23Env=true", "--runTimeout=5s")
+	return runPGExample(i, globFile, testdataDir, "-v=true", "--includeV23Env=true", "--runTimeout=5s")
 }
 
 func V23TestPlayground(i *v23tests.T) {

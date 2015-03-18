@@ -31,18 +31,29 @@ build/playground.js: src/javascript/index.js $(js_files) node_modules
 	mkdir -p $(@D)
 	browserify -d $< -p [ minifyify --map $(@F).map --output $@.map ] -o $@
 
-# All paths of the form bundles/<project>/<example>.
-example_code_bundle_dirs := $(shell find bundles -maxdepth 2 -mindepth 2)
-example_code_files := $(shell find bundles -mindepth 2)
+# Each profile (glob file with file patterns to include) from
+# `bundles/<profile>.bundle` is applied to each example folder of the
+# form `bundles/<example>/`.
+example_profiles := $(shell find bundles -maxdepth 1 -name "*.bundle")
+example_code_bundle_dirs := $(shell find bundles -maxdepth 1 -mindepth 1 -type d)
+example_files := $(shell find bundles -mindepth 1)
+bundle_temp_file := build/bundle.json
 
-# Builds the playground bundles for the examples.
+# Builds the playground bundles for each folder and profile combination.
 # This is an empty target.
 # See http://www.gnu.org/software/make/manual/html_node/Empty-Targets.html
-# This task depends on example_code_files because we want to re-bundle if any of
-# those change. However, the bundle tool works on directories, so we pass in
-# example_code_bundle_dirs as the argument.
-src/example_bundles: $(example_code_files) node_modules
-	pgbundle $(example_code_bundle_dirs)
+# This task depends on example_profiles and example_files because we want
+# to re-bundle if any of those change. However, the bundle tool works on
+# directories, so we pass in example_code_bundle_dirs as the path argument.
+src/example_bundles: $(example_profiles) $(example_files) node_modules
+	mkdir -p $(dir $(bundle_temp_file))
+	@for profile in $(example_profiles); do \
+			echo "Bundling with profile \"$${profile}\""; \
+				for folder in $(example_code_bundle_dirs); do \
+				pgbundle --verbose "$${profile}" "$${folder}" > $(bundle_temp_file); \
+				mv -f $(bundle_temp_file) "$${folder}/bundle_$$(basename $${profile} .bundle).json"; \
+			done; \
+		done
 	touch $@
 
 node_modules: package.json
@@ -70,7 +81,7 @@ clean:
 distclean: clean
 	@npm cache clean
 	@$(RM) -rf src/example_bundles
-	@$(RM) -rf $(shell find bundles -name "bundle.json")
+	@$(RM) -rf $(shell find bundles -name "bundle_*.json")
 
 .PHONY: lint
 lint:

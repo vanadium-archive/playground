@@ -6,19 +6,15 @@
 # (shell_test.sh has side effects, should not be sourced again)
 source "$(go list -f {{.Dir}} playground)/../../../client/lib/shell/pg_test_util.sh"
 
-# Sets up a directory with the given files, then runs builder.
+# Sets up a glob file with the given files, then runs builder.
 test_with_files() {
   local -r TESTDATA_DIR="$(go list -f {{.Dir}} playground)/testdata"
 
-  # Write input files to a fresh dir before bundling and running them.
-  local -r PGBUNDLE_DIR=$(shell::tmp_dir)
-  for f in $@; do
-    fdir="${PGBUNDLE_DIR}/$(dirname ${f})"
-    mkdir -p "${fdir}"
-    cp "${TESTDATA_DIR}/${f}" "${fdir}/"
-  done
+  # Write input file paths to the glob file.
+  local -r CONFIG_FILE="$(shell::tmp_dir)/test.bundle"
+  echo "$*" | tr ' ' '\n' > "${CONFIG_FILE}"
 
-  test_pg_example "${PGBUNDLE_DIR}" "-v=true --includeV23Env=true --runTimeout=5s"
+  test_pg_example "${TESTDATA_DIR}" "${CONFIG_FILE}" "-v=true --includeV23Env=true --runTimeout=5s"
 }
 
 main() {

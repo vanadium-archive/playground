@@ -3,15 +3,19 @@ var fs = require('fs');
 var glob = require('glob');
 var path = require('path');
 
-// Filename to write the data to.
-var BUNDLE_NAME = 'bundle.json';
-
 module.exports = {run: run};
 
-// TODO(nlacasse): Improve this.
 function usage() {
-  console.log('Usage: pgbundle [options] <path> [<path> <path> ...]');
-  console.log('Options: --verbose: Enable verbose output.');
+  console.error('Usage: pgbundle [options] <glob_file> <root_path>');
+  console.error('Arguments: <glob_file>: Path to file containing a list of' +
+    ' glob patterns, one per line. The bundle includes only files with path' +
+    ' suffixes matching one of the globs. Each glob must match at least one' +
+    ' file, otherwise bundling fails with a non-zero exit code.');
+  console.error('           <root_path>: Path to directory where files' +
+    ' matching glob patterns are taken from.');
+  console.error('Options: --verbose: Enable verbose output.');
+  console.error('         --empty: Omit file contents in bundle, include only' +
+    ' paths and metadata.');
   process.exit(1);
 }
 
@@ -47,87 +51,80 @@ function getIndex(lines) {
   };
 }
 
-function shouldIgnore(fileName) {
-  // Ignore directories.
-  if (_.last(fileName) === '/') {
-    return true;
-  }
-  // Ignore bundle files.
-  if (fileName === BUNDLE_NAME) {
-    return true;
-  }
-  // Ignore generated .vdl.go and .vdl.js files.
-  if ((/\.vdl\.(go|js)$/i).test(fileName)) {
-    return true;
-  }
-  // Ignore files inside "bin" and "pkg" directories.
-  if (fileName.indexOf('bin/') === 0 ||
-      fileName.indexOf('pkg/') === 0) {
-    return true;
-  }
-  return false;
-}
-
 // Main function.
 function run() {
-  // Get the paths from process.argv.
-  var argv = require('minimist')(process.argv.slice(2));
-  var dirs = argv._;
+  // Get the flags and positional arguments from process.argv.
+  var argv = require('minimist')(process.argv.slice(2), {
+    boolean: ['verbose', 'empty']
+  });
 
-  // Make sure there is at least one path.
-  if (!dirs || dirs.length === 0) {
+  // Make sure the glob file and the root path path are specified.
+  if (!argv._ || argv._.length !== 2) {
     return usage();
   }
 
-  // Loop over each path.
-  _.each(dirs, function(dir) {
-    var relpaths = glob.sync('**', {
+  var globFile = argv._[0];
+  var dir = argv._[1];
+  // Read glob file, filtering out empty lines.
+  var patterns = _.filter(
+    fs.readFileSync(globFile, {encoding: 'utf8'}).split('\n'));
+  // The root path must be a directory.
+  if (!fs.lstatSync(dir).isDirectory()) {
+    return usage();
+  }
+
+  var unmatched = [];
+
+  // Apply each glob pattern to the directory.
+  var relpaths = _.flatten(_.map(patterns, function(pattern) {
+    var match = glob.sync('**/' + pattern, {
       cwd: dir,
-      mark: true  // Add a '/' char to directory matches.
+      nodir: true
     });
-
-    if (relpaths.length === 0) {
-      return usage();
+    if (match.length === 0) {
+      unmatched.push(pattern);
     }
+    return match;
+  }));
 
-    var out = {files: []};
+  // If any pattern matched zero files, halt with a non-zero exit code.
+  // TODO(ivanpi): Allow optional patterns, e.g. prefixed by '?'?
+  if (unmatched.length > 0) {
+    console.warn('Error bundling "%s": unmatched patterns %j', dir, unmatched);
+    process.exit(2);
+  }
 
-    // Loop over each file.
-    _.each(relpaths, function(relpath) {
-      if (shouldIgnore(relpath)) {
-        return;
-      }
+  var out = {files: []};
 
-      var abspath = path.resolve(dir, relpath);
-      var text = fs.readFileSync(abspath, {encoding: 'utf8'});
+  // Loop over each file.
+  _.each(relpaths, function(relpath) {
+    var abspath = path.resolve(dir, relpath);
+    var lines = fs.readFileSync(abspath, {encoding: 'utf8'}).split('\n');
 
-      var lines = text.split('\n');
-      lines = stripBuildIgnore(lines);
-      lines = stripLeadingBlankLines(lines);
-      var indexAndLines = getIndex(lines);
-      var index = indexAndLines.index;
-      lines = indexAndLines.lines;
+    lines = stripBuildIgnore(lines);
+    lines = stripLeadingBlankLines(lines);
+    var indexAndLines = getIndex(lines);
+    var index = indexAndLines.index;
+    lines = indexAndLines.lines;
 
-      out.files.push({
-        name: relpath,
-        body: lines.join('\n'),
-        index: index
-      });
+    out.files.push({
+      name: relpath,
+      body: argv.empty ? '' : lines.join('\n'),
+      index: index
     });
-
-    out.files = _.sortBy(out.files, 'index');
-
-    // Drop the index fields -- we don't need them anymore.
-    out.files = _.map(out.files, function(f) {
-      return _.omit(f, 'index');
-    });
-
-    // Write the bundle.json.
-    var outFile = path.resolve(dir, BUNDLE_NAME);
-    fs.writeFileSync(outFile, JSON.stringify(out));
-
-    if (argv.verbose) {
-      console.log('Wrote ' + outFile);
-    }
   });
+
+  out.files = _.sortBy(out.files, 'index');
+
+  // Drop the index fields -- we don't need them anymore.
+  out.files = _.map(out.files, function(f) {
+    return _.omit(f, 'index');
+  });
+
+  // Write the bundle to stdout.
+  process.stdout.write(JSON.stringify(out) + '\n');
+
+  if (argv.verbose) {
+    console.warn('Bundled "%s" using "%s"', dir, globFile);
+  }
 }
