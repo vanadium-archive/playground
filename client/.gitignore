@@ -1,8 +1,7 @@
 bundles/*/*/bin
 bundles/*/*/pkg
-src/example_bundles
+public/bundles
+bundle.*
 bundle_*.json
 node_modules
 npm-debug.log
-build
-public
