@@ -13,7 +13,7 @@ port ?= 8088
 
 .DELETE_ON_ERROR:
 
-all: public/bundle.js public/bundle.css
+all: public/bundles public/bundle.js public/bundle.css
 	@true  # silences `watch make`
 
 .PHONY: deploy-staging
