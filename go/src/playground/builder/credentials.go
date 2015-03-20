@@ -8,8 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-
-	"v.io/x/ref/lib/flags/consts"
 )
 
 type credentials struct {
@@ -18,6 +16,14 @@ type credentials struct {
 	Duration string
 	Files    []string
 }
+
+const (
+	credentialsDir     = "credentials" // Parent directory of all created credentials.
+	identityProvider   = "playground"  // Blessing name of the "identity provider" that blesses all other principals
+	defaultCredentials = "default"     // What codeFile.credentials defaults to if empty
+)
+
+var reservedCredentials = []string{identityProvider, "mounttabled", "proxyd", defaultCredentials}
 
 func (c credentials) create() error {
 	if err := c.init(); err != nil {
@@ -33,7 +39,7 @@ func (c credentials) create() error {
 }
 
 func (c credentials) init() error {
-	dir := path.Join("credentials", c.Name)
+	dir := path.Join(credentialsDir, c.Name)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		return c.toolCmd("", "create", dir, c.Name).Run()
 	}
@@ -61,7 +67,7 @@ func (c credentials) getblessed() error {
 	if duration == "" {
 		duration = "1h"
 	}
-	if err := c.pipe(c.toolCmd(c.Blesser, "bless", "--for", duration, path.Join("credentials", c.Name), c.Name),
+	if err := c.pipe(c.toolCmd(c.Blesser, "bless", "--for", duration, path.Join(credentialsDir, c.Name), c.Name),
 		c.toolCmd(c.Name, "store", "setdefault", "-")); err != nil {
 		return err
 	}
@@ -85,11 +91,8 @@ func (c credentials) pipe(from, to *exec.Cmd) error {
 	return nil
 }
 
-func (c credentials) toolCmd(as string, args ...string) *exec.Cmd {
-	cmd := makeCmd("<principal>", false, "principal", args...)
-	if as != "" {
-		cmd.Env = append(cmd.Env, fmt.Sprintf("%v=%s", consts.VeyronCredentials, path.Join("credentials", as)))
-	}
+func (c credentials) toolCmd(credentials string, args ...string) *exec.Cmd {
+	cmd := makeCmd("<principal>", false, credentials, "principal", args...)
 	// Set Stdout to /dev/null so that output does not leak into the
 	// playground output. If the output is needed, it can be overridden by
 	// clients of this method.
@@ -105,4 +108,34 @@ func createCredentials(creds []credentials) error {
 		}
 	}
 	return nil
+}
+
+func baseCredentials() []credentials {
+	ret := []credentials{{Name: identityProvider}}
+	for _, name := range reservedCredentials {
+		if name != identityProvider {
+			ret = append(ret, credentials{Name: name, Blesser: identityProvider})
+		}
+	}
+	return ret
+}
+
+func rootCredentialsAtIdentityProvider(in []credentials) []credentials {
+	out := make([]credentials, len(in))
+	for idx, creds := range in {
+		if creds.Blesser == "" {
+			creds.Blesser = identityProvider
+		}
+		out[idx] = creds
+	}
+	return out
+}
+
+func isReservedCredential(name string) bool {
+	for _, c := range reservedCredentials {
+		if name == c {
+			return true
+		}
+	}
+	return false
 }

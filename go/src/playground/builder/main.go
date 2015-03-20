@@ -40,22 +40,15 @@ import (
 )
 
 var (
-	verbose = flag.Bool("v", true, "Whether to output debug messages.")
-
+	verbose              = flag.Bool("v", true, "Whether to output debug messages.")
 	includeServiceOutput = flag.Bool("includeServiceOutput", false, "Whether to stream service (mounttable, wspr, proxy) output to clients.")
-
-	includeV23Env = flag.Bool("includeV23Env", false, "Whether to log the output of \"v23 env\" before compilation.")
-
+	includeV23Env        = flag.Bool("includeV23Env", false, "Whether to log the output of \"v23 env\" before compilation.")
 	// TODO(ivanpi): Separate out mounttable, proxy, wspr timeouts. Add compile timeout. Revise default.
 	runTimeout = flag.Duration("runTimeout", 3*time.Second, "Time limit for running user code.")
 
-	// Sink for writing events (debug and run output) to stdout as JSON, one event per line.
-	out event.Sink
-
-	// Whether we have stopped execution of running files.
-	stopped = false
-
-	mu sync.Mutex
+	stopped = false    // Whether we have stopped execution of running files.
+	out     event.Sink // Sink for writing events (debug and run output) to stdout as JSON, one event per line.
+	mu      sync.Mutex
 )
 
 // Type of data sent to the builder on stdin.  Input should contain Files.  We
@@ -107,27 +100,41 @@ func panicOnError(err error) {
 
 func logV23Env() error {
 	if *includeV23Env {
-		return makeCmd("<environment>", false, "v23", "env").Run()
+		return makeCmd("<environment>", false, "", "v23", "env").Run()
 	}
 	return nil
 }
 
 // All .go and .vdl files must have paths at least two directories deep,
 // beginning with "src/".
-func parseRequest(in io.Reader) (r request, err error) {
+//
+// If no credentials are specified in the request, then all files will use the
+// same principal.
+func parseRequest(in io.Reader) (request, error) {
 	debug("Parsing input")
 	data, err := ioutil.ReadAll(in)
-	if err == nil {
-		err = json.Unmarshal(data, &r)
+	if err != nil {
+		return request{}, err
+	}
+	var r request
+	if err = json.Unmarshal(data, &r); err != nil {
+		return r, err
 	}
 	m := make(map[string]*codeFile)
 	for i := 0; i < len(r.Files); i++ {
 		f := r.Files[i]
 		f.index = i
 		if path.Ext(f.Name) == ".id" {
-			err = json.Unmarshal([]byte(f.Body), &r.Credentials)
-			if err != nil {
-				return
+			if len(r.Credentials) != 0 {
+				return r, fmt.Errorf("multiple .id files provided")
+			}
+			if err := json.Unmarshal([]byte(f.Body), &r.Credentials); err != nil {
+				return r, err
+			}
+			for _, c := range r.Credentials {
+				if isReservedCredential(c.Name) {
+					return r, fmt.Errorf("cannot use name %q, it is in the reserved set %v", c, reservedCredentials)
+				}
 			}
 			r.Files = append(r.Files[:i], r.Files[i+1:]...)
 			i--
@@ -156,25 +163,24 @@ func parseRequest(in io.Reader) (r request, err error) {
 		}
 	}
 	if len(r.Credentials) == 0 {
-		// Run everything with the same credentials if none are specified.
-		r.Credentials = append(r.Credentials, credentials{Name: "default"})
-		for _, f := range r.Files {
-			f.credentials = "default"
+		// Run everything as the same principal.
+		for _, file := range m {
+			file.credentials = defaultCredentials
 		}
-	} else {
-		for _, creds := range r.Credentials {
-			for _, basename := range creds.Files {
-				// Check that the file associated with the credentials exists.  We ignore
-				// cases where it doesn't because the test .id files get used for
-				// multiple different code files.  See testdata/ids/authorized.id, for
-				// example.
-				if m[basename] != nil {
-					m[basename].credentials = creds.Name
-				}
+		return r, nil
+	}
+	for _, creds := range r.Credentials {
+		for _, basename := range creds.Files {
+			// Check that the file associated with the credentials exists.  We ignore
+			// cases where it doesn't because the test .id files get used for
+			// multiple different code files.  See testdata/ids/authorized.id, for
+			// example.
+			if m[basename] != nil {
+				m[basename].credentials = creds.Name
 			}
 		}
 	}
-	return
+	return r, nil
 }
 
 func writeFiles(files []*codeFile) error {
@@ -218,7 +224,7 @@ func compileFiles(files []*codeFile) (badInput bool, cerr error) {
 	// itself.
 	if found["js"] && found["vdl"] {
 		debug("Generating VDL for Javascript")
-		err = makeCmd("<compile>", false,
+		err = makeCmd("<compile>", false, "",
 			"vdl", "generate", "-lang=Javascript", "-js_out_dir="+srcd, "./...").Run()
 		if _, ok := err.(*exec.ExitError); ok {
 			return true, nil
@@ -228,7 +234,7 @@ func compileFiles(files []*codeFile) (badInput bool, cerr error) {
 	}
 	if found["go"] {
 		debug("Generating VDL for Go and compiling Go")
-		err = makeCmd("<compile>", false,
+		err = makeCmd("<compile>", false, "",
 			"v23", "go", "install", "./...").Run()
 		if _, ok := err.(*exec.ExitError); ok {
 			return true, nil
@@ -321,15 +327,12 @@ func (f *codeFile) startJs() error {
 	f.subprocs = append(f.subprocs, wsprProc)
 	os.Setenv("WSPR", "http://localhost:"+strconv.Itoa(wsprPort))
 	node := filepath.Join(os.Getenv("VANADIUM_ROOT"), "environment", "cout", "node", "bin", "node")
-	f.cmd = makeCmd(f.Name, false, node, f.Name)
+	f.cmd = makeCmd(f.Name, false, "", node, f.Name)
 	return f.cmd.Start()
 }
 
 func (f *codeFile) startGo() error {
-	f.cmd = makeCmd(f.Name, false, filepath.Join("bin", f.binaryName))
-	if f.credentials != "" {
-		f.cmd.Env = append(f.cmd.Env, fmt.Sprintf("%v=%s", consts.VeyronCredentials, filepath.Join("credentials", f.credentials)))
-	}
+	f.cmd = makeCmd(f.Name, false, f.credentials, filepath.Join("bin", f.binaryName))
 	return f.cmd.Start()
 }
 
@@ -388,9 +391,12 @@ func (f *codeFile) stop() {
 // Creates a cmd whose outputs (stdout and stderr) are streamed to stdout as
 // Event objects. If you want to watch the output streams yourself, add your
 // own writer(s) to the MultiWriter before starting the command.
-func makeCmd(fileName string, isService bool, progName string, args ...string) *exec.Cmd {
+func makeCmd(fileName string, isService bool, credentials, progName string, args ...string) *exec.Cmd {
 	cmd := exec.Command(progName, args...)
 	cmd.Env = os.Environ()
+	if credentials != "" {
+		cmd.Env = append(cmd.Env, fmt.Sprintf("%v=%s", consts.VeyronCredentials, filepath.Join(credentialsDir, credentials)))
+	}
 	stdout, stderr := lib.NewMultiWriter(), lib.NewMultiWriter()
 	prefix := ""
 	if isService {
@@ -405,6 +411,10 @@ func makeCmd(fileName string, isService bool, progName string, args ...string) *
 }
 
 func main() {
+	// Remove any association with other credentials, start from a clean
+	// slate.
+	// TODO(ashankar): Should also unset agent.FdVarName?
+	os.Unsetenv(consts.VeyronCredentials)
 	flag.Parse()
 
 	// TODO(cnicolaou): remove this when the isse below is resolved:
@@ -416,7 +426,20 @@ func main() {
 	r, err := parseRequest(os.Stdin)
 	panicOnError(err)
 
-	panicOnError(createCredentials(r.Credentials))
+	// Create a common "identity provider" that will bless each principal
+	// in this test (including mounttable, proxy, etc. that will be
+	// started).
+	//
+	// TODO(ivanpi,ashankar): Credential management in this playground has
+	// become very unwieldy. As of March 2015, ashankar@ just what was
+	// expedient to get some other changes through, but what is left is
+	// certainly hacky. If the plan is to move all this process management
+	// to the "modules" framework, then we should be able to leverage that
+	// to manage and set credentials for each subprocess. If not, will have
+	// to think of something else, but in any case, should clean this up!
+	panicOnError(createCredentials(
+		append(baseCredentials(),
+			rootCredentialsAtIdentityProvider(r.Credentials)...)))
 
 	mt, err := startMount(*runTimeout)
 	panicOnError(err)

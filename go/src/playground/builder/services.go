@@ -10,7 +10,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path"
 	"regexp"
 	"strconv"
 	"time"
@@ -27,11 +26,15 @@ var (
 // TODO(ivanpi): this is all implemented in veyron/lib/modules/core, you
 // may be able to use that directly.
 
+func makeServiceCmd(progName string, args ...string) *exec.Cmd {
+	return makeCmd(fmt.Sprintf("<%v>", progName), true, progName, progName, args...)
+}
+
 // startMount starts a mounttabled process, and sets the NAMESPACE_ROOT env
 // variable to the mounttable's location.  We run one mounttabled process for
 // the entire environment.
 func startMount(timeLimit time.Duration) (proc *os.Process, err error) {
-	cmd := makeCmd("<mounttabled>", true, "mounttabled", "-veyron.tcp.address=127.0.0.1:0")
+	cmd := makeServiceCmd("mounttabled", "-veyron.tcp.address=127.0.0.1:0")
 	matches, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile("NAME=(.*)"))
 	if err != nil {
 		return nil, fmt.Errorf("Error starting mounttabled: %v", err)
@@ -46,7 +49,7 @@ func startMount(timeLimit time.Duration) (proc *os.Process, err error) {
 // startProxy starts a proxyd process.  We run one proxyd process for the
 // entire environment.
 func startProxy(timeLimit time.Duration) (proc *os.Process, err error) {
-	cmd := makeCmd("<proxyd>", true,
+	cmd := makeServiceCmd(
 		"proxyd",
 		"-log_dir=/tmp/logs",
 		"-name="+proxyName,
@@ -60,16 +63,13 @@ func startProxy(timeLimit time.Duration) (proc *os.Process, err error) {
 // startWspr starts a wsprd process. We run one wsprd process for each
 // javascript file being run.
 func startWspr(fileName, credentials string, timeLimit time.Duration) (proc *os.Process, port int, err error) {
-	cmd := makeCmd("<wsprd>:"+fileName, true,
+	cmd := makeCmd("<wsprd>:"+fileName, true, credentials,
 		"wsprd",
 		"-veyron.proxy="+proxyName,
 		"-veyron.tcp.address=127.0.0.1:0",
 		"-port=0",
 		// The identd server won't be used, so pass a fake name.
 		"-identd=/unused")
-	if credentials != "" {
-		cmd.Env = append(cmd.Env, fmt.Sprintf("%v=%s", consts.VeyronCredentials, path.Join("credentials", credentials)))
-	}
 	parts, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile(".*port: (.*)"))
 	if err != nil {
 		return nil, 0, fmt.Errorf("Error starting wspr: %v", err)
