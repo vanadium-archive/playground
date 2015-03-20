@@ -1,0 +1,7 @@
+{
+  "dataSourceName": "<username>:<password>@tcp(<ip_address>:3306)/<database>",
+  "tlsServerName": "<gce-project>:<instance>",
+  "rootCertPath": "path/server-ca.pem",
+  "clientCertPath": "path/client-cert.pem",
+  "clientKeyPath": "path/client-key.pem"
+}

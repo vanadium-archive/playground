@@ -1,0 +1,4 @@
+{
+  "dataSourceName": "<username>:<password>@tcp(localhost:3306)/<database>",
+  "tlsDisable": true
+}
