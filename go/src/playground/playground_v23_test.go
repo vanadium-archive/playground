@@ -14,7 +14,7 @@ import (
 //go:generate v23 test generate
 
 var (
-	vanadiumRoot, playgroundRoot string
+	vanadiumRoot, nodejsRoot, playgroundRoot string
 )
 
 func init() {
@@ -22,6 +22,7 @@ func init() {
 	if len(vanadiumRoot) == 0 {
 		panic("VANADIUM_ROOT must be set")
 	}
+	nodejsRoot = filepath.Join(vanadiumRoot, "environment/cout/node/bin")
 }
 
 func golist(i *v23tests.T, pkg string) string {
@@ -29,12 +30,9 @@ func golist(i *v23tests.T, pkg string) string {
 	return i.Run(v23, "go", "list", "-f", "{{.Dir}}", pkg)
 }
 
-func npmLink(i *v23tests.T, dir, pkg string) {
-	npmBin := i.BinaryFromPath(filepath.Join(vanadiumRoot, "environment/cout/node/bin/npm"))
-	i.Pushd(dir)
-	npmBin.Run("link")
-	i.Popd()
-	npmBin.Run("link", pkg)
+func npmInstall(i *v23tests.T, dir string) {
+	npmBin := i.BinaryFromPath(filepath.Join(nodejsRoot, "npm"))
+	npmBin.Run("install", "--production", dir)
 }
 
 // Bundles a playground example and tests it using builder.
@@ -56,7 +54,7 @@ func runPGExample(i *v23tests.T, globFile, dir string, args ...string) *v23tests
 	// the binary is cached.
 	builderBin := i.BuildGoPkg("playground/builder")
 
-	PATH := "PATH=" + i.BinDir()
+	PATH := "PATH=" + i.BinDir() + ":" + nodejsRoot
 	if path := os.Getenv("PATH"); len(path) > 0 {
 		PATH += ":" + path
 	}
@@ -75,6 +73,9 @@ func testWithFiles(i *v23tests.T, pgRoot string, files ...string) *v23tests.Invo
 }
 
 func V23TestPlayground(i *v23tests.T) {
+	i.Pushd(i.NewTempDir())
+	defer i.Popd()
+
 	v23tests.RunRootMT(i, "--veyron.tcp.address=127.0.0.1:0")
 
 	i.BuildGoPkg("v.io/x/ref/cmd/principal")
@@ -89,8 +90,8 @@ func V23TestPlayground(i *v23tests.T) {
 	playgroundRoot = filepath.Dir(playgroundRoot)
 	playgroundRoot = filepath.Dir(playgroundRoot)
 
-	npmLink(i, filepath.Join(vanadiumRoot, "release/javascript/core"), "vanadium")
-	npmLink(i, filepath.Join(playgroundRoot, "pgbundle"), "pgbundle")
+	npmInstall(i, filepath.Join(vanadiumRoot, "release/javascript/core"))
+	npmInstall(i, filepath.Join(playgroundRoot, "pgbundle"))
 
 	cases := []struct {
 		name  string

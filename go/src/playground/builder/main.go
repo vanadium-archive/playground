@@ -326,8 +326,7 @@ func (f *codeFile) startJs() error {
 	}
 	f.subprocs = append(f.subprocs, wsprProc)
 	os.Setenv("WSPR", "http://localhost:"+strconv.Itoa(wsprPort))
-	node := filepath.Join(os.Getenv("VANADIUM_ROOT"), "environment", "cout", "node", "bin", "node")
-	f.cmd = makeCmd(f.Name, false, "", node, f.Name)
+	f.cmd = makeCmd(f.Name, false, "", "node", f.Name)
 	return f.cmd.Start()
 }
 

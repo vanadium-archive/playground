@@ -1,4 +1,3 @@
 deploy/netrc
-deploy/hgrc
 config/*.json
 !config/db-*-example.json

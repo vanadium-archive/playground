@@ -1,7 +1,7 @@
 PATH := bin:node_modules/.bin:$(PATH)
 PATH := $(PATH):$(VANADIUM_ROOT)/environment/cout/node/bin
 SHELL := /bin/bash -euo pipefail
-export GOPATH := $(realpath $(shell pwd)/../go):$(GOPATH)
+export GOPATH := $(VANADIUM_ROOT)/release/projects/playground/go:$(GOPATH)
 export VDLPATH := $(GOPATH)
 
 js_files := $(shell find browser -name "*.js")
@@ -13,6 +13,7 @@ port ?= 8088
 
 .DELETE_ON_ERROR:
 
+.PHONY: all
 all: public/bundles public/bundle.js public/bundle.css
 	@true  # silences `watch make`
 
@@ -41,7 +42,8 @@ bundle_temp_file := public/bundle.json.tmp
 # This task depends on example_profiles and example_files because we want
 # to re-bundle if any of those change. However, the bundle tool works on
 # directories, so we pass in example_code_bundle_dirs as the path argument.
-public/bundles: $(example_profiles) $(example_files) node_modules
+public/bundles: $(example_profiles) $(example_files) | node_modules
+	$(RM) -rf $@
 	mkdir -p $(dir $(bundle_temp_file))
 	@for profile in $(example_profiles); do \
 			echo "Bundling with profile \"$${profile}\""; \
@@ -50,13 +52,12 @@ public/bundles: $(example_profiles) $(example_files) node_modules
 				mv -f $(bundle_temp_file) "$${folder}/bundle_$$(basename $${profile} .bundle).json"; \
 			done; \
 		done
-	cp -r bundles/ $@
-	touch $@
+	cp -r bundles $(@D)
 
 node_modules: package.json
 	@npm prune
 	# Temporary workaround: install pgbundle directly from source.
-	@npm install ../pgbundle
+	@npm install $(VANADIUM_ROOT)/release/projects/playground/pgbundle
 	@npm install
 	@touch $@
 
@@ -66,7 +67,6 @@ start: all
 
 .PHONY: clean
 clean:
-	@$(RM) -rf public/bundles
 	@$(RM) -rf public/bundle.*
 	@$(RM) -rf node_modules
 	@$(RM) -rf npm-debug.log
@@ -74,6 +74,7 @@ clean:
 .PHONY: distclean
 distclean: clean
 	@npm cache clean
+	@$(RM) -rf public/bundles
 	@$(RM) -rf $(shell find bundles -name "bundle*.json")
 
 .PHONY: lint

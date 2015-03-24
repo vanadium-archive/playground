@@ -24,7 +24,6 @@ Start (or restart) the Docker daemon:
 Build the playground Docker image (this will take a while...):
 
     $ cp ~/.netrc $VANADIUM_ROOT/release/projects/playground/go/src/playground/deploy/netrc
-    $ cp ~/.hgrc $VANADIUM_ROOT/release/projects/playground/go/src/playground/deploy/hgrc
     $ docker build -t playground $VANADIUM_ROOT/release/projects/playground/go/src/playground/.
 
 Note: If you want to ensure an up-to-date version of Vanadium is installed in
@@ -44,7 +43,7 @@ uncomment marked lines before running the command.
 Test your image (without running compilerd):
 
     $ cd $VANADIUM_ROOT/release/projects/playground/client && make src/example_bundles
-    $ docker run -i playground < $VANADIUM_ROOT/release/projects/playground/client/bundles/fortune/ex0_go/bundle.json
+    $ docker run -i playground < $VANADIUM_ROOT/release/projects/playground/client/bundles/fortune/bundle_js_go.json
 
 ## Running the playground server (compilerd)
 

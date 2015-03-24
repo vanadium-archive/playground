@@ -28,19 +28,12 @@ setup_environment() {
 install_vanadium_js() {
   # TODO(nlacasse): Once release/javascript/core is publicly available in npm, replace this
   # with "npm install vanadium".
-
-  pushd "${VANADIUM_ROOT}/release/javascript/core"
-  npm link
-  popd
-  npm link vanadium
+  npm install --production "${VANADIUM_ROOT}/release/javascript/core"
 }
 
 # Installs the pgbundle tool.
 install_pgbundle() {
-  pushd "${PLAYGROUND_ROOT}/pgbundle"
-  npm link
-  popd
-  npm link pgbundle
+  npm install --production "${PLAYGROUND_ROOT}/pgbundle"
 }
 
 # Installs various go binaries.

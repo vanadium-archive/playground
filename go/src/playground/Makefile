@@ -1,6 +1,6 @@
 PATH := bin:node_modules/.bin:$(PATH)
 PATH := $(PATH):$(VANADIUM_ROOT)/environment/cout/node/bin
-PATH := $(PATH):$(VANADIUM_ROOT)/release/projects/playground/go/bin
+PATH := $(VANADIUM_ROOT)/release/projects/playground/go/bin:$(PATH)
 SHELL := /bin/bash -euo pipefail
 export GOPATH := $(VANADIUM_ROOT)/release/projects/playground/go:$(GOPATH)
 export VDLPATH := $(GOPATH)
@@ -14,8 +14,8 @@ port ?= 8181
 all:
 	v23 go install playground/...
 
-.PHONY: all
-start: config/db.json
+.PHONY: start
+start: config/db.json all
 	compilerd \
 		--sqlconf=$< \
 		--setupdb=true \
