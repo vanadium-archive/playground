@@ -1,4 +1,4 @@
-// index=1
+// pg-index=1
 var inherits = require('util').inherits;
 var vanadium = require('vanadium');
 

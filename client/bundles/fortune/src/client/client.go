@@ -1,6 +1,6 @@
 // +build ignore
 
-// index=2
+// pg-index=2
 package main
 
 import (

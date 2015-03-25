@@ -1,4 +1,4 @@
-// index=3
+// pg-index=3
 package fortune
 
 type Fortune interface {

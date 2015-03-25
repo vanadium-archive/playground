@@ -1,4 +1,4 @@
-// index=2
+// pg-index=2
 var vanadium = require('vanadium');
 
 /**

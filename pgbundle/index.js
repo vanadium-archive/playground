@@ -19,13 +19,35 @@ function usage() {
   process.exit(1);
 }
 
-// If the first line is "// +build ignore", strip the line and return the
-// remaining lines.
+// Strip the first encountered "// +build ignore" line in the file and return
+// the remaining lines.
 function stripBuildIgnore(lines) {
-  if (lines.length > 0 && _.trim(lines[0]) === '// +build ignore') {
-    return _.rest(lines);
-  }
-  return lines;
+  var found = false;
+  return _.filter(lines, function(line) {
+    if (!found && (_.trim(line) === '// +build ignore')) {
+      found = true;
+      return false;
+    }
+    return true;
+  });
+}
+
+// Strip the first encountered "// pg-index=<num>" line in the file and return
+// the index value and remaining lines.
+function getIndex(lines) {
+  var index = null;
+  lines = _.filter(lines, function(line) {
+    var match = _.trim(line).match(/^\/\/\s*pg-index=(\d+)/);
+    if (!index && match && match[1]) {
+      index = match[1];
+      return false;
+    }
+    return true;
+  });
+  return {
+    index: index ? Number(index) : Infinity,
+    lines: lines
+  };
 }
 
 // Strip all blank lines at the beginning of the file.
@@ -33,22 +55,6 @@ function stripLeadingBlankLines(lines) {
   var nb = 0;
   for (; nb < lines.length && _.trim(lines[nb]) === ''; ++nb) /* no-op */;
   return _.slice(lines, nb);
-}
-
-// If the first line is an index comment, strip the line and return the index
-// and remaining lines.
-function getIndex(lines) {
-  var index = null;
-  var match = lines.length > 0 &&
-              _.trim(lines[0]).match(/^\/\/\s*index=(\d+)/);
-  if (match && match[1]) {
-    index = match[1];
-    lines = _.rest(lines);
-  }
-  return {
-    index: index,
-    lines: lines
-  };
 }
 
 // Main function.
@@ -102,10 +108,10 @@ function run() {
     var lines = fs.readFileSync(abspath, {encoding: 'utf8'}).split('\n');
 
     lines = stripBuildIgnore(lines);
-    lines = stripLeadingBlankLines(lines);
     var indexAndLines = getIndex(lines);
     var index = indexAndLines.index;
     lines = indexAndLines.lines;
+    lines = stripLeadingBlankLines(lines);
 
     out.files.push({
       name: relpath,
