@@ -1,3 +1,7 @@
+// Copyright 2015 The Vanadium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 // Functions to start services needed by the Vanadium playground.
 // These should never trigger program exit.
 // TODO(ivanpi): Use the modules library to start the services instead.

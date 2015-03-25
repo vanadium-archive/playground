@@ -1,3 +1,7 @@
+// Copyright 2015 The Vanadium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 // Package lsql implements a utility wrapper around the database/sql library.
 //
 // It simplifies common operations on data entities. An entity type corresponds

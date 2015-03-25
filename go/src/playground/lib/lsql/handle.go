@@ -1,3 +1,7 @@
+// Copyright 2015 The Vanadium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 // lsql database connection wrapper providing prepared statement caching with
 // transaction support and simple CRUD operations over SqlData types.
 //
