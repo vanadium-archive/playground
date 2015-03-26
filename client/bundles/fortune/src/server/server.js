@@ -29,7 +29,7 @@ FortuneService.prototype.getRandomFortune = function(ctx) {
   var randomIndex = Math.floor(Math.random() * numExistingfortunes);
   var fortune = this.fortunes[randomIndex];
   console.info('Serving:', fortune);
-  return fortune;
+  return Promise.resolve(fortune);
 };
 
 // Adds a new fortune
@@ -39,6 +39,7 @@ FortuneService.prototype.addNewFortune = function(ctx, fortune) {
   }
   console.info('Adding:', fortune);
   this.fortunes.push(fortune);
+  return Promise.resolve();
 };
 
 /**

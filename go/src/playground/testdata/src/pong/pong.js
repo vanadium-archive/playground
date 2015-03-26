@@ -13,7 +13,7 @@ inherits(PingPongService, pingpong.PingPong);
 
 PingPongService.prototype.ping = function(ctx, message) {
   console.log('[' + ctx.remoteBlessingStrings + '] ' + message);
-  return 'PONG';
+  return Promise.resolve('PONG');
 };
 
 var pingPongService = new PingPongService();
