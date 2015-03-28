@@ -21,7 +21,7 @@ all: public/bundles public/bundle.js public/bundle.css
 deploy-staging: all
 	git rev-parse --verify HEAD > public/version
 	gcloud config set project vanadium-staging
-	gsutil -m rsync -d -r public gs://staging.playground.v.io
+	gsutil -m rsync -d -r public gs://playground.staging.v.io
 
 public/bundle.js: browser/index.js $(js_files) node_modules
 	browserify --debug $< 1> $@
