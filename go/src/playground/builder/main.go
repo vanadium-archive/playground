@@ -36,7 +36,7 @@ import (
 	"syscall"
 	"time"
 
-	"v.io/x/ref/lib/flags/consts"
+	"v.io/x/ref/envvar"
 
 	"playground/lib"
 	"playground/lib/event"
@@ -397,7 +397,7 @@ func makeCmd(fileName string, isService bool, credentials, progName string, args
 	cmd := exec.Command(progName, args...)
 	cmd.Env = os.Environ()
 	if credentials != "" {
-		cmd.Env = append(cmd.Env, fmt.Sprintf("%v=%s", consts.VeyronCredentials, filepath.Join(credentialsDir, credentials)))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("%v=%s", envvar.Credentials, filepath.Join(credentialsDir, credentials)))
 	}
 	stdout, stderr := lib.NewMultiWriter(), lib.NewMultiWriter()
 	prefix := ""
@@ -415,8 +415,7 @@ func makeCmd(fileName string, isService bool, credentials, progName string, args
 func main() {
 	// Remove any association with other credentials, start from a clean
 	// slate.
-	// TODO(ashankar): Should also unset agent.FdVarName?
-	os.Unsetenv(consts.VeyronCredentials)
+	envvar.ClearCredentials()
 	flag.Parse()
 
 	out = event.NewJsonSink(os.Stdout, !*verbose)

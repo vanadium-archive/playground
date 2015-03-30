@@ -18,7 +18,7 @@ import (
 	"strconv"
 	"time"
 
-	"v.io/x/ref/lib/flags/consts"
+	"v.io/x/ref/envvar"
 
 	"playground/lib"
 )
@@ -34,7 +34,7 @@ func makeServiceCmd(progName string, args ...string) *exec.Cmd {
 	return makeCmd(fmt.Sprintf("<%v>", progName), true, progName, progName, args...)
 }
 
-// startMount starts a mounttabled process, and sets the NAMESPACE_ROOT env
+// startMount starts a mounttabled process, and sets the V23_NAMESPACE env
 // variable to the mounttable's location.  We run one mounttabled process for
 // the entire environment.
 func startMount(timeLimit time.Duration) (proc *os.Process, err error) {
@@ -47,7 +47,7 @@ func startMount(timeLimit time.Duration) (proc *os.Process, err error) {
 	if endpoint == "" {
 		return nil, fmt.Errorf("Failed to get mounttable endpoint")
 	}
-	return cmd.Process, os.Setenv(consts.NamespaceRootPrefix, endpoint)
+	return cmd.Process, os.Setenv(envvar.NamespacePrefix, endpoint)
 }
 
 // startProxy starts a proxyd process.  We run one proxyd process for the

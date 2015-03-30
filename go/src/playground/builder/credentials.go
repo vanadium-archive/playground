@@ -65,7 +65,7 @@ func (c credentials) initWithDuration() error {
 }
 
 func (c credentials) getblessed() error {
-	// (1) VEYRON_CREDENTIALS=<c.Blesser> principal bless <c.Name> --for=<c.Duration> <c.Name> | VEYRON_CREDENTIALS=<c.Name> principal store setdefault -
+	// (1) V23_CREDENTIALS=<c.Blesser> principal bless <c.Name> --for=<c.Duration> <c.Name> | V23_CREDENTIALS=<c.Name> principal store setdefault -
 	// (2) principal store default | principal store set - ...
 	duration := c.Duration
 	if duration == "" {

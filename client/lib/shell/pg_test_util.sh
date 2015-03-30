@@ -21,7 +21,7 @@ setup_environment() {
 
   # We unset all environment variables that supply a principal in order to
   # simulate production playground setup.
-  unset VEYRON_CREDENTIALS
+  unset V23_CREDENTIALS
   unset VEYRON_AGENT_FD
 }
 
