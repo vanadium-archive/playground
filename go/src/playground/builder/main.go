@@ -36,7 +36,6 @@ import (
 	"syscall"
 	"time"
 
-	vexec "v.io/x/ref/lib/exec/consts"
 	"v.io/x/ref/lib/flags/consts"
 
 	"playground/lib"
@@ -419,10 +418,6 @@ func main() {
 	// TODO(ashankar): Should also unset agent.FdVarName?
 	os.Unsetenv(consts.VeyronCredentials)
 	flag.Parse()
-
-	// TODO(cnicolaou): remove this when the isse below is resolved:
-	// https://github.com/veyron/release-issues/issues/1157
-	os.Setenv(vexec.ExecVersionVariable, "")
 
 	out = event.NewJsonSink(os.Stdout, !*verbose)
 
