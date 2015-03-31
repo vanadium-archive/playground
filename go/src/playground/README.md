@@ -53,12 +53,12 @@ Install the playground binaries:
 
 Run the compiler binary:
 
-    $ $VANADIUM_ROOT/release/projects/playground/go/bin/compilerd --listenTimeout=0 --address=localhost:8181
+    $ $VANADIUM_ROOT/release/projects/playground/go/bin/compilerd --listen-timeout=0 --address=localhost:8181
 
 Or, run it without Docker (for faster iterations during development):
 
     $ cd $(mktemp -d "/tmp/XXXXXXXX")
-    $ PATH=$VANADIUM_ROOT/release/go/bin:$VANADIUM_ROOT/release/projects/playground/go/bin:$PATH compilerd --listenTimeout=0 --address=localhost:8181 --use-docker=false
+    $ PATH=$VANADIUM_ROOT/release/go/bin:$VANADIUM_ROOT/release/projects/playground/go/bin:$PATH compilerd --listen-timeout=0 --address=localhost:8181 --use-docker=false
 
 The server should now be running at http://localhost:8181 and responding to
 compile requests at http://localhost:8181/compile.

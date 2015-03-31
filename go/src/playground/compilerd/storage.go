@@ -203,11 +203,11 @@ func handlerSave(w http.ResponseWriter, r *http.Request) {
 	// Check method and read POST body.
 	// Limit is set to maxSize+1 to allow distinguishing between exactly maxSize
 	// and larger than maxSize requests.
-	requestBody := getPostBody(w, r, maxSize+1)
+	requestBody := getPostBody(w, r, *maxSize+1)
 	if requestBody == nil {
 		return
 	}
-	if len(requestBody) > maxSize {
+	if len(requestBody) > *maxSize {
 		storageError(w, http.StatusBadRequest, "Program too large.")
 		return
 	}

@@ -4,6 +4,9 @@
 
 // HTTP server for saving, loading, and executing playground examples.
 
+// TODO(nlacasse,ivanpi): The word "compile" is no longer appropriate for what
+// this server does. Rename to something better.
+
 package main
 
 import (
@@ -20,9 +23,16 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 	"time"
 )
+
+func init() {
+	if os.Getenv("GOMAXPROCS") == "" {
+		runtime.GOMAXPROCS(runtime.NumCPU())
+	}
+}
 
 var (
 	// This channel is closed when clean exit is triggered.
@@ -33,18 +43,19 @@ var (
 
 	// compilerd exits cleanly on SIGTERM or after a random amount of time,
 	// between listenTimeout/2 and listenTimeout.
-	listenTimeout = flag.Duration("listenTimeout", 60*time.Minute, "Maximum amount of time to listen for before exiting. A value of 0 disables the timeout.")
+	listenTimeout = flag.Duration("listen-timeout", 60*time.Minute, "Maximum amount of time to listen for before exiting. A value of 0 disables the timeout.")
 
-	// Maximum request and output size. Same limit as imposed by Go tour.
+	// Maximum request and output size.
+	// 1<<16 is the same limit as imposed by Go tour.
 	// Note: The response includes error and status messages as well as output,
 	// so it can be larger (usually by a small constant, hard limited to
 	// 2*maxSize).
 	// maxSize should be large enough to fit all error and status messages
 	// written by compilerd to prevent reaching the hard limit.
-	maxSize = 1 << 16
+	maxSize = flag.Int("max-size", 1<<16, "Maximum request and output size.")
 
-	// Time to finish serving currently running requests before exiting cleanly.
-	// No new requests are accepted during this time.
+	// Maximum time to finish serving currently running requests before exiting
+	// cleanly. No new requests are accepted during this time.
 	exitDelay = 30 * time.Second
 )
 
@@ -57,18 +68,6 @@ func seedRNG() error {
 	}
 	rand.Seed(seed)
 	return nil
-}
-
-//////////////////////////////////////////
-// HTTP server
-
-func healthz(w http.ResponseWriter, r *http.Request) {
-	select {
-	case <-lameduck:
-		w.WriteHeader(http.StatusInternalServerError)
-	default:
-		w.Write([]byte("ok"))
-	}
 }
 
 func main() {
@@ -93,13 +92,17 @@ func main() {
 		log.Fatal(err)
 	}
 
+	startDispatcher()
+
 	http.HandleFunc("/compile", handlerCompile)
 	http.HandleFunc("/load", handlerLoad)
 	http.HandleFunc("/save", handlerSave)
-	http.HandleFunc("/healthz", healthz)
+	http.HandleFunc("/healthz", handlerHealthz)
 
 	log.Printf("Serving %s\n", *address)
-	http.ListenAndServe(*address, nil)
+	if err := http.ListenAndServe(*address, nil); err != nil {
+		panic(err)
+	}
 }
 
 func waitForExit(limit time.Duration) {
@@ -114,10 +117,10 @@ Loop:
 	for {
 		select {
 		case <-deadline:
-			log.Println("Deadline expired, exiting in", exitDelay)
+			log.Println("Deadline expired, exiting in at most", exitDelay)
 			break Loop
 		case <-term:
-			log.Println("Got SIGTERM, exiting in", exitDelay)
+			log.Println("Got SIGTERM, exiting in at most", exitDelay)
 			break Loop
 		}
 	}
@@ -125,8 +128,20 @@ Loop:
 	// Fail health checks so we stop getting requests.
 	close(lameduck)
 
-	// Give running requests time to finish.
-	time.Sleep(exitDelay)
+	go func() {
+		select {
+		case <-time.After(exitDelay):
+			fmt.Errorf("Dispatcher did not stop in %v, exiting.", exitDelay)
+			os.Exit(1)
+		}
+	}()
+
+	// Stop the dispatcher and wait for all in-progress jobs to finish.
+	dispatcher.Stop()
+
+	// Give the server some extra time to send any remaning responses that are
+	// queued to be sent.
+	time.Sleep(2 * time.Second)
 
 	os.Exit(0)
 }
@@ -177,6 +192,15 @@ func getPostBody(w http.ResponseWriter, r *http.Request, limit int) []byte {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(io.LimitReader(r.Body, int64(limit)))
 	return buf.Bytes()
+}
+
+func handlerHealthz(w http.ResponseWriter, r *http.Request) {
+	select {
+	case <-lameduck:
+		w.WriteHeader(http.StatusInternalServerError)
+	default:
+		w.Write([]byte("ok"))
+	}
 }
 
 //////////////////////////////////////////

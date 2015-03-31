@@ -19,7 +19,7 @@ start: config/db.json all
 	compilerd \
 		--sqlconf=$< \
 		--setupdb=true \
-		--listenTimeout=0 \
+		--listen-timeout=0 \
 		--address=$(host):$(port) \
 		--use-docker=false
 
