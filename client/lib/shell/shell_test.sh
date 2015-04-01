@@ -244,8 +244,8 @@ shell_test::forkcredentials() {
   local -r FORKCRED=$(shell::tmp_dir)
   "${PRINCIPAL_BIN}" create --overwrite=true "${FORKCRED}" self >/dev/null || shell_test::fail "line ${LINENO}: create failed"
   "${PRINCIPAL_BIN}" --veyron.credentials="$1" bless --require_caveats=false "${FORKCRED}" "$2" >blessing || shell_test::fail "line ${LINENO}: bless failed"
-  "${PRINCIPAL_BIN}" --veyron.credentials="${FORKCRED}" store setdefault blessing || shell_test::fail "line ${LINENO}: store setdefault failed"
-  "${PRINCIPAL_BIN}" --veyron.credentials="${FORKCRED}" store set blessing ... || shell_test::fail "line ${LINENO}: store set failed"
+  "${PRINCIPAL_BIN}" --veyron.credentials="${FORKCRED}" set default blessing || shell_test::fail "line ${LINENO}: set default failed"
+  "${PRINCIPAL_BIN}" --veyron.credentials="${FORKCRED}" set forpeer blessing ... || shell_test::fail "line ${LINENO}: set forpeer failed"
   echo "${FORKCRED}"
 }
 
