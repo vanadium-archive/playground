@@ -51,32 +51,32 @@ func (c credentials) init() error {
 }
 
 func (c credentials) initWithDuration() error {
-	// (1) principal blessself --for=<duration> <c.Name> | principal store setdefault -
-	// (2) principal store default | principal store set - ...
+	// (1) principal blessself --for=<duration> <c.Name> | principal set default -
+	// (2) principal get default | principal set forpeer - ...
 	if err := c.pipe(c.toolCmd(c.Name, "blessself", "--for", c.Duration),
-		c.toolCmd(c.Name, "store", "setdefault", "-")); err != nil {
+		c.toolCmd(c.Name, "set", "default", "-")); err != nil {
 		return err
 	}
-	if err := c.pipe(c.toolCmd(c.Name, "store", "default"),
-		c.toolCmd(c.Name, "store", "set", "-", "...")); err != nil {
+	if err := c.pipe(c.toolCmd(c.Name, "get", "default"),
+		c.toolCmd(c.Name, "set", "forpeer", "-", "...")); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (c credentials) getblessed() error {
-	// (1) V23_CREDENTIALS=<c.Blesser> principal bless <c.Name> --for=<c.Duration> <c.Name> | V23_CREDENTIALS=<c.Name> principal store setdefault -
-	// (2) principal store default | principal store set - ...
+	// (1) V23_CREDENTIALS=<c.Blesser> principal bless <c.Name> --for=<c.Duration> <c.Name> | V23_CREDENTIALS=<c.Name> principal set default -
+	// (2) principal get default | principal set forpeer - ...
 	duration := c.Duration
 	if duration == "" {
 		duration = "1h"
 	}
 	if err := c.pipe(c.toolCmd(c.Blesser, "bless", "--for", duration, path.Join(credentialsDir, c.Name), c.Name),
-		c.toolCmd(c.Name, "store", "setdefault", "-")); err != nil {
+		c.toolCmd(c.Name, "set", "default", "-")); err != nil {
 		return err
 	}
-	if err := c.pipe(c.toolCmd(c.Name, "store", "default"),
-		c.toolCmd(c.Name, "store", "set", "-", "...")); err != nil {
+	if err := c.pipe(c.toolCmd(c.Name, "get", "default"),
+		c.toolCmd(c.Name, "set", "forpeer", "-", "...")); err != nil {
 		return err
 	}
 	return nil
