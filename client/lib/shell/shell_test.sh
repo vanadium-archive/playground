@@ -147,7 +147,7 @@ shell_test::build_go_binary() {
   popd > /dev/null
 }
 
-# shell_test::setup_server_test is common boilerplate used for testing veyron
+# shell_test::setup_server_test is common boilerplate used for testing vanadium
 # servers. In particular, this function sets up an instance of the mount table
 # daemon, and sets the V23_NAMESPACE environment variable accordingly.  It also
 # sets up credentials as needed.
@@ -168,9 +168,9 @@ shell_test::setup_mounttable() {
   # Start the mounttable daemon.
   local -r MT_LOG=$(shell::tmp_file)
   if [[ -n ${shell_test_RUNNING_UNDER_AGENT+1} ]]; then
-    shell::run_server "${shell_test_DEFAULT_SERVER_TIMEOUT}" "${MT_LOG}" "${MT_LOG}" "${VRUN}" "${MOUNTTABLED_BIN}" --veyron.tcp.address="127.0.0.1:0" &> /dev/null || (cat "${MT_LOG}" && shell_test::fail "line ${LINENO}: failed to start mounttabled")
+    shell::run_server "${shell_test_DEFAULT_SERVER_TIMEOUT}" "${MT_LOG}" "${MT_LOG}" "${VRUN}" "${MOUNTTABLED_BIN}" --v23.tcp.address="127.0.0.1:0" &> /dev/null || (cat "${MT_LOG}" && shell_test::fail "line ${LINENO}: failed to start mounttabled")
   else
-    shell::run_server "${shell_test_DEFAULT_SERVER_TIMEOUT}" "${MT_LOG}" "${MT_LOG}" "${MOUNTTABLED_BIN}" --veyron.tcp.address="127.0.0.1:0" &> /dev/null || (cat "${MT_LOG}" && shell_test::fail "line ${LINENO}: failed to start mounttabled")
+    shell::run_server "${shell_test_DEFAULT_SERVER_TIMEOUT}" "${MT_LOG}" "${MT_LOG}" "${MOUNTTABLED_BIN}" --v23.tcp.address="127.0.0.1:0" &> /dev/null || (cat "${MT_LOG}" && shell_test::fail "line ${LINENO}: failed to start mounttabled")
   fi
   shell::timed_wait_for "${shell_test_DEFAULT_MESSAGE_TIMEOUT}" "${MT_LOG}" "Mount table service" || shell_test::fail "line ${LINENO}: failed to find expected output"
 
@@ -243,9 +243,9 @@ shell_test::forkcredentials() {
   local -r PRINCIPAL_BIN="$(shell_test::build_go_binary 'v.io/x/ref/cmd/principal')"
   local -r FORKCRED=$(shell::tmp_dir)
   "${PRINCIPAL_BIN}" create --overwrite=true "${FORKCRED}" self >/dev/null || shell_test::fail "line ${LINENO}: create failed"
-  "${PRINCIPAL_BIN}" --veyron.credentials="$1" bless --require-caveats=false "${FORKCRED}" "$2" >blessing || shell_test::fail "line ${LINENO}: bless failed"
-  "${PRINCIPAL_BIN}" --veyron.credentials="${FORKCRED}" set default blessing || shell_test::fail "line ${LINENO}: set default failed"
-  "${PRINCIPAL_BIN}" --veyron.credentials="${FORKCRED}" set forpeer blessing ... || shell_test::fail "line ${LINENO}: set forpeer failed"
+  "${PRINCIPAL_BIN}" --v23.credentials="$1" bless --require-caveats=false "${FORKCRED}" "$2" >blessing || shell_test::fail "line ${LINENO}: bless failed"
+  "${PRINCIPAL_BIN}" --v23.credentials="${FORKCRED}" set default blessing || shell_test::fail "line ${LINENO}: set default failed"
+  "${PRINCIPAL_BIN}" --v23.credentials="${FORKCRED}" set forpeer blessing ... || shell_test::fail "line ${LINENO}: set forpeer failed"
   echo "${FORKCRED}"
 }
 

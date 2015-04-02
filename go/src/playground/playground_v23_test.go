@@ -80,7 +80,7 @@ func V23TestPlayground(i *v23tests.T) {
 	i.Pushd(i.NewTempDir())
 	defer i.Popd()
 
-	v23tests.RunRootMT(i, "--veyron.tcp.address=127.0.0.1:0")
+	v23tests.RunRootMT(i, "--v23.tcp.address=127.0.0.1:0")
 
 	i.BuildGoPkg("v.io/x/ref/cmd/principal")
 	i.BuildGoPkg("v.io/x/ref/cmd/vdl")

@@ -38,7 +38,7 @@ func makeServiceCmd(progName string, args ...string) *exec.Cmd {
 // variable to the mounttable's location.  We run one mounttabled process for
 // the entire environment.
 func startMount(timeLimit time.Duration) (proc *os.Process, err error) {
-	cmd := makeServiceCmd("mounttabled", "-veyron.tcp.address=127.0.0.1:0")
+	cmd := makeServiceCmd("mounttabled", "-v23.tcp.address=127.0.0.1:0")
 	matches, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile("NAME=(.*)"))
 	if err != nil {
 		return nil, fmt.Errorf("Error starting mounttabled: %v", err)
@@ -57,7 +57,7 @@ func startProxy(timeLimit time.Duration) (proc *os.Process, err error) {
 		"proxyd",
 		"-log_dir=/tmp/logs",
 		"-name="+proxyName,
-		"-veyron.tcp.address=127.0.0.1:0")
+		"-v23.tcp.address=127.0.0.1:0")
 	if _, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile("NAME=(.*)")); err != nil {
 		return nil, fmt.Errorf("Error starting proxy: %v", err)
 	}
@@ -69,8 +69,8 @@ func startProxy(timeLimit time.Duration) (proc *os.Process, err error) {
 func startWspr(fileName, credentials string, timeLimit time.Duration) (proc *os.Process, port int, err error) {
 	cmd := makeCmd("<wsprd>:"+fileName, true, credentials,
 		"wsprd",
-		"-veyron.proxy="+proxyName,
-		"-veyron.tcp.address=127.0.0.1:0",
+		"-v23.proxy="+proxyName,
+		"-v23.tcp.address=127.0.0.1:0",
 		"-port=0",
 		// The identd server won't be used, so pass a fake name.
 		"-identd=/unused")
