@@ -34,28 +34,21 @@ RUN rm /root/.netrc
 WORKDIR /home/playground
 RUN npm install --production $VANADIUM_ROOT/release/javascript/core
 
-# Install Vanadium Go dependencies.
-WORKDIR $VANADIUM_ROOT/release
-RUN v23 go install v.io/x/ref/...
-RUN v23 go install playground/...
+# Install builder and dependencies.
+WORKDIR $VANADIUM_ROOT/release/projects/playground/go/src/playground
+RUN make all
 
 # Uncomment the following lines to install a version of the builder tool using
 # your local version of the code. This is useful when developing and testing
 # local changes.
 #RUN rm -f $VANADIUM_ROOT/release/projects/playground/go/bin/builder
+#RUN rm -rf $VANADIUM_ROOT/release/projects/playground/go/src/playground/Makefile
 #RUN rm -rf $VANADIUM_ROOT/release/projects/playground/go/src/playground/builder/
 #RUN rm -rf $VANADIUM_ROOT/release/projects/playground/go/src/playground/lib/
+#ADD Makefile $VANADIUM_ROOT/release/projects/playground/go/src/playground/Makefile
 #ADD builder/ $VANADIUM_ROOT/release/projects/playground/go/src/playground/builder/
 #ADD lib/ $VANADIUM_ROOT/release/projects/playground/go/src/playground/lib/
-#RUN v23 go install playground/builder/...
-
-# Copy proxyd's main.go to ./proxyd_main.go, then uncomment the following
-# lines to install a version of proxyd (used by the builder tool) using your
-# local version of the code. This is useful when developing and testing local
-# changes.
-#RUN rm -f $VANADIUM_ROOT/release/go/bin/proxyd
-#ADD proxyd_main.go $VANADIUM_ROOT/release/go/src/v.io/x/ref/services/proxy/proxyd/main.go
-#RUN v23 go install v.io/x/ref/services/proxy/proxyd
+#RUN make builder
 
 USER playground
 WORKDIR /home/playground

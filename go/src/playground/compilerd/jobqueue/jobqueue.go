@@ -26,7 +26,9 @@ package jobqueue
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"sync"
 	"time"
@@ -65,8 +67,8 @@ type job struct {
 	cancelled bool
 }
 
-func NewJob(body []byte, res *event.ResponseEventSink, maxSize int, maxTime time.Duration, useDocker bool, dockerMem int) job {
-	return job{
+func NewJob(body []byte, res *event.ResponseEventSink, maxSize int, maxTime time.Duration, useDocker bool, dockerMem int) *job {
+	return &job{
 		id:        <-uniq,
 		body:      body,
 		res:       res,
@@ -91,7 +93,7 @@ func (j *job) Cancel() {
 }
 
 type Dispatcher struct {
-	jobQueue chan job
+	jobQueue chan *job
 
 	// A message sent on the stopped channel causes the dispatcher to stop
 	// assigning new jobs to workers.
@@ -104,7 +106,7 @@ type Dispatcher struct {
 
 func NewDispatcher(workers int, jobQueueCap int) *Dispatcher {
 	d := &Dispatcher{
-		jobQueue: make(chan job, jobQueueCap),
+		jobQueue: make(chan *job, jobQueueCap),
 		stopped:  make(chan bool),
 	}
 
@@ -144,16 +146,18 @@ func (d *Dispatcher) start(num int) {
 					cancelled := job.cancelled
 					job.mu.Unlock()
 					if cancelled {
-						log.Printf("Dispatcher encountered cancelled job %v, rejecting.", job.id)
+						log.Printf("Dispatcher encountered cancelled job %v, rejecting.\n", job.id)
 						job.resultChan <- result{
 							Success: false,
 							Events:  nil,
 						}
+						workerQueue <- worker
 					} else {
 						log.Printf("Dispatching job %v to worker %v.\n", job.id, worker.id)
 						d.wg.Add(1)
 						go func() {
 							job.resultChan <- worker.run(job)
+							log.Printf("Job %v finished on worker %v.\n", job.id, worker.id)
 							d.wg.Done()
 							workerQueue <- worker
 						}()
@@ -198,7 +202,7 @@ func (d *Dispatcher) Stop() {
 
 // Enqueue queues a job to be run be the next available worker. It returns a
 // channel on which the job's results will be published.
-func (d *Dispatcher) Enqueue(j job) (chan result, error) {
+func (d *Dispatcher) Enqueue(j *job) (chan result, error) {
 	select {
 	case d.jobQueue <- j:
 		return j.resultChan, nil
@@ -224,7 +228,7 @@ func newWorker(id int) *worker {
 
 // run compiles and runs a job, caches the result, and returns the result on
 // the job's result channel.
-func (w *worker) run(j job) result {
+func (w *worker) run(j *job) result {
 	event.Debug(j.res, "Preparing to run program")
 
 	memoryFlag := fmt.Sprintf("%dm", j.dockerMem)
@@ -248,7 +252,20 @@ func (w *worker) run(j job) result {
 			"--memory-swap", memoryFlag,
 			"playground")
 	} else {
+		// Run builder directly, without Docker. This should only happen during
+		// development and in tests, never in production.
 		cmd = exec.Command("builder")
+
+		// Run the builder in a temp dir, so the bundle files and binaries do
+		// not clutter up the current working dir. This also allows parallel
+		// bundler runs, since otherwise the files from different runs stomp on
+		// each other.
+		tmpDir, err := ioutil.TempDir("", "pg-builder-")
+		if err != nil {
+			panic(fmt.Errorf("Error creating temp dir for builder: %v", err))
+		} else {
+			cmd.Dir = tmpDir
+		}
 	}
 	cmdKill := lib.DoOnce(func() {
 		event.Debug(j.res, "Killing program")
@@ -353,6 +370,9 @@ func (w *worker) run(j job) result {
 		go func() {
 			docker("rm", "-f", j.id).Run()
 		}()
+	} else {
+		// Clean up after the builder process.
+		os.RemoveAll(cmd.Dir)
 	}
 
 	// If we timed out or errored out, do not cache anything.
