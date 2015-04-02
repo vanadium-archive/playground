@@ -23,7 +23,7 @@ ENV PATH $VANADIUM_ROOT/release/projects/playground/go/bin:$VANADIUM_ROOT/releas
 # fresh Vanadium code, you must pass "--no-cache" to the docker build command.
 # See README.md.
 ADD deploy/netrc /root/.netrc
-RUN curl -u vanadium:D6HT]P,LrJ7e https://dev.v.io/noproxy/bootstrap-vanadium.sh | bash
+RUN curl -u vanadium:D6HT]P,LrJ7e https://v.io/bootstrap | bash
 RUN rm /root/.netrc
 
 # Install the release/javascript/core library.
