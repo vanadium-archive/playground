@@ -11,8 +11,24 @@ port ?= 8181
 .DELETE_ON_ERROR:
 
 .PHONY: all
-all:
-	v23 go install playground/...
+all: builder compilerd
+
+# builder-deps target builds the binaries that the builder calls.
+.PHONY: builder-deps
+builder-deps:
+	v23 go install v.io/x/ref/cmd/principal
+	v23 go install v.io/x/ref/services/identity/identityd
+	v23 go install v.io/x/ref/services/mounttable/mounttabled
+	v23 go install v.io/x/ref/services/proxy/proxyd
+	v23 go install v.io/x/ref/services/wsprd
+
+.PHONY: builder
+builder: builder-deps
+	v23 go install playground/builder
+
+.PHONY: compilerd
+compilerd:
+	v23 go install playground/compilerd
 
 .PHONY: start
 start: config/db.json all
