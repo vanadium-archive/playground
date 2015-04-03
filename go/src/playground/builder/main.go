@@ -228,7 +228,7 @@ func compileFiles(files []*codeFile) (badInput bool, cerr error) {
 	if found["js"] && found["vdl"] {
 		debug("Generating VDL for Javascript")
 		err = makeCmd("<compile>", false, "",
-			"vdl", "generate", "-lang=Javascript", "-js_out_dir="+srcd, "./...").Run()
+			"vdl", "generate", "-lang=Javascript", "-js-out-dir="+srcd, "./...").Run()
 		if _, ok := err.(*exec.ExitError); ok {
 			return true, nil
 		} else if err != nil {
