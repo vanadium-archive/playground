@@ -34,9 +34,9 @@ RUN rm /root/.netrc
 WORKDIR /home/playground
 RUN npm install --production $VANADIUM_ROOT/release/javascript/core
 
-# Install builder and dependencies.
-WORKDIR $VANADIUM_ROOT/release/projects/playground/go/src/playground
-RUN make all
+# Install Vanadium libraries and playground binaries.
+RUN v23 go install -v v.io/...
+RUN v23 go install -v playground/...
 
 # Uncomment the following lines to install a version of the builder tool using
 # your local version of the code. This is useful when developing and testing
