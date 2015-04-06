@@ -31,9 +31,6 @@ var (
 	// perhaps be optimized.
 	cache = lru.New(10000)
 
-	// dispatcher schedules jobs to be run on a fixed number of workers.
-	dispatcher *jobqueue.Dispatcher
-
 	useDocker = flag.Bool("use-docker", true, "Whether to use Docker to run builder; if false, we run the builder directly.")
 
 	// TODO(nlacasse): Experiment with different values for parallelism and
@@ -60,13 +57,22 @@ type cachedResponse struct {
 	Events []event.Event
 }
 
-func startDispatcher() {
-	dispatcher = jobqueue.NewDispatcher(*parallelism, *jobQueueCap)
+// compiler handles compile requests by enqueuing them on the dispatcher's
+// work queue.
+type compiler struct {
+	dispatcher jobqueue.Dispatcher
+}
+
+// newCompiler creates a new compiler.
+func newCompiler() *compiler {
+	return &compiler{
+		dispatcher: jobqueue.NewDispatcher(*parallelism, *jobQueueCap),
+	}
 }
 
 // POST request that returns cached results if any exist, otherwise schedules
 // the bundle to be run and caches the results.
-func handlerCompile(w http.ResponseWriter, r *http.Request) {
+func (c *compiler) handlerCompile(w http.ResponseWriter, r *http.Request) {
 	if !handleCORS(w, r) {
 		return
 	}
@@ -127,14 +133,19 @@ func handlerCompile(w http.ResponseWriter, r *http.Request) {
 
 	// Create a new compile job and queue it.
 	job := jobqueue.NewJob(requestBody, res, *maxSize, *maxTime, *useDocker, dockerMem)
-	resultChan, err := dispatcher.Enqueue(job)
+	resultChan, err := c.dispatcher.Enqueue(job)
 	if err != nil {
 		// TODO(nlacasse): This should send a StatusServiceUnavailable, not a StatusOK.
 		res.Write(event.New("", "stderr", "Service busy. Please try again later."))
 		return
 	}
 
-	clientDisconnect := w.(http.CloseNotifier).CloseNotify()
+	// Go's httptest.NewRecorder does not support http.CloseNotifier, so we
+	// can't assume that w.(httpCloseNotifier) will succeed.
+	var clientDisconnect <-chan bool
+	if closeNotifier, ok := w.(http.CloseNotifier); ok {
+		clientDisconnect = closeNotifier.CloseNotify()
+	}
 
 	// Wait for job to finish and cache results if job succeeded.
 	// We do this in a for loop because we always need to wait for the result
@@ -161,4 +172,10 @@ func handlerCompile(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+}
+
+// stop waits for any in-progress jobs to finish, and cancels any jobs that
+// have not started running yet.
+func (c *compiler) stop() {
+	c.dispatcher.Stop()
 }

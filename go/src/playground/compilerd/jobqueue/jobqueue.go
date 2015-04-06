@@ -20,6 +20,12 @@
 // reads a  worker off the worker queue, and then reads a job off the job
 // queue, and runs that job on that worker. When the job finishes, the worker
 // is pushed back on to the worker queue.
+//
+// TODO(nlacasse): There are many types and functions exported in this file
+// which are only exported because they are used by the compile test, in
+// particular Job, Dispatcher, and Result types, and their constructors and
+// methods.  Consider refactoring the compiler so those tests and the logic
+// they test become part of this package.
 
 package jobqueue
 
@@ -52,11 +58,11 @@ func init() {
 	}()
 }
 
-type job struct {
+type Job struct {
 	id         string
 	body       []byte
 	res        *event.ResponseEventSink
-	resultChan chan result
+	resultChan chan Result
 
 	maxSize   int
 	maxTime   time.Duration
@@ -67,8 +73,8 @@ type job struct {
 	cancelled bool
 }
 
-func NewJob(body []byte, res *event.ResponseEventSink, maxSize int, maxTime time.Duration, useDocker bool, dockerMem int) *job {
-	return &job{
+func NewJob(body []byte, res *event.ResponseEventSink, maxSize int, maxTime time.Duration, useDocker bool, dockerMem int) *Job {
+	return &Job{
 		id:        <-uniq,
 		body:      body,
 		res:       res,
@@ -79,21 +85,33 @@ func NewJob(body []byte, res *event.ResponseEventSink, maxSize int, maxTime time
 
 		// resultChan has capacity 1 so that writing to the channel won't block
 		// if nobody ever reads the result.
-		resultChan: make(chan result, 1),
+		resultChan: make(chan Result, 1),
 	}
+}
+
+// Body is a getter for Job.body.
+func (j *Job) Body() []byte {
+	return j.body
 }
 
 // Cancel will prevent the job from being run, if it has not already been
 // started by a worker.
-func (j *job) Cancel() {
+func (j *Job) Cancel() {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	log.Printf("Cancelling job %v.\n", j.id)
 	j.cancelled = true
 }
 
-type Dispatcher struct {
-	jobQueue chan *job
+// Dispatcher is an interface type so it can be mocked during tests.
+type Dispatcher interface {
+	Enqueue(j *Job) (chan Result, error)
+	Stop()
+}
+
+// dispatcherImpl implements Dispatcher interface.
+type dispatcherImpl struct {
+	jobQueue chan *Job
 
 	// A message sent on the stopped channel causes the dispatcher to stop
 	// assigning new jobs to workers.
@@ -104,9 +122,11 @@ type Dispatcher struct {
 	wg sync.WaitGroup
 }
 
-func NewDispatcher(workers int, jobQueueCap int) *Dispatcher {
-	d := &Dispatcher{
-		jobQueue: make(chan *job, jobQueueCap),
+var _ = Dispatcher((*dispatcherImpl)(nil))
+
+func NewDispatcher(workers int, jobQueueCap int) Dispatcher {
+	d := &dispatcherImpl{
+		jobQueue: make(chan *Job, jobQueueCap),
 		stopped:  make(chan bool),
 	}
 
@@ -116,7 +136,7 @@ func NewDispatcher(workers int, jobQueueCap int) *Dispatcher {
 
 // start starts a given number of workers, then reads from the jobQueue and
 // assigns jobs to free workers.
-func (d *Dispatcher) start(num int) {
+func (d *dispatcherImpl) start(num int) {
 	log.Printf("Dispatcher starting %d workers.\n", num)
 
 	// Workers are published on the workerQueue when they are free.
@@ -147,7 +167,7 @@ func (d *Dispatcher) start(num int) {
 					job.mu.Unlock()
 					if cancelled {
 						log.Printf("Dispatcher encountered cancelled job %v, rejecting.\n", job.id)
-						job.resultChan <- result{
+						job.resultChan <- Result{
 							Success: false,
 							Events:  nil,
 						}
@@ -173,7 +193,7 @@ func (d *Dispatcher) start(num int) {
 			select {
 			case job := <-d.jobQueue:
 				log.Printf("Dispatcher is stopped, rejecting job %v.\n", job.id)
-				job.resultChan <- result{
+				job.resultChan <- Result{
 					Success: false,
 					Events:  nil,
 				}
@@ -192,7 +212,7 @@ func (d *Dispatcher) start(num int) {
 // TODO(nlacasse): Consider letting the dispatcher run all currently queued
 // jobs, rather than rejecting them.  Or, put logic in the client to retry
 // cancelled jobs.
-func (d *Dispatcher) Stop() {
+func (d *dispatcherImpl) Stop() {
 	log.Printf("Stopping dispatcher.\n")
 	d.stopped <- true
 
@@ -202,7 +222,7 @@ func (d *Dispatcher) Stop() {
 
 // Enqueue queues a job to be run be the next available worker. It returns a
 // channel on which the job's results will be published.
-func (d *Dispatcher) Enqueue(j *job) (chan result, error) {
+func (d *dispatcherImpl) Enqueue(j *Job) (chan Result, error) {
 	select {
 	case d.jobQueue <- j:
 		return j.resultChan, nil
@@ -211,7 +231,7 @@ func (d *Dispatcher) Enqueue(j *job) (chan result, error) {
 	}
 }
 
-type result struct {
+type Result struct {
 	Success bool
 	Events  []event.Event
 }
@@ -228,7 +248,7 @@ func newWorker(id int) *worker {
 
 // run compiles and runs a job, caches the result, and returns the result on
 // the job's result channel.
-func (w *worker) run(j *job) result {
+func (w *worker) run(j *Job) Result {
 	event.Debug(j.res, "Preparing to run program")
 
 	memoryFlag := fmt.Sprintf("%dm", j.dockerMem)
@@ -379,12 +399,12 @@ func (w *worker) run(j *job) result {
 	// TODO(sadovsky): This policy is helpful for development, but may not be wise
 	// for production. Revisit.
 	if !timedOut && !erroredOut {
-		return result{
+		return Result{
 			Success: true,
 			Events:  j.res.PopWrittenEvents(),
 		}
 	} else {
-		return result{
+		return Result{
 			Success: false,
 			Events:  nil,
 		}

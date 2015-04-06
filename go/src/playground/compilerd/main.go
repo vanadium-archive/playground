@@ -77,6 +77,8 @@ func main() {
 		panic(err)
 	}
 
+	c := newCompiler()
+
 	listenForNs := listenTimeout.Nanoseconds()
 	if listenForNs > 0 {
 		delayNs := listenForNs/2 + rand.Int63n(listenForNs/2)
@@ -85,16 +87,14 @@ func main() {
 		// damage. We want to exit cleanly before then so we don't cause requests
 		// to fail. When compilerd exits, a watchdog will shut the machine down
 		// after a short delay.
-		go waitForExit(time.Nanosecond * time.Duration(delayNs))
+		go waitForExit(c, time.Nanosecond*time.Duration(delayNs))
 	}
 
 	if err := initDBHandles(); err != nil {
 		log.Fatal(err)
 	}
 
-	startDispatcher()
-
-	http.HandleFunc("/compile", handlerCompile)
+	http.HandleFunc("/compile", c.handlerCompile)
 	http.HandleFunc("/load", handlerLoad)
 	http.HandleFunc("/save", handlerSave)
 	http.HandleFunc("/healthz", handlerHealthz)
@@ -105,7 +105,7 @@ func main() {
 	}
 }
 
-func waitForExit(limit time.Duration) {
+func waitForExit(c *compiler, limit time.Duration) {
 	// Exit if we get a SIGTERM.
 	term := make(chan os.Signal, 1)
 	signal.Notify(term, syscall.SIGTERM)
@@ -136,8 +136,8 @@ Loop:
 		}
 	}()
 
-	// Stop the dispatcher and wait for all in-progress jobs to finish.
-	dispatcher.Stop()
+	// Stop the compiler and wait for all in-progress jobs to finish.
+	c.stop()
 
 	// Give the server some extra time to send any remaning responses that are
 	// queued to be sent.

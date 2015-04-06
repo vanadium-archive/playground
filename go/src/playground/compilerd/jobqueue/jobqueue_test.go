@@ -109,7 +109,7 @@ func eventsMatch(events []event.Event, match string) bool {
 
 // assertExpectedResult asserts that the result matches the test expectations
 // in the test config.
-func assertExpectedResult(t *testing.T, c testConfig, r result) {
+func assertExpectedResult(t *testing.T, c testConfig, r Result) {
 	expectSuccess := !c.expectJobFail
 	if expectSuccess != r.Success {
 		t.Errorf("Expected result.Success to be %v but was %v. Test config: %#v", expectSuccess, r.Success, c)
