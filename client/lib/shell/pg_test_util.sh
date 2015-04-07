@@ -44,7 +44,7 @@ build_go_binaries() {
   shell_test::build_go_binary 'v.io/x/ref/cmd/principal'
   shell_test::build_go_binary 'v.io/x/ref/services/proxy/proxyd'
   shell_test::build_go_binary 'v.io/x/ref/services/mounttable/mounttabled'
-  shell_test::build_go_binary 'v.io/x/ref/services/wsprd'
+  shell_test::build_go_binary 'v.io/x/ref/services/wspr/wsprd'
   shell_test::build_go_binary 'v.io/x/ref/cmd/vdl'
   shell_test::build_go_binary 'playground/builder'
 }

@@ -20,7 +20,7 @@ builder-deps:
 	v23 go install v.io/x/ref/services/identity/identityd
 	v23 go install v.io/x/ref/services/mounttable/mounttabled
 	v23 go install v.io/x/ref/services/proxy/proxyd
-	v23 go install v.io/x/ref/services/wsprd
+	v23 go install v.io/x/ref/services/wspr/wsprd
 
 .PHONY: builder
 builder: builder-deps
