@@ -14,9 +14,9 @@ import (
 	"v.io/v23"
 	"v.io/v23/rpc"
 	"v.io/x/lib/vlog"
+	"v.io/x/ref/lib/security/securityflag"
 	"v.io/x/ref/lib/signals"
 	_ "v.io/x/ref/profiles"
-	vflag "v.io/x/ref/security/flag"
 
 	"fortune"
 )
@@ -78,7 +78,7 @@ func main() {
 	}
 
 	// Start the fortune server at "fortune".
-	if err := server.Serve("bakery/cookie/fortune", fortuneServer, vflag.NewAuthorizerOrDie()); err == nil {
+	if err := server.Serve("bakery/cookie/fortune", fortuneServer, securityflag.NewAuthorizerOrDie()); err == nil {
 		fmt.Printf("Fortune server serving under: bakery/cookie/fortune\n")
 	} else {
 		vlog.Panic("error serving fortune server: ", err)
