@@ -1,4 +1,4 @@
-PATH := $(PATH):$(VANADIUM_ROOT)/environment/cout/node/bin
+PATH := $(PATH):$(V23_ROOT)/environment/cout/node/bin
 SHELL := /bin/bash -euo pipefail
 
 node_modules: package.json

@@ -1,7 +1,7 @@
 PATH := bin:node_modules/.bin:$(PATH)
-PATH := $(PATH):$(VANADIUM_ROOT)/environment/cout/node/bin
+PATH := $(PATH):$(V23_ROOT)/environment/cout/node/bin
 SHELL := /bin/bash -euo pipefail
-export GOPATH := $(VANADIUM_ROOT)/release/projects/playground/go:$(GOPATH)
+export GOPATH := $(V23_ROOT)/release/projects/playground/go:$(GOPATH)
 export VDLPATH := $(GOPATH)
 
 js_files := $(shell find browser -name "*.js")
@@ -57,7 +57,7 @@ public/bundles: $(example_profiles) $(example_files) | node_modules
 node_modules: package.json
 	@npm prune
 	# Temporary workaround: install pgbundle directly from source.
-	@npm install $(VANADIUM_ROOT)/release/projects/playground/pgbundle
+	@npm install $(V23_ROOT)/release/projects/playground/pgbundle
 	@npm install
 	@touch $@
 

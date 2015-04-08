@@ -1,8 +1,8 @@
 PATH := bin:node_modules/.bin:$(PATH)
-PATH := $(PATH):$(VANADIUM_ROOT)/environment/cout/node/bin
-PATH := $(VANADIUM_ROOT)/release/projects/playground/go/bin:$(PATH)
+PATH := $(PATH):$(V23_ROOT)/environment/cout/node/bin
+PATH := $(V23_ROOT)/release/projects/playground/go/bin:$(PATH)
 SHELL := /bin/bash -euo pipefail
-export GOPATH := $(VANADIUM_ROOT)/release/projects/playground/go:$(GOPATH)
+export GOPATH := $(V23_ROOT)/release/projects/playground/go:$(GOPATH)
 export VDLPATH := $(GOPATH)
 
 host ?= 127.0.0.1

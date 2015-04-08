@@ -23,8 +23,8 @@ Start (or restart) the Docker daemon:
 
 Build the playground Docker image (this will take a while...):
 
-    $ cp ~/.netrc $VANADIUM_ROOT/release/projects/playground/go/src/playground/netrc
-    $ docker build -t playground $VANADIUM_ROOT/release/projects/playground/go/src/playground/.
+    $ cp ~/.netrc $V23_ROOT/release/projects/playground/go/src/playground/netrc
+    $ docker build -t playground $V23_ROOT/release/projects/playground/go/src/playground/.
 
 Note: If you want to ensure an up-to-date version of Vanadium is installed in
 the Docker image, run the above command with the "--no-cache" flag.
@@ -42,22 +42,22 @@ uncomment marked lines before running the command.
 
 Test your image (without running compilerd):
 
-    $ cd $VANADIUM_ROOT/release/projects/playground/client && make src/example_bundles
-    $ docker run -i playground < $VANADIUM_ROOT/release/projects/playground/client/bundles/fortune/bundle_js_go.json
+    $ cd $V23_ROOT/release/projects/playground/client && make src/example_bundles
+    $ docker run -i playground < $V23_ROOT/release/projects/playground/client/bundles/fortune/bundle_js_go.json
 
 ## Running the playground server (compilerd)
 
 Install the playground binaries:
 
-    $ GOPATH=$VANADIUM_ROOT/release/projects/playground/go v23 go install playground/...
+    $ GOPATH=$V23_ROOT/release/projects/playground/go v23 go install playground/...
 
 Run the compiler binary:
 
-    $ $VANADIUM_ROOT/release/projects/playground/go/bin/compilerd --listen-timeout=0 --address=localhost:8181
+    $ $V23_ROOT/release/projects/playground/go/bin/compilerd --listen-timeout=0 --address=localhost:8181
 
 Or, run it without Docker (for faster iterations during development):
 
-    $ PATH=$VANADIUM_ROOT/release/go/bin:$VANADIUM_ROOT/release/projects/playground/go/bin:$PATH compilerd --listen-timeout=0 --address=localhost:8181 --use-docker=false
+    $ PATH=$V23_ROOT/release/go/bin:$V23_ROOT/release/projects/playground/go/bin:$PATH compilerd --listen-timeout=0 --address=localhost:8181 --use-docker=false
 
 The server should now be running at http://localhost:8181 and responding to
 compile requests at http://localhost:8181/compile.

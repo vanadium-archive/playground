@@ -22,9 +22,9 @@ var (
 )
 
 func init() {
-	vanadiumRoot = os.Getenv("VANADIUM_ROOT")
+	vanadiumRoot = os.Getenv("V23_ROOT")
 	if len(vanadiumRoot) == 0 {
-		panic("VANADIUM_ROOT must be set")
+		panic("V23_ROOT must be set")
 	}
 	nodejsRoot = filepath.Join(vanadiumRoot, "environment/cout/node/bin")
 }

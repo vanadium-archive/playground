@@ -17,7 +17,7 @@ source "$(go list -f {{.Dir}} playground)/../../../client/lib/shell/shell_test.s
 setup_environment() {
   export GOPATH="$(pwd):$(v23 env GOPATH)"
   export VDLPATH="$(pwd):$(v23 env VDLPATH)"
-  export PATH="$(pwd):${shell_test_BIN_DIR}:${VANADIUM_ROOT}/environment/cout/node/bin:${PATH}"
+  export PATH="$(pwd):${shell_test_BIN_DIR}:${V23_ROOT}/environment/cout/node/bin:${PATH}"
 
   # We unset all environment variables that supply a principal in order to
   # simulate production playground setup.
@@ -31,7 +31,7 @@ setup_environment() {
 install_vanadium_js() {
   # TODO(nlacasse): Once release/javascript/core is publicly available in npm, replace this
   # with "npm install vanadium".
-  npm install --production "${VANADIUM_ROOT}/release/javascript/core"
+  npm install --production "${V23_ROOT}/release/javascript/core"
 }
 
 # Installs the pgbundle tool.

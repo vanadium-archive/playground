@@ -27,7 +27,7 @@ var (
 
 func init() {
 	// Compile builder binary and put in path.
-	pgDir := os.ExpandEnv("${VANADIUM_ROOT}/release/projects/playground/go")
+	pgDir := os.ExpandEnv("${V23_ROOT}/release/projects/playground/go")
 
 	cmd := exec.Command("make", "builder")
 	cmd.Dir = path.Join(pgDir, "src", "playground")
