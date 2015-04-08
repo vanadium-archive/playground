@@ -23,7 +23,7 @@ Start (or restart) the Docker daemon:
 
 Build the playground Docker image (this will take a while...):
 
-    $ cp ~/.netrc $VANADIUM_ROOT/release/projects/playground/go/src/playground/deploy/netrc
+    $ cp ~/.netrc $VANADIUM_ROOT/release/projects/playground/go/src/playground/netrc
     $ docker build -t playground $VANADIUM_ROOT/release/projects/playground/go/src/playground/.
 
 Note: If you want to ensure an up-to-date version of Vanadium is installed in
@@ -66,4 +66,4 @@ Add `?pgaddr=http://localhost:8181` to any playground page on localhost to
 make the client talk to your server. Add `?debug=1` to see debug info from
 the builder.
 
-TODO: storage
+TODO(ivanpi): Describe storage.

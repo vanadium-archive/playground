@@ -8,8 +8,8 @@ RUN apt-get install -y curl git nodejs npm
 RUN ln -s "$(which nodejs)" "$(dirname $(which nodejs))/node"
 
 # Install Go. Note, the apt-get "golang" target is too old.
-RUN (cd /tmp; curl -O https://storage.googleapis.com/golang/go1.4.linux-amd64.tar.gz)
-RUN tar -C /usr/local -xzf /tmp/go1.4.linux-amd64.tar.gz
+RUN (cd /tmp; curl -O https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz)
+RUN tar -C /usr/local -xzf /tmp/go1.4.2.linux-amd64.tar.gz
 ENV PATH /usr/local/go/bin:$PATH
 
 ENV HOME /root
@@ -22,7 +22,7 @@ ENV PATH $VANADIUM_ROOT/release/projects/playground/go/bin:$VANADIUM_ROOT/releas
 # Note: This will be cached! If you want to re-build the docker image using
 # fresh Vanadium code, you must pass "--no-cache" to the docker build command.
 # See README.md.
-ADD deploy/netrc /root/.netrc
+ADD netrc /root/.netrc
 RUN curl -u vanadium:D6HT]P,LrJ7e https://v.io/bootstrap | bash
 RUN rm /root/.netrc
 
