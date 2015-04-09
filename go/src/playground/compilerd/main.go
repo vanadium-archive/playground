@@ -12,9 +12,7 @@ package main
 import (
 	"bytes"
 	crand "crypto/rand"
-	"crypto/sha256"
 	"encoding/binary"
-	"encoding/hex"
 	"flag"
 	"fmt"
 	"io"
@@ -26,6 +24,10 @@ import (
 	"runtime"
 	"syscall"
 	"time"
+
+	"v.io/x/lib/dbutil"
+
+	"playground/compilerd/storage"
 )
 
 func init() {
@@ -57,6 +59,9 @@ var (
 	// Maximum time to finish serving currently running requests before exiting
 	// cleanly. No new requests are accepted during this time.
 	exitDelay = 30 * time.Second
+
+	// Path to SQL configuration file, as described in v.io/x/lib/dbutil/mysql.go.
+	sqlConf = flag.String("sqlconf", "", "Path to SQL configuration file. If empty, load and save requests are disabled. "+dbutil.SqlConfigFileDescription)
 )
 
 // Seeds the non-secure random number generator.
@@ -90,13 +95,28 @@ func main() {
 		go waitForExit(c, time.Nanosecond*time.Duration(delayNs))
 	}
 
-	if err := initDBHandles(); err != nil {
-		log.Fatal(err)
+	if *sqlConf != "" {
+		// Parse SQL configuration file and set up TLS.
+		dbConfig, err := dbutil.ActivateSqlConfigFromFile(*sqlConf)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Connect to storage backend.
+		if err := storage.Connect(dbConfig); err != nil {
+			log.Fatal(err)
+		}
+
+		// Add routes for storage.
+		http.HandleFunc("/load", handlerLoad)
+		http.HandleFunc("/save", handlerSave)
+	} else {
+		// Return 501 Not Implemented for the /load and /save routes.
+		http.HandleFunc("/load", handlerNotImplemented)
+		http.HandleFunc("/save", handlerNotImplemented)
 	}
 
 	http.HandleFunc("/compile", c.handlerCompile)
-	http.HandleFunc("/load", handlerLoad)
-	http.HandleFunc("/save", handlerSave)
 	http.HandleFunc("/healthz", handlerHealthz)
 
 	log.Printf("Serving %s\n", *address)
@@ -142,6 +162,13 @@ Loop:
 	// Give the server some extra time to send any remaning responses that are
 	// queued to be sent.
 	time.Sleep(2 * time.Second)
+
+	// Close database connections.
+	if *sqlConf != "" {
+		if err := storage.Close(); err != nil {
+			fmt.Errorf("storage.Close() failed: %v", err)
+		}
+	}
 
 	os.Exit(0)
 }
@@ -203,14 +230,7 @@ func handlerHealthz(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//////////////////////////////////////////
-// Shared helper functions
-
-func stringHash(data []byte) string {
-	hv := rawHash(data)
-	return hex.EncodeToString(hv[:])
-}
-
-func rawHash(data []byte) [32]byte {
-	return sha256.Sum256(data)
+func handlerNotImplemented(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+	return
 }

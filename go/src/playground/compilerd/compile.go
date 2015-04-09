@@ -22,6 +22,7 @@ import (
 	"playground/compilerd/jobqueue"
 	"playground/lib"
 	"playground/lib/event"
+	"playground/lib/hash"
 )
 
 var (
@@ -111,7 +112,7 @@ func (c *compiler) handlerCompile(w http.ResponseWriter, r *http.Request) {
 	// response status and body.
 	// NOTE(sadovsky): In the client we may shift timestamps (based on current
 	// time) and introduce a fake delay.
-	requestBodyHash := rawHash(requestBody)
+	requestBodyHash := hash.Raw(requestBody)
 	if cr, ok := cache.Get(requestBodyHash); ok {
 		if cachedResponseStruct, ok := cr.(cachedResponse); ok {
 			res := openResponse(cachedResponseStruct.Status)

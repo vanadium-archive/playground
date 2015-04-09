@@ -14,6 +14,7 @@ import (
 
 	"playground/compilerd/jobqueue"
 	"playground/lib/event"
+	"playground/lib/hash"
 )
 
 // mockDispatcher implements the jobqueue.Dispatcher interface.
@@ -103,7 +104,7 @@ func TestSuccessResultsAreCached(t *testing.T) {
 	bodyString := "foobar"
 	body := bytes.NewBufferString(bodyString)
 	bodyBytes := body.Bytes()
-	requestBodyHash := rawHash(bodyBytes)
+	requestBodyHash := hash.Raw(bodyBytes)
 
 	// Check that body is not already in cache.
 	if _, ok := cache.Get(requestBodyHash); ok {
@@ -153,7 +154,7 @@ func TestErrorResultsAreNotCached(t *testing.T) {
 	bodyString := "bazbar"
 	body := bytes.NewBufferString(bodyString)
 	bodyBytes := body.Bytes()
-	requestBodyHash := rawHash(bodyBytes)
+	requestBodyHash := hash.Raw(bodyBytes)
 
 	// Check that body is not already in cache.
 	if _, ok := cache.Get(requestBodyHash); ok {

@@ -34,7 +34,6 @@ compilerd:
 start: config/db.json all
 	compilerd \
 		--sqlconf=$< \
-		--setupdb=true \
 		--listen-timeout=0 \
 		--address=$(host):$(port) \
 		--use-docker=false
