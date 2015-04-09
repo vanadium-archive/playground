@@ -16,7 +16,7 @@ ENV HOME /root
 ENV V23_ROOT /usr/local/vanadium
 ENV GOPATH $V23_ROOT/release/projects/playground/go
 ENV VDLPATH $GOPATH
-ENV PATH $V23_ROOT/release/projects/playground/go/bin:$V23_ROOT/release/go/bin:$V23_ROOT/bin:$PATH
+ENV PATH $V23_ROOT/release/projects/playground/go/bin:$V23_ROOT/release/go/bin:$V23_ROOT/devtools/bin:$PATH
 
 # Setup Vanadium.
 # Note: This will be cached! If you want to re-build the docker image using
