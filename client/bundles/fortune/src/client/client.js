@@ -36,7 +36,7 @@ function retryBindTo(ctx, client, cb) {
     if (err) {
       console.error(err + '\nRetrying in 100ms...');
       return setTimeout(function() {
-        retryBindTo(timeoutCtx, client, cb);
+        retryBindTo(ctx, client, cb);
       }, 100);
     }
 
