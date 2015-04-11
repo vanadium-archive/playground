@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"v.io/v23"
+	"v.io/v23/context"
 	_ "v.io/x/ref/profiles"
 
 	"fortune"
@@ -31,8 +32,11 @@ func main() {
 	fmt.Printf("Issuing request\n")
 	var fortune string
 	for {
+		// Create a context that will timeout in 1 second.
+		timeoutCtx, _ := context.WithTimeout(ctx, 1*time.Second)
+
 		var err error
-		if fortune, err = stub.GetRandomFortune(ctx); err == nil {
+		if fortune, err = stub.GetRandomFortune(timeoutCtx); err == nil {
 			break
 		}
 		fmt.Printf("%v\nRetrying in 100ms...\n", err)

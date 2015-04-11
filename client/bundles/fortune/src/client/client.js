@@ -31,11 +31,12 @@ vanadium.init(function(err, rt) {
 });
 
 function retryBindTo(ctx, client, cb) {
-  client.bindTo(ctx, 'bakery/cookie/fortune', function(err, fortuneService) {
+  var timeoutCtx = ctx.withTimeout(1000);
+  client.bindTo(timeoutCtx, 'bakery/cookie/fortune', function(err, fortuneService) {
     if (err) {
       console.error(err + '\nRetrying in 100ms...');
       return setTimeout(function() {
-        retryBindTo(ctx, client, cb);
+        retryBindTo(timeoutCtx, client, cb);
       }, 100);
     }
 
