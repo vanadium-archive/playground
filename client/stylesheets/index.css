@@ -74,6 +74,11 @@
   position: absolute;  /* stack editors one on top of the other */
   width: 100%;
   height: 100%;
+  visibility: hidden;
+}
+
+.pg .editor.active {
+  visibility: visible;
 }
 
 .pg .ace_editor {
@@ -88,6 +93,7 @@
   width: 100%;
   height: 4px;  /* matches .editors border-top; expands on run */
   transition: height 0.2s;
+  overflow: hidden;
 }
 
 .pg .console .text {

@@ -19,10 +19,6 @@
   "undef": true,
   "unused": "vars",
 
-  "browser": true,
   "devel": true,
-  "node": true,
-
-  "globals": {
-  }
+  "node": true
 }

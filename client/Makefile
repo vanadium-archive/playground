@@ -77,10 +77,22 @@ distclean: clean
 	@$(RM) -rf public/bundles
 	@$(RM) -rf $(shell find bundles -name "bundle*.json")
 
+.PHONY: dependency-check
+dependency-check: package.json node_modules
+	dependency-check $<
+
 .PHONY: lint
-lint:
-	@jshint .
+lint: dependency-check
+	jshint .
 
 .PHONY: test
 test:
 	v23 run ./test.sh
+
+.PHONY: test-client
+test-client: node_modules
+	tape test/index.js
+
+.PHONY: test-browser
+test-browser: node_modules
+	run-browser test/index.js --phantom
