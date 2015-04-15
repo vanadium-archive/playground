@@ -36,10 +36,9 @@ import (
 	"syscall"
 	"time"
 
+	"v.io/x/playground/lib"
+	"v.io/x/playground/lib/event"
 	"v.io/x/ref/envvar"
-
-	"playground/lib"
-	"playground/lib/event"
 )
 
 var (

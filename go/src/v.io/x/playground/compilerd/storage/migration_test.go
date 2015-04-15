@@ -13,10 +13,10 @@ import (
 	"fmt"
 	"testing"
 
-	"v.io/x/lib/dbutil"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/rubenv/sql-migrate"
+
+	"v.io/x/lib/dbutil"
 )
 
 var (

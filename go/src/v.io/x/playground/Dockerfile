@@ -36,7 +36,6 @@ RUN npm install --production $V23_ROOT/release/javascript/core
 
 # Install Vanadium libraries and playground binaries.
 RUN v23 go install -v v.io/...
-RUN v23 go install -v playground/...
 
 # Uncomment the following lines to install a version of the builder tool using
 # your local version of the code. This is useful when developing and testing

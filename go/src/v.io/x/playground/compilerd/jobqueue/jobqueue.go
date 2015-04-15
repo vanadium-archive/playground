@@ -39,8 +39,8 @@ import (
 	"sync"
 	"time"
 
-	"playground/lib"
-	"playground/lib/event"
+	"v.io/x/playground/lib"
+	"v.io/x/playground/lib/event"
 )
 
 var (

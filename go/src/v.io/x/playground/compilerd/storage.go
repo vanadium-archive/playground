@@ -18,7 +18,7 @@ import (
 	"log"
 	"net/http"
 
-	"playground/compilerd/storage"
+	"v.io/x/playground/compilerd/storage"
 )
 
 //////////////////////////////////////////

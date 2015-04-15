@@ -7,11 +7,11 @@
 
 # v.io/core/shell/lib/shell_test.sh sourced via playground/lib/pg_test_util.sh
 # (shell_test.sh has side effects, should not be sourced again)
-source "$(go list -f {{.Dir}} playground)/../../../client/lib/shell/pg_test_util.sh"
+source "${V23_ROOT}/release/projects/playground/client/lib/shell/pg_test_util.sh"
 
 # Sets up a glob file with the given files, then runs builder.
 test_with_files() {
-  local -r TESTDATA_DIR="$(go list -f {{.Dir}} playground)/testdata"
+  local -r TESTDATA_DIR="$(go list -f {{.Dir}} v.io/x/playground)/testdata"
 
   # Write input file paths to the glob file.
   local -r CONFIG_FILE="$(shell::tmp_dir)/test.bundle"

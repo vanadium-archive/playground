@@ -18,9 +18,8 @@ import (
 	"strconv"
 	"time"
 
+	"v.io/x/playground/lib"
 	"v.io/x/ref/envvar"
-
-	"playground/lib"
 )
 
 var (

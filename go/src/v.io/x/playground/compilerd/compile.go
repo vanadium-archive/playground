@@ -19,10 +19,10 @@ import (
 
 	"github.com/golang/groupcache/lru"
 
-	"playground/compilerd/jobqueue"
-	"playground/lib"
-	"playground/lib/event"
-	"playground/lib/hash"
+	"v.io/x/playground/compilerd/jobqueue"
+	"v.io/x/playground/lib"
+	"v.io/x/playground/lib/event"
+	"v.io/x/playground/lib/hash"
 )
 
 var (

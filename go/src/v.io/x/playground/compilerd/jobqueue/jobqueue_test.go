@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"playground/lib/event"
+	"v.io/x/playground/lib/event"
 )
 
 var (

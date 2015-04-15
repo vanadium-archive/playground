@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"playground/compilerd/jobqueue"
-	"playground/lib/event"
-	"playground/lib/hash"
+	"v.io/x/playground/compilerd/jobqueue"
+	"v.io/x/playground/lib/event"
+	"v.io/x/playground/lib/hash"
 )
 
 // mockDispatcher implements the jobqueue.Dispatcher interface.

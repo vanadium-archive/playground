@@ -23,8 +23,8 @@ Start (or restart) the Docker daemon:
 
 Build the playground Docker image (this will take a while...):
 
-    $ cp ~/.netrc $V23_ROOT/release/projects/playground/go/src/playground/netrc
-    $ docker build -t playground $V23_ROOT/release/projects/playground/go/src/playground/.
+    $ cp ~/.netrc $V23_ROOT/release/projects/playground/go/src/v.io/x/playground/netrc
+    $ docker build -t playground $V23_ROOT/release/projects/playground/go/src/v.io/x/playground/.
 
 Note: If you want to ensure an up-to-date version of Vanadium is installed in
 the Docker image, run the above command with the "--no-cache" flag.
@@ -50,7 +50,7 @@ Test your image (without running compilerd):
 
 Install the playground binaries:
 
-    $ GOPATH=$V23_ROOT/release/projects/playground/go v23 go install playground/...
+    $ GOPATH=$V23_ROOT/release/projects/playground/go v23 go install v.io/x/playground/...
 
 Run the compiler binary:
 
@@ -112,7 +112,7 @@ that can access it.
 
 Run the tests:
 
-    $ GOPATH=$V23_ROOT/release/projects/playground/go v23 go test playground/compilerd/...
+    $ GOPATH=$V23_ROOT/release/projects/playground/go v23 go test v.io/x/playground/compilerd/...
 
 
 # Database migrations

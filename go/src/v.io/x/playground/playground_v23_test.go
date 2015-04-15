@@ -56,7 +56,7 @@ func runPGExample(i *v23tests.T, globFile, dir string, args ...string) *v23tests
 
 	// TODO(ivanpi): move this out so it only gets invoked once even though
 	// the binary is cached.
-	builderBin := i.BuildGoPkg("playground/builder")
+	builderBin := i.BuildGoPkg("v.io/x/playground/builder")
 
 	PATH := "PATH=" + i.BinDir() + ":" + nodejsRoot
 	if path := os.Getenv("PATH"); len(path) > 0 {
@@ -87,7 +87,7 @@ func V23TestPlayground(i *v23tests.T) {
 	i.BuildGoPkg("v.io/x/ref/services/proxy/proxyd")
 	i.BuildGoPkg("v.io/x/ref/services/wspr/wsprd")
 
-	playgroundPkg := golist(i, "playground")
+	playgroundPkg := golist(i, "v.io/x/playground")
 	// strip last three directory components, much easier to read in
 	// errors than <path>/../../..
 	playgroundRoot = filepath.Dir(playgroundPkg)

@@ -24,11 +24,11 @@ builder-deps:
 
 .PHONY: builder
 builder: builder-deps
-	v23 go install playground/builder
+	v23 go install v.io/x/playground/builder
 
 .PHONY: compilerd
 compilerd:
-	v23 go install playground/compilerd
+	v23 go install v.io/x/playground/compilerd
 
 .PHONY: start
 start: config/db.json all

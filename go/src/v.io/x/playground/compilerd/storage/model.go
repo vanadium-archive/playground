@@ -38,7 +38,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 
-	"playground/lib/hash"
+	"v.io/x/playground/lib/hash"
 )
 
 var (

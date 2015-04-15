@@ -18,8 +18,7 @@ import (
 	"github.com/rubenv/sql-migrate"
 
 	"v.io/x/lib/dbutil"
-
-	"playground/compilerd/storage"
+	"v.io/x/playground/compilerd/storage"
 )
 
 var (

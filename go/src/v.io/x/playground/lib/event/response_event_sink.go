@@ -11,7 +11,7 @@ import (
 	"io"
 	"sync"
 
-	"playground/lib"
+	"v.io/x/playground/lib"
 )
 
 // Initialize using NewResponseEventSink.
