@@ -10,9 +10,10 @@
 # $ cd bundles/fortune/src
 # $ GOPATH=$(dirname $(pwd)) VDLPATH=$(dirname $(pwd)) v23 go install ./...
 
-# v.io/core/shell/lib/shell_test.sh sourced via playground/lib/pg_test_util.sh
-# (shell_test.sh has side effects, should not be sourced again)
-source "$(go list -f {{.Dir}} playground)/../../../client/lib/shell/pg_test_util.sh"
+# v.io/core/shell/lib/shell_test.sh sourced via
+# playground/client/lib/shell/pg_test_util.sh (shell_test.sh has side
+# effects, should not be sourced again)
+source "${V23_ROOT}/release/projects/playground/client/lib/shell/pg_test_util.sh"
 
 main() {
   cd "${shell_test_WORK_DIR}"

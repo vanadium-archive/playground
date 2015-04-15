@@ -4,14 +4,11 @@
 # license that can be found in the LICENSE file.
 
 # Utilities for testing the playground builder tool.
-# Used by tests in client and go/src/playground.
+# Used by tests in client and go/src/v.io/x/playground.
 
-# PLAYGROUND_ROOT is obtained relative to the playground package in
-# ${PLAYGROUND_ROOT}/go/src/playground .
-# Assumes the playground package is included in GOPATH.
-PLAYGROUND_ROOT="$(CDPATH="" cd -P $(go list -f {{.Dir}} playground)/../../.. && pwd)"
+PLAYGROUND_ROOT="${V23_ROOT}/release/projects/playground"
 
-source "$(go list -f {{.Dir}} playground)/../../../client/lib/shell/shell_test.sh"
+source "${V23_ROOT}/release/projects/playground/client/lib/shell/shell_test.sh"
 
 # Sets up environment variables required for the tests.
 setup_environment() {
@@ -46,7 +43,7 @@ build_go_binaries() {
   shell_test::build_go_binary 'v.io/x/ref/services/mounttable/mounttabled'
   shell_test::build_go_binary 'v.io/x/ref/services/wspr/wsprd'
   shell_test::build_go_binary 'v.io/x/ref/cmd/vdl'
-  shell_test::build_go_binary 'playground/builder'
+  shell_test::build_go_binary 'v.io/x/playground/builder'
 }
 
 # Bundles a playground example and tests it using builder.

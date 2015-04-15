@@ -8,7 +8,7 @@
 # Unit tests for the shell functions in this directory
 #
 
-source "$(go list -f {{.Dir}} playground)/../../../client/lib/shell/shell_test.sh"
+source "${V23_ROOT}/release/projects/playground/client/lib/shell/shell_test.sh"
 
 test_assert() {
   shell_test::assert_eq "foo" "foo" "${LINENO}"

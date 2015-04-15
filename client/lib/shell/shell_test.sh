@@ -9,7 +9,7 @@
 # handler must call shell_test::at_exit to clean up all temporary
 # files and directories created by this library.
 
-source "$(go list -f {{.Dir}} playground)/../../../client/lib/shell/shell.sh"
+source "${V23_ROOT}/release/projects/playground/client/lib/shell/shell.sh"
 
 trap shell_test::at_exit INT TERM EXIT
 
