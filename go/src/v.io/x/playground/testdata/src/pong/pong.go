@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	"v.io/v23"
+	"v.io/v23/context"
 	"v.io/v23/rpc"
 	"v.io/v23/security"
 	"v.io/x/lib/vlog"
@@ -21,8 +22,8 @@ import (
 
 type pongd struct{}
 
-func (f *pongd) Ping(call rpc.ServerCall, message string) (result string, err error) {
-	remote, _ := security.RemoteBlessingNames(call.Context())
+func (f *pongd) Ping(ctx *context.T, _ rpc.ServerCall, message string) (result string, err error) {
+	remote, _ := security.RemoteBlessingNames(ctx)
 	fmt.Printf("%v: %q\n", remote, message)
 	return "PONG", nil
 }
