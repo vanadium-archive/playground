@@ -13,7 +13,6 @@ package main
 
 import (
 	"flag"
-	"log"
 	"net/http"
 	"time"
 
@@ -23,6 +22,7 @@ import (
 	"v.io/x/playground/lib"
 	"v.io/x/playground/lib/event"
 	"v.io/x/playground/lib/hash"
+	"v.io/x/playground/lib/log"
 )
 
 var (
@@ -98,7 +98,7 @@ func (c *compiler) handlerCompile(w http.ResponseWriter, r *http.Request) {
 		// The response is hard limited to 2*maxSize: maxSize for builder stdout,
 		// and another maxSize for compilerd error and status messages.
 		return event.NewResponseEventSink(lib.NewLimitedWriter(w, 2*(*maxSize), lib.DoOnce(func() {
-			log.Println("Hard response size limit reached.")
+			log.Debugln("Hard response size limit reached.")
 		})), !wantDebug)
 	}
 
@@ -107,6 +107,8 @@ func (c *compiler) handlerCompile(w http.ResponseWriter, r *http.Request) {
 		res.Write(event.New("", "stderr", "Program too large."))
 		return
 	}
+
+	log.Debugln("Got valid compile request.")
 
 	// Hash the body and see if it's been cached. If so, return the cached
 	// response status and body.
@@ -117,6 +119,7 @@ func (c *compiler) handlerCompile(w http.ResponseWriter, r *http.Request) {
 		if cachedResponseStruct, ok := cr.(cachedResponse); ok {
 			res := openResponse(cachedResponseStruct.Status)
 			event.Debug(res, "Sending cached response")
+			log.Debugln("Sending cached response.")
 			res.Write(cachedResponseStruct.Events...)
 			return
 		} else {
@@ -158,17 +161,19 @@ func (c *compiler) handlerCompile(w http.ResponseWriter, r *http.Request) {
 			// If the client disconnects before job finishes, cancel the job.
 			// If job has already started, the job will finish and the results
 			// will be cached.
-			log.Printf("Client disconnected. Cancelling job.")
+			log.Debugln("Client disconnected. Cancelling job.")
 			job.Cancel()
 		case result := <-resultChan:
 			if result.Success {
 				event.Debug(res, "Caching response")
+				log.Debugln("Caching response.")
 				cache.Add(requestBodyHash, cachedResponse{
 					Status: http.StatusOK,
 					Events: result.Events,
 				})
 			} else {
-				event.Debug(res, "Internal errors encountered, not caching response")
+				event.Debug(res, "Internal errors encountered, not caching response.")
+				log.Warnln("Internal errors encountered, not caching response.")
 			}
 			return
 		}

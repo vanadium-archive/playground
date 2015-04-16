@@ -15,10 +15,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"v.io/x/playground/compilerd/storage"
+	"v.io/x/playground/lib/log"
 )
 
 //////////////////////////////////////////
@@ -118,7 +118,7 @@ func storageError(w http.ResponseWriter, status int, msg string) {
 // Logs error internally and sends non-specific error response to client.
 func storageInternalError(w http.ResponseWriter, v ...interface{}) {
 	if len(v) > 0 {
-		log.Println(v...)
+		log.Errorln(v...)
 	}
 	storageError(w, http.StatusInternalServerError, "Internal error, please retry.")
 }

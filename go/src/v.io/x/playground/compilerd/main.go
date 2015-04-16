@@ -16,7 +16,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -27,6 +26,7 @@ import (
 
 	"v.io/x/lib/dbutil"
 	"v.io/x/playground/compilerd/storage"
+	"v.io/x/playground/lib/log"
 )
 
 func init() {
@@ -75,10 +75,13 @@ func seedRNG() error {
 }
 
 func main() {
+	log.InitSyslogLoggers()
+
+	log.Debugf("Compilerd starting.\n")
 	flag.Parse()
 
 	if err := seedRNG(); err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	c := newCompiler()
@@ -94,33 +97,45 @@ func main() {
 		go waitForExit(c, time.Nanosecond*time.Duration(delayNs))
 	}
 
+	serveMux := http.NewServeMux()
+
 	if *sqlConf != "" {
+		log.Debugf("Using sql config %v\n", *sqlConf)
+
 		// Parse SQL configuration file and set up TLS.
 		dbConfig, err := dbutil.ActivateSqlConfigFromFile(*sqlConf)
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 
 		// Connect to storage backend.
 		if err := storage.Connect(dbConfig); err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 
 		// Add routes for storage.
-		http.HandleFunc("/load", handlerLoad)
-		http.HandleFunc("/save", handlerSave)
+		serveMux.HandleFunc("/load", handlerLoad)
+		serveMux.HandleFunc("/save", handlerSave)
 	} else {
+		log.Debugln("No sql config provided. Disabling /load and /save routes.")
+
 		// Return 501 Not Implemented for the /load and /save routes.
-		http.HandleFunc("/load", handlerNotImplemented)
-		http.HandleFunc("/save", handlerNotImplemented)
+		serveMux.HandleFunc("/load", handlerNotImplemented)
+		serveMux.HandleFunc("/save", handlerNotImplemented)
 	}
 
-	http.HandleFunc("/compile", c.handlerCompile)
-	http.HandleFunc("/healthz", handlerHealthz)
+	serveMux.HandleFunc("/compile", c.handlerCompile)
+	serveMux.HandleFunc("/healthz", handlerHealthz)
 
-	log.Printf("Serving %s\n", *address)
-	if err := http.ListenAndServe(*address, nil); err != nil {
-		panic(err)
+	log.Debugf("Serving %s\n", *address)
+	s := http.Server{
+		Addr:     *address,
+		Handler:  serveMux,
+		ErrorLog: log.ErrorLogger,
+	}
+
+	if err := s.ListenAndServe(); err != nil {
+		log.Panic(err)
 	}
 }
 
@@ -131,15 +146,15 @@ func waitForExit(c *compiler, limit time.Duration) {
 
 	// Or if the time limit expires.
 	deadline := time.After(limit)
-	log.Println("Exiting at", time.Now().Add(limit))
+	log.Debugln("Exiting at", time.Now().Add(limit))
 Loop:
 	for {
 		select {
 		case <-deadline:
-			log.Println("Deadline expired, exiting in at most", exitDelay)
+			log.Debugln("Deadline expired, exiting in at most", exitDelay)
 			break Loop
 		case <-term:
-			log.Println("Got SIGTERM, exiting in at most", exitDelay)
+			log.Debugln("Got SIGTERM, exiting in at most", exitDelay)
 			break Loop
 		}
 	}
@@ -150,7 +165,7 @@ Loop:
 	go func() {
 		select {
 		case <-time.After(exitDelay):
-			fmt.Errorf("Dispatcher did not stop in %v, exiting.", exitDelay)
+			log.Warnf("Dispatcher did not stop in %v, exiting.", exitDelay)
 			os.Exit(1)
 		}
 	}()
@@ -165,7 +180,7 @@ Loop:
 	// Close database connections.
 	if *sqlConf != "" {
 		if err := storage.Close(); err != nil {
-			fmt.Errorf("storage.Close() failed: %v", err)
+			log.Errorf("storage.Close() failed: %v", err)
 		}
 	}
 
