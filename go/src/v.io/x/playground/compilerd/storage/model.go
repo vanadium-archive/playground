@@ -139,11 +139,11 @@ func StoreBundleLinkAndData(json []byte) (bLink *BundleLink, bData *BundleData, 
 	bHash := bHashRaw[:]
 
 	// Attempt transaction up to 3 times.
-	runInTransaction(3, func(tx *sqlx.Tx) error {
+	retErr = runInTransaction(3, func(tx *sqlx.Tx) error {
 		// Generate a random id for the bundle link.
 		id, err := randomLink(bHash)
 		if err != nil {
-			return fmt.Errorf("Error creaking link id: %v", err)
+			return fmt.Errorf("Error creating link id: %v", err)
 		}
 
 		// Check if bundle link with this id already exists in DB.
