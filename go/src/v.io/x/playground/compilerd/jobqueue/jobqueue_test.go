@@ -30,7 +30,7 @@ func init() {
 	pgDir := os.ExpandEnv("${V23_ROOT}/release/projects/playground/go")
 
 	cmd := exec.Command("make", "builder")
-	cmd.Dir = path.Join(pgDir, "src", "playground")
+	cmd.Dir = path.Join(pgDir, "src", "v.io", "x", "playground")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		fmt.Println("Error running 'make builder'")
 		fmt.Println(string(out))
