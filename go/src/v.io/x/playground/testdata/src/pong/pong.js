@@ -11,8 +11,9 @@ function PingPongService() {}
 
 inherits(PingPongService, pingpong.PingPong);
 
-PingPongService.prototype.ping = function(ctx, message) {
-  console.log('[' + ctx.remoteBlessingStrings + '] ' + message);
+PingPongService.prototype.ping = function(ctx, serverCall, message) {
+  var secCall = serverCall.securityCall;
+  console.log('[' + secCall.remoteBlessingStrings + '] ' + message);
   return Promise.resolve('PONG');
 };
 
