@@ -245,6 +245,9 @@ func handlerHealthz(w http.ResponseWriter, r *http.Request) {
 }
 
 func handlerNotImplemented(w http.ResponseWriter, r *http.Request) {
+	if !handleCORS(w, r) {
+		return
+	}
+
 	w.WriteHeader(http.StatusNotImplemented)
-	return
 }

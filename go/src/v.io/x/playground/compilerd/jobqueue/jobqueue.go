@@ -138,7 +138,7 @@ func NewDispatcher(workers int, jobQueueCap int) Dispatcher {
 // start starts a given number of workers, then reads from the jobQueue and
 // assigns jobs to free workers.
 func (d *dispatcherImpl) start(num int) {
-	log.Debugf("Dispatcher starting.\n", num)
+	log.Debugf("Dispatcher starting.\n")
 
 	// Workers are published on the workerQueue when they are free.
 	workerQueue := make(chan *worker, num)
