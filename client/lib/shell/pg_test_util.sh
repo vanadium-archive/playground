@@ -14,7 +14,7 @@ source "${V23_ROOT}/release/projects/playground/client/lib/shell/shell_test.sh"
 setup_environment() {
   export GOPATH="$(pwd):$(v23 env GOPATH)"
   export VDLPATH="$(pwd):$(v23 env VDLPATH)"
-  export PATH="$(pwd):${shell_test_BIN_DIR}:${V23_ROOT}/environment/cout/node/bin:${PATH}"
+  export PATH="$(pwd):${shell_test_BIN_DIR}:${V23_ROOT}/third_party/cout/node/bin:${PATH}"
 
   # We unset all environment variables that supply a principal in order to
   # simulate production playground setup.

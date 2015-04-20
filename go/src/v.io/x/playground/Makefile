@@ -1,5 +1,5 @@
 PATH := bin:node_modules/.bin:$(PATH)
-PATH := $(PATH):$(V23_ROOT)/environment/cout/node/bin
+PATH := $(PATH):$(V23_ROOT)/third_party/cout/node/bin
 PATH := $(V23_ROOT)/release/projects/playground/go/bin:$(PATH)
 SHELL := /bin/bash -euo pipefail
 export GOPATH := $(V23_ROOT)/release/projects/playground/go:$(GOPATH)
