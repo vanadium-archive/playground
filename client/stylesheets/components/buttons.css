@@ -1,0 +1,67 @@
+/* Copyright 2015 The Vanadium Authors. All rights reserved. */
+/* Use of this source code is governed by a BSD-style */
+/* license that can be found in the LICENSE file. */
+
+.button {
+  display: inline-block;
+  font-size: 14px;
+  line-height: 14px;
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  padding: 12px;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.button-passive {
+  inherit: .button;
+  color: var(--cyan-800);
+  border: 1px solid var(--cyan-800);
+  background-color: transparent;
+  transition: background-color 0.28s cubic-bezier(0.4, 0.0, 0.2, 1);
+/* See: https://spec.googleplex.com/quantum/resources/animation.html */
+}
+
+.button-passive:hover, .button-passive:active {
+  color: var(--white);
+  background-color: var(--cyan-800);
+  text-decoration: none;
+}
+
+.button-secondary {
+  inherit: .button;
+  color: var(--cyan-800);
+  background-color: var(--white);
+  border: 1px solid var(--white);
+  box-shadow: var(--drop-shadow);
+}
+
+.button-secondary:hover {
+  text-decoration: none;
+  background-color: var(--white);
+}
+
+.button-secondary:active {
+  background-color: var(--white);
+  box-shadow: var(--drop-shadow-intense);
+}
+
+.button-primary {
+  inherit: .button;
+  color: var(--white);
+  background-color: var(--cyan-800);
+  border: 1px solid var(--cyan-800);
+  box-shadow: var(--drop-shadow);
+}
+
+.button-primary:hover {
+  text-decoration: none;
+  color: var(--white);
+  background-color: var(--cyan-800);
+}
+
+.button-primary:active {
+  color: var(--cyan-800);
+  color: var(--white);
+  box-shadow: var(--drop-shadow-intense);
+}

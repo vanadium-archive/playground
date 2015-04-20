@@ -32,7 +32,7 @@ function AceWidget(file) {
   editor.extname = path.extname(file.name).replace('.', '');
   editor.text = file.body;
 
-  debug('initialization %s - %s', editor.filename, editor.visible);
+  debug('initialization %s', editor.filename);
 }
 
 // The first time an instance of widget is seen it will have widget.init()

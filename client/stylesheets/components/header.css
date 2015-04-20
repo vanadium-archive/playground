@@ -1,0 +1,75 @@
+/* Copyright 2015 The Vanadium Authors. All rights reserved. */
+/* Use of this source code is governed by a BSD-style */
+/* license that can be found in the LICENSE file. */
+
+header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: var(--header-height);
+  background-color: var(--cyan-800);
+  color: white;
+  z-index: 900;
+  box-shadow: var(--drop-shadow);
+  transition:
+    background-color ease-in-out 0.3s,
+    box-shadow ease-in-out 0.3s;
+}
+
+header a,
+header a:hover,
+header a:active {
+  color: inherit;
+  text-decoration: none;
+}
+
+header nav {
+  display: flex;
+  align-items: center;
+}
+
+header .left {
+  width: var(--sidebar-width);
+  padding-left: var(--gutter);
+}
+
+
+/* TODO(jasoncampbell): move to icons */
+header a.logo {
+  text-indent: -1000em;
+  overflow: hidden;
+
+  display: block;
+  width: 176px;
+  height: 44px;
+
+  background-image: url(/icons/logo-text-white.svg);
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: auto 40px;
+}
+
+header .main {
+  flex: 1;
+  justify-content: flex-end;
+  margin-right: var(--gutter);
+}
+
+header .main a {
+  font-size: 14px;
+  line-height: 14px;
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  margin-left: var(--gutter);
+}
+
+header .bundle-run-or-stop {
+  inherit: .button-passive;
+  color: var(--white);
+  border: 1px solid var(--white);
+  padding-left: var(--gutter-half);
+  padding-right: var(--gutter-half);
+  text-align: center;
+  /* STOP || RUN */
+  min-width: calc(2.5 * var(--gutter));
+}

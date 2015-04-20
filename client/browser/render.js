@@ -17,7 +17,8 @@ module.exports = render;
 function render(state) {
   return h('.playground', [
     hg.partial(header.render, state, state.channels),
-    hg.partial(main, state)
+    hg.partial(main, state),
+    hg.partial(footer, state, state.channels)
   ]);
 }
 
@@ -49,4 +50,38 @@ function main(state, anchor) {
   }
 
   return h('main', [ partial ]);
+}
+
+function footer(state, channels) {
+  return h('footer', [
+    h('nav.main', [
+      h('a', {
+        href: 'https://v.io/introduction.html'
+      }, 'Intro'),
+      h('a', {
+        href: 'https://v.io/installation/'
+      }, 'Install'),
+      h('a', {
+        href: 'https://v.io/tutorials/'
+      }, 'Tutorials'),
+      h('a', {
+        href: 'https://v.io/docs.html'
+      }, 'API'),
+      h('a', {
+        href: 'https://v.io/community/'
+      }, 'Community'),
+      h('a', {
+        href: 'https://v.io/tos.html'
+      }, 'Terms of Service'),
+      h('a', {
+        href: 'https://github.com/vanadium/issues/issues/'
+      }, 'File a Bug')
+    ]),
+    h('nav.social', [
+      h('a.icon-github', { href: 'https://github.com/vanadium' }),
+      h('a.icon-twitter', {
+        href: 'https://twitter.com/vanadiumteam'
+      })
+    ])
+  ]);
 }

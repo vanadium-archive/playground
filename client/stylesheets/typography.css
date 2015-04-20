@@ -1,0 +1,259 @@
+/* Copyright 2015 The Vanadium Authors. All rights reserved. */
+/* Use of this source code is governed by a BSD-style */
+/* license that can be found in the LICENSE file. */
+
+/**
+ * Vertical spacing is added to element selectors directly so that type rules
+ * can be inherited without effecting the layout of the elements doing the
+ * inheritance.
+ */
+.type-base {
+  font-family: var(--primary-font);
+  font-weight: var(--font-weight-regular);
+  font-style: normal;
+  color: var(--blue-grey-700);
+  -webkit-font-smoothing: antialiased;
+}
+
+.type-body {
+  font-size: 14px;
+  line-height: 24px;
+}
+
+body {
+  inherits: .type-base;
+  inherits: .type-body;
+}
+
+a {
+  color: var(--link-primary);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+a:active, a.active, a:hover, a.hover {
+  color: var(--link-primary-active);
+}
+
+/* Headings */
+
+.type-display3 {
+  font-size: 56px;
+  font-weight: var(--font-weight-light);
+  line-height: 66px;
+  color: var(--blue-grey-900);
+}
+
+.type-display1 {
+  font-size: 34px;
+  font-weight: var(--font-weight-regular);
+  line-height: 40px;
+  color: var(--cyan-700);
+}
+
+.type-headline {
+  font-size: 24px;
+  font-weight: var(--font-weight-regular);
+  line-height: 32px;
+  color: var(--blue-grey-500);
+}
+
+.type-title {
+  font-size: 20px;
+  font-weight: var(--font-weight-medium);
+  line-height: 30px;
+  color: var(--blue-grey-800);
+}
+
+.type-caption {
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+  color: var(--blue-grey-500);
+}
+
+.type-smallhead {
+  font-size: 16px;
+  font-weight: var(--font-weight-medium);
+  line-height: 14px;
+  color: var(--blue-grey-800);
+}
+
+.type-subhead {
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  line-height: 14px;
+  color: var(--blue-grey-800);
+  text-transform: uppercase;
+}
+
+.type-bold {
+  font-weight: var(--font-weight-medium);
+  color: var(--blue-grey-900);
+}
+
+h1 {
+  inherits: .type-headline;
+  position: relative;
+  margin: var(--gutter-wide) 0 var(--gutter-half);
+}
+
+h2 {
+  inherits: .type-title;
+  position: relative;
+  margin: var(--gutter) 0 var(--gutter-half);
+}
+
+h3, h4, .title {
+  inherits: .type-smallhead;
+  position: relative;
+  margin: var(--gutter) 0 var(--gutter-half);
+}
+
+h5 {
+  inherit: .type-subhead;
+  margin: var(--gutter) 0 var(--gutter-half);
+}
+
+h6 {
+  inherit: .type-caption;
+}
+
+strong {
+  inherit: .type-bold;
+}
+
+.intro-head {
+  inherits: .type-display3;
+  margin: var(--gutter) 0;
+}
+
+.page-head {
+  inherits: .type-display1;
+  position: relative;
+  margin: var(--gutter-wide) 0 var(--gutter);
+}
+
+.contrast-head {
+  inherits: .type-display1;
+  padding: var(--gutter-double);
+  padding-top: calc(var(--header-height) + var(--gutter-half));
+  margin-bottom: 0;
+  color: #fff;
+  background-color: var(--blue-grey-500);
+}
+
+/* Add appropriate vertical rhythm and set stacking order */
+p, blockquote, pre, address,
+dl, dt, dd,
+ol, ul,
+figcaption, article, aside {
+  inherit: .type-body;
+  margin: var(--gutter-half) 0 var(--gutter-half);
+  position: relative;
+  z-index: 1;
+}
+
+/* Lists */
+ul, ol {
+  list-style-position: outside;
+}
+
+ul {
+  list-style-type: disc;
+}
+
+ol {
+  list-style-type: decimal;
+}
+
+/* Nested lists */
+
+ol ol, ul ol {
+  list-style-type: lower-latin;
+}
+
+ul ul,
+ul ol,
+ol ol,
+ol ul {
+  margin: 0;
+  margin-left: var(--gutter-half); /* nested indent */
+}
+
+li {
+  margin-left: var(--gutter); /* allows room for outside bullets */
+  margin-bottom: var(--gutter-half);
+}
+
+ol {
+  list-style: latin;
+}
+
+/* Inline elements */
+sub, sup {
+  line-height: 0;
+  vertical-align: super;
+  font-size: smaller;
+}
+
+sub {
+  vertical-align: sub;
+}
+
+figure {
+  margin: 0 -var(--gutter);
+}
+
+figure img {
+  max-width: 100%;
+  display: block;
+}
+
+figcaption {
+  margin: var(--gutter-half) var(--gutter);
+}
+
+figcaption, small {
+  inherit: .type-caption;
+}
+
+em {
+  font-style: italic;
+}
+
+sub {
+  vertical-align: sub;
+}
+
+.text-yellow {
+  color: var(--text-yellow);
+}
+
+.text-orange {
+  color: var(--text-orange);
+}
+
+.text-red {
+  color: var(--text-red);
+}
+
+.text-magenta {
+  color: var(--text-magenta);
+}
+
+.text-violet {
+  color: var(--text-violet);
+}
+
+.text-blue {
+  color: var(--text-blue);
+}
+
+.text-cyan {
+  color: var(--text-cyan);
+}
+
+.text-green {
+  color: var(--text-green);
+}

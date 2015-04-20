@@ -3,100 +3,74 @@
 // license that can be found in the LICENSE file.
 
 var debug = require('debug')('components:bundle:render');
-var anchor = require('../../router/anchor');
 var h = require('mercury').h;
 var hg = require('mercury');
-var results = require('../results-console');
+var results = require('../results').render;
 var toArray = require('../../util').toArray;
+var click = require('../../event-handlers/click');
+var path = require('path');
+var aceWidget = require('../../widgets/ace-widget');
+var aceChange = require('../../event-handlers/ace-change');
 
 module.exports = render;
 
 function render(state) {
   debug('update %o', state);
 
+  // NOTE: It is possible to try and render a bundle without it being
+  // populated from the API yet. In that case show a loader.
   if (! state) {
-    return h('.bundle', [
-      h('p', 'Loading...')
-    ]);
+    return h('.bundle', 'Loading...');
   }
 
   return h('.bundle', [
-    h('.pg', [
-      hg.partial(anchorbar, state, state.channels),
-      hg.partial(tabs, state, state.channels),
-      hg.partial(controls, state, state.channels),
-      hg.partial(editors, state, state.channels),
-      hg.partial(results.render,
-        state.resultsConsole,
-        state.resultsConsole.channels)
-    ])
+    hg.partial(code, state, state.channels),
+    hg.partial(results, state.results, state.results.channels),
   ]);
 }
 
-var options = { preventDefault: true };
-
-function anchorbar(state, channels) {
-  return h('.widget-bar', [
-    h('p', [
-      h('strong', 'anchor:'),
-      anchor({ href: '/' + state.uuid }, state.uuid)
-    ])
+function code(state, channels) {
+  return h('.code', [
+    hg.partial(tabs, state, channels),
+    hg.partial(editors, state, channels)
   ]);
 }
 
 function tabs(state, channels) {
   var files = toArray(state.files);
 
-  return h('span.tabs', files.map(tab, state));
+  return h('.tabs', files.map(tab, state));
 }
 
 function tab(file, index, array) {
   var state = this;
   var channels = state.channels;
+  var name = path.basename(file.name);
 
-  return h('span.tab', {
+  return h('a.tab', {
     className: state.tab === file.name ? 'active' : '',
-    'ev-click': hg.sendClick(channels.tab, { tab: file.name }, options)
-  }, file.name);
+    href: '#',
+    'ev-click': click(channels.tab, { tab: file.name })
+  }, name);
 }
 
-function controls(state, channels) {
-  return h('span.btns', [
-    hg.partial(runButton, state, channels),
-    h('button.btn', {
-      'ev-click': hg.sendClick(channels.save)
-    }, 'Save')
-  ]);
-}
 
-function runButton(state, channels) {
-  var text = 'Run Code';
-  var sink = channels.run;
-
-  if (state.running) {
-    text = 'Stop';
-    sink = channels.stop;
-  }
-
-  return h('button.btn', {
-    'ev-click': hg.sendClick(sink)
-  }, text);
-}
-
-// TODO(jasoncampbell): It makes sense to break the editor into it's own
-// component as we will be adding features...
-var aceWidget = require('../../widgets/ace-widget');
-var aceChange = require('../../event-handlers/ace-change');
 
 function editors(state, channels) {
   var files = toArray(state.files);
 
-  return h('.editors', files.map(function(file) {
-    return h('.editor', {
-      className: (state.tab === file.name ? 'active' : ''),
-      'ev-ace-change': aceChange(state.channels.fileChange),
-    }, [
-      aceWidget(file)
-    ]);
-  }));
+  return h('.editors', files.map(editor, state));
+}
+
+function editor(file, index, files) {
+  var state = this;
+  var channels = state.channels;
+  var isActive = state.tab === file.name;
+
+  return h('.editor', {
+    className: (isActive ? 'active' : ''),
+    'ev-ace-change': aceChange(channels.fileChange),
+  }, [
+    aceWidget(file)
+  ]);
 }

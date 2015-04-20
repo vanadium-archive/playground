@@ -67,7 +67,7 @@ API.prototype.url = function(options) {
 
   // Append trailing slash if it's missing
   if (! clone.pathname.match(/\/$/)) {
-    clone.pathname = clone.pathname + '/'
+    clone.pathname = clone.pathname + '/';
   }
 
   // NOTE: paying attention to options.action is temporary until the API gets
@@ -106,10 +106,10 @@ API.prototype.bundles = function(callback) {
   // TODO(jasoncampbell): remove this list once a list API endpoint is
   // available.
   var ids = [
-    '_39bce22c2acd70cd235ad2764738f3ffcaec7a5fea67ec4c14a674b991a373c',
-    '_8e15dfe13cf1288ace5f58b0c35a77015be2b23b61ca673a497c7d50afedf3b',
-    '_de64000da6c89b19f566135e7459557fdd3be1f6f4b6e74f76c60f2693fceb1',
-    '_e9a1eb094d30d3d7602f561610f155e29e3d0c9d875116657a65415937e1137'
+    '_051039d58946cfbe3a603fd7ed3149b0501b8f1e13ee0778e9c30e08d8a94d3',
+    '_9999dc7e35426090058fb0240a8a2c1b128ea958e092b0d53ac5f2a5ca4c54a',
+    '_eee960846ba210e4d9b6b01463625a2e5bf15b9dab61d76b4fc38ae04317bbd',
+    '_5f199e7f67cc6b60efddf2d37cdf2c0d1aeec488007981e972c1e0a43f91c3e'
   ];
 
   var workers = ids.map(createWorker);

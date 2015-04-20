@@ -6,7 +6,7 @@ var debug = require('debug')('components:bundle:state');
 var hg = require('mercury');
 var log = require('../log');
 var api = require('../../api');
-var resultsConsole = require('../results-console');
+var results = require('../results');
 var router = require('../../router');
 var toArray = require('../../util').toArray;
 
@@ -20,7 +20,7 @@ function bundle(json) {
     tab: hg.value(json.files[0].name),
     running: hg.value(false),
     reset: hg.value(false),
-    resultsConsole: resultsConsole(),
+    results: results(),
     channels: {
       tab: tab,
       run: run,
@@ -51,9 +51,8 @@ function bundle(json) {
 
     // If running clear previous logs and open the console.
     if (running) {
-      state.resultsConsole.logs.set(hg.array([]));
-      state.resultsConsole.open.set(true);
-      state.resultsConsole.follow.set(true);
+      state.results.logs.set(hg.array([]));
+      state.results.follow.set(true);
     }
   });
 
@@ -99,8 +98,8 @@ function save(state) {
     // Since a new id is generated and the id is in the url the router needs
     // to be updated.
     //
-    // TODO(jasoncampbell): put the the value of the new bundle here, maybe don't trigger a
-    // reload.
+    // TODO(jasoncampbell): put the the value of the new bundle here, maybe
+    // don't trigger a reload.
     router.href.set(data.uuid);
   });
 }
@@ -126,7 +125,7 @@ function run(state) {
     });
 
     stream.on('data', function ondata(data) {
-      state.resultsConsole.logs.push(log(data));
+      state.results.logs.push(log(data));
     });
 
     stream.on('end', function() {

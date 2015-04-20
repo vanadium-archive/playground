@@ -2,176 +2,164 @@
 /* Use of this source code is governed by a BSD-style */
 /* license that can be found in the LICENSE file. */
 
-/* CSS rules for elements inside Playground instances. */
+@import "./variables.css";
+@import "./reset.css";
+@import "./typography.css";
+@import "./icons.css";
+@import "./components/buttons.css";
+@import "./components/header.css";
+@import "./components/footer.css";
 
-.pg {
-  width: 100%;
+body, .playground {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
 }
 
-.pg .widget-bar {
+main {
+  display: flex;
+  flex: 1;
+}
+
+.bundle {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+}
+
+.bundle .code,
+.bundle .results {
+  flex: 1;
+}
+
+.bundle .code {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--grey-50);
+}
+
+.bundle .tabs {
+  display: flex;
+  background-color: var(--cyan-700);
+}
+
+.bundle .tabs .tab {
+  padding: calc(var(--gutter-half) - 2px) var(--gutter);
+  border-bottom: 4px solid transparent;
+  color: var(--white-54);
+}
+
+.bundle .tabs .tab.active {
+  border-bottom-color: var(--deeporange-A200);
+  color: var(--white);
+}
+
+.editors {
+  flex: 1;
+  display: flex;
   position: relative;
-  margin-top: 2px;
-  overflow: auto;
 }
 
-.pg .btn,
-.pg .tab {
-  cursor: pointer;
-  display: inline-block;
-  font-size: 14px;
-  font-weight: normal;
-  padding: 6px 12px;
-  user-select: none;
-}
-
-.pg .tab {
-  background-color: #bbb;
-  margin-right: 2px;
-}
-
-.pg .tab.active {
-  background-color: #ddd;
-}
-
-.pg .btns {
-  float: right;
-}
-
-.pg .btn {
-  background-color: #0277bd;
-  color: #fff;
-  border: 0;
-  margin-left: 2px;
-  min-width: 70px;
-}
-
-/* TODO(sadovsky): Add .no-touch once we integrate Modernizr. */
-.pg .btn:hover {
-  background-color: #01579b;
-}
-
-.pg .btn:focus,
-.pg .btn:active {
-  outline: 0;
-}
-
-.pg .btn:active {
-  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-}
-
-.pg .btn:disabled {
-  background-color: #bbb;
-}
-
-/* TODO(sadovsky): Make this reactive. */
-.pg .editors {
-  position: relative;
-  border-top: 4px solid #ddd;
-  height: 200px;
-}
-
-.pg .editor {
-  position: absolute;  /* stack editors one on top of the other */
+.editor {
+  flex: 1;
+  position: absolute;
   width: 100%;
   height: 100%;
   visibility: hidden;
 }
 
-.pg .editor.active {
+.editor.active {
   visibility: visible;
 }
 
-.pg .ace_editor {
+.ace_editor {
   width: 100%;
   height: 100%;
-  font-family: "Source Code Pro", monospace;
-  font-size: 13px;
 }
 
-.pg .console {
-  background-color: #ddd;
-  width: 100%;
-  height: 4px;  /* matches .editors border-top; expands on run */
-  transition: height 0.2s;
-  overflow: hidden;
+.results {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--grey-50);
 }
 
-.pg .console .text {
-  color: #222;
-  font-family: "Source Code Pro", monospace;
-  font-size: 13px;
-  overflow-y: auto;
-  padding: 8px;
+.results .controls {
+  background-color: var(--cyan-600);
+  padding: var(--gutter-half) var(--gutter);
+  color: var(--white);
 }
 
-.pg .console .text .timestamp {
-  color: #9e9e9e;
+.results .controls a {
+  color: var(--blue-grey-700);
 }
 
-.pg .console .text .filename {
-  font-weight: bold;
+.results .console {
+  flex: 1;
+  position: relative;
 }
 
-/* Known bug: Chrome doesn't show tabs; refer to
-   https://code.google.com/p/chromium/issues/detail?id=398274 */
-.pg .console .text .message {
-  white-space: pre-wrap;
-  tab-size: 4;
-}
-
-.pg .console .text .stderr {
-  color: #d01716;
-}
-
-.pg .console .text .svc-stderr {
-  color: #d01716;
-}
-
-.pg .console .text .debug {
-  color: #455ede;
-}
-
-.pg .console .text .syserr {
-  color: #d01716;
-  font-weight: bold;
-}
-
-.pg .console.open {
-  height: 200px;
-  overflow: auto;
-}
-
-.pg .bundleid {
-  color: #0033ff;
-  width: 64ch; /* input size doesn't work properly in Chrome */
-  font-family: monospace;
-  font-size: 12px;
-  user-select: all;
-}
-
-.pg .spinner-overlay {
+.scroller {
   position: absolute;
-  height: 100%;
-  width: 100%;
-  z-index: 1999999999; /* one less than spinner-internal */
-  background-color: #000;
-  opacity: 0.5;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: auto;
+  padding: var(--gutter);
 }
 
-.pg .notif {
-  font-size: 14px;
+.log {
+  margin-bottom: var(--gutter);
 }
 
-.pg .notif.success {
-  color: #33cc33;
+.log .meta {
+  display: flex;
 }
 
-.pg .notif.error {
-  color: #d01716;
+.log .meta .source {
+  flex: 1;
+  font-weight: bold;
 }
 
-.clearfix {
-  display: table;
-  clear: both;
-  content: "";
+.log .meta .source .stream {
+  font-weight: normal;
+}
+
+.log .message {
+  font-family: "Source Code Pro", monospace;
+  padding-left: var(--gutter-half);
+  overflow: hidden;
+  overflow-y: scroll;
+}
+
+.log .message pre {
+  padding: 0;
+  margin: 0;
+  white-space: pre-wrap;       /* CSS 3 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;      /* Opera 4-6 */
+  white-space: -o-pre-wrap;    /* Opera 7 */
+  word-wrap: break-word;
+}
+
+.log.debug pre {
+  color: #00B9F7;
+}
+
+.log.stdout {
+
+}
+
+.log.stderr pre {
+  color: #F03A76;
+}
+
+.log.debug {
+  display: none;
+}
+
+.console.debug .log.debug {
+  display: block;
 }

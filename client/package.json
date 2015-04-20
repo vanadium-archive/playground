@@ -9,7 +9,6 @@
   "main": "browser/index.js",
   "dependencies": {
     "brace": "^0.4.0",
-    "browserify": "^8.1.1",
     "debug": "^2.1.3",
     "domready": "^1.0.7",
     "format": "^0.2.1",
@@ -17,7 +16,6 @@
     "hyperquest": "^1.0.1",
     "mercury": "^14.0.0",
     "moment": "^2.10.2",
-    "pgbundle": "0.0.1",
     "prr": "^1.0.1",
     "routes": "^2.0.0",
     "run-parallel": "^1.1.0",
@@ -33,8 +31,14 @@
     "test": "make test"
   },
   "devDependencies": {
+    "browserify": "^8.1.1",
     "http-server": "^0.7.4",
     "jshint": "^2.6.0",
+    "minimist": "^1.1.1",
+    "myth": "^1.4.0",
+    "pgbundle": "0.0.1",
+    "rework-inherit": "^0.2.3",
+    "rework": "^1.0.1",
     "run-browser": "^2.0.2",
     "tape": "^3.5.0"
   },

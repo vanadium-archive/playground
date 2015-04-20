@@ -26,9 +26,8 @@ deploy-staging: all
 public/bundle.js: browser/index.js $(js_files) node_modules
 	browserify --debug $< 1> $@
 
-# TODO(jasoncampbell): Hookup the css compiler from www
 public/bundle.css: stylesheets/index.css $(css_files) node_modules
-	cp $< $@
+	bin/compile-css $< 1> $@
 
 # Each profile (glob file with file patterns to include) from
 # `bundles/<profile>.bundle` is applied to each example folder of the
