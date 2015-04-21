@@ -26,7 +26,7 @@ func init() {
 	if len(vanadiumRoot) == 0 {
 		panic("V23_ROOT must be set")
 	}
-	nodejsRoot = filepath.Join(vanadiumRoot, "environment/cout/node/bin")
+	nodejsRoot = filepath.Join(vanadiumRoot, "third_party", "cout", "node", "bin")
 }
 
 func golist(i *v23tests.T, pkg string) string {
