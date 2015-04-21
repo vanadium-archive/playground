@@ -82,10 +82,10 @@ func V23TestPlayground(i *v23tests.T) {
 
 	v23tests.RunRootMT(i, "--v23.tcp.address=127.0.0.1:0")
 
+	i.BuildGoPkg("v.io/x/ref/services/wspr/wsprd", "-a", "-tags", "wspr")
 	i.BuildGoPkg("v.io/x/ref/cmd/principal")
 	i.BuildGoPkg("v.io/x/ref/cmd/vdl")
 	i.BuildGoPkg("v.io/x/ref/services/proxy/proxyd")
-	i.BuildGoPkg("v.io/x/ref/services/wspr/wsprd")
 
 	playgroundPkg := golist(i, "v.io/x/playground")
 	// strip last three directory components, much easier to read in

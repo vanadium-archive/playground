@@ -136,13 +136,13 @@ shell_test::pass() {
 shell_test::build_go_binary() {
   pushd "${shell_test_BIN_DIR}" > /dev/null
   local -r PACKAGE="$1"
-  local OUTPUT="${2:-$(basename ${PACKAGE})}"
+  shift
+  local OUTPUT="$(basename ${PACKAGE})"
   if [[ -f "${OUTPUT}" ]]; then
     echo "${shell_test_BIN_DIR}/${OUTPUT}"
     return
   fi
-
-  go build -o "${OUTPUT}" "${PACKAGE}" 2>/dev/null || shell_test::fail "line ${LINENO}: failed to build ${OUTPUT}"
+  go build -o "${OUTPUT}" "$@" "${PACKAGE}" 2>/dev/null || shell_test::fail "line ${LINENO}: failed to build ${OUTPUT}"
   echo "${shell_test_BIN_DIR}/${OUTPUT}"
   popd > /dev/null
 }
