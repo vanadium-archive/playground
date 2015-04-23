@@ -1,8 +1,6 @@
 PATH := bin:node_modules/.bin:$(PATH)
 PATH := $(PATH):$(V23_ROOT)/third_party/cout/node/bin
 SHELL := /bin/bash -euo pipefail
-export GOPATH := $(V23_ROOT)/release/projects/playground/go:$(GOPATH)
-export VDLPATH := $(GOPATH)
 
 js_files := $(shell find browser -name "*.js")
 css_files := $(shell find stylesheets -name "*.css")
@@ -41,6 +39,8 @@ bundle_temp_file := public/bundle.json.tmp
 # This task depends on example_profiles and example_files because we want
 # to re-bundle if any of those change. However, the bundle tool works on
 # directories, so we pass in example_code_bundle_dirs as the path argument.
+# Note: Bundle correctness test was moved to builder integration test.
+# TODO(ivanpi): Move bundles out of client when bootstrap support is ready.
 public/bundles: $(example_profiles) $(example_files) | node_modules
 	$(RM) -rf $@
 	mkdir -p $(dir $(bundle_temp_file))
@@ -85,8 +85,8 @@ lint: dependency-check
 	jshint .
 
 .PHONY: test
-test:
-	v23 run ./test.sh
+test: lint test-client test-browser
+	@true  # silences `watch make`
 
 .PHONY: test-client
 test-client: node_modules

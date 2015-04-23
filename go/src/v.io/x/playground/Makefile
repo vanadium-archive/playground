@@ -1,5 +1,3 @@
-PATH := bin:node_modules/.bin:$(PATH)
-PATH := $(PATH):$(V23_ROOT)/third_party/cout/node/bin
 PATH := $(V23_ROOT)/release/projects/playground/go/bin:$(PATH)
 SHELL := /bin/bash -euo pipefail
 export GOPATH := $(V23_ROOT)/release/projects/playground/go:$(GOPATH)
@@ -43,6 +41,7 @@ config/db.json:
 	@echo "on the appropriate examples in the config directory."
 	@exit 1;
 
+# Temporary workaround for linking Go tests into Jenkins.
 .PHONY: test
 test:
-	v23 run ./test.sh
+	v23 go test v.io/x/playground/builder -v23.tests

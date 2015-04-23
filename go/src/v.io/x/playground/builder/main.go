@@ -42,7 +42,7 @@ import (
 )
 
 var (
-	verbose              = flag.Bool("v", true, "Whether to output debug messages.")
+	verbose              = flag.Bool("verbose", true, "Whether to output debug messages.")
 	includeServiceOutput = flag.Bool("includeServiceOutput", false, "Whether to stream service (mounttable, wspr, proxy) output to clients.")
 	includeV23Env        = flag.Bool("includeV23Env", false, "Whether to log the output of \"v23 env\" before compilation.")
 	// TODO(ivanpi): Separate out mounttable, proxy, wspr timeouts. Add compile timeout. Revise default.

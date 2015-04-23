@@ -4,7 +4,7 @@
 
 // This file was auto-generated via go generate.
 // DO NOT UPDATE MANUALLY
-package playground_test
+package main_test
 
 import "testing"
 import "os"
@@ -20,6 +20,10 @@ func TestMain(m *testing.M) {
 	os.Exit(r)
 }
 
-func TestV23Playground(t *testing.T) {
-	v23tests.RunTest(t, V23TestPlayground)
+func TestV23PlaygroundBuilder(t *testing.T) {
+	v23tests.RunTest(t, V23TestPlaygroundBuilder)
+}
+
+func TestV23PlaygroundBundles(t *testing.T) {
+	v23tests.RunTest(t, V23TestPlaygroundBundles)
 }
