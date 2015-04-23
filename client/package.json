@@ -4,7 +4,7 @@
   "description": "Vanadium playground web client",
   "version": "0.0.0",
   "bugs": {
-    "url": "https://github.com/veyron/release-issues/issues"
+    "url": "https://github.com/vanadium/issues/issues"
   },
   "main": "browser/index.js",
   "dependencies": {

@@ -15,7 +15,7 @@ function render(state) {
   var bundles = toArray(state);
 
   if (bundles.length === 0) {
-    return h('p', 'Loading...');
+    return h('p.loading', 'Loading...');
   } else {
     return h('ul.bundles', bundles.map(li));
   }

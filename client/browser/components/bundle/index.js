@@ -91,7 +91,7 @@ function save(state) {
     if (err) {
       // TODO(jasoncampbell): handle error appropriately.
       //
-      // SEE: https://github.com/veyron/release-issues/issues/1890
+      // SEE: https://github.com/vanadium/issues/issues/39
       throw err;
     }
 

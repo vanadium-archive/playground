@@ -19,7 +19,7 @@ var defaults = {
   timeout: 5 * 60 * 1000,
   // Temporarily default to the staging load balancer until bundle lists are
   // available from the API.
-  url: 'http://104.197.24.229:8181/',
+  url: 'https://playground-api.v.io',
   debug: false
 };
 
@@ -203,7 +203,7 @@ API.prototype.done = function(uuid) {
 // TODO(jasoncampbell): Drop the callback API and return the stream
 // immediately.
 // TODO(jasoncampbell): stop pending xhr
-// SEE: https://github.com/veyron/release-issues/issues/1890
+// SEE: https://github.com/vanadium/issues/issues/39
 API.prototype.run = function(data, callback) {
   var api = this;
   var uuid = data.uuid;

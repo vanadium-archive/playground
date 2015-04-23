@@ -12,6 +12,7 @@ var router = require('./router');
 var bundle = require('./components/bundle');
 var bundles = require('./components/bundles');
 var toast = require('./components/toast');
+var error = require('./components/error');
 var api = require('./api');
 
 // Make the debug module accessible via the console. This allows the module's
@@ -34,7 +35,8 @@ domready(function domisready() {
     bundles: bundles(),
     uuid: hg.value(''),
     toast: toast(),
-    title: hg.value('Vanadium Playground')
+    title: hg.value('Vanadium Playground'),
+    error: hg.value(null)
   });
 
   router({
@@ -51,7 +53,14 @@ domready(function domisready() {
 
     api.bundles(function(err, list) {
       if (err) {
-        return console.error('TODO: API list error', err);
+        state.error.set(error({
+          title: 'API Error',
+          body: 'There was problem retrieving the list of examples. ' +
+            'Please try again later.',
+          error: err
+        }));
+
+        return;
       }
 
       var length = list.length;
@@ -70,7 +79,7 @@ domready(function domisready() {
     // TODO(jasoncampbell): If there is not an entry for `params.uuid` show a
     // spinner/loader.
     //
-    // SEE: https://github.com/veyron/release-issues/issues/1890
+    // SEE: https://github.com/vanadium/issues/issues/39
 
     api.get(params.uuid, function(err, data) {
       if (err) {
@@ -82,7 +91,7 @@ domready(function domisready() {
     });
   }
 
-  // SEE: https://github.com/veyron/release-issues/issues/1890
+  // SEE: https://github.com/vanadium/issues/issues/39
   function notfound(href) {
     console.error('TODO: not found error - %s', href);
   }

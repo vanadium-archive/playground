@@ -8,6 +8,7 @@ var debug = require('debug')('render');
 var header = require('./components/header');
 var bundles = require('./components/bundles');
 var bundle = require('./components/bundle');
+var error = require('./components/error');
 
 module.exports = render;
 
@@ -44,6 +45,9 @@ function main(state, anchor) {
       state.bundles[state.uuid],
       state.channels
     );
+  } else if (state.error) {
+    // Temporary error rendering until vanadium/issues#294 is resolved.
+    partial = hg.partial(error.render, state.error);
   } else {
     // By default show a list of bundles
     partial = hg.partial(bundles.render, state.bundles);

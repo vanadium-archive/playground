@@ -5,7 +5,7 @@
   "version": "0.0.1",
   "bin": "./bin/pgbundle",
   "bugs": {
-    "url": "https://github.com/veyron/release-issues/issues"
+    "url": "https://github.com/vanadium/issues/issues"
   },
   "dependencies": {
     "glob": "^4.3.5",

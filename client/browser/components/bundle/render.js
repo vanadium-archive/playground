@@ -20,7 +20,9 @@ function render(state) {
   // NOTE: It is possible to try and render a bundle without it being
   // populated from the API yet. In that case show a loader.
   if (! state) {
-    return h('.bundle', 'Loading...');
+    return h('.bundle', [
+      h('p.loading', 'Loading...')
+    ]);
   }
 
   return h('.bundle', [
