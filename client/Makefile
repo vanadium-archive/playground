@@ -15,10 +15,13 @@ port ?= 8088
 all: public/bundles public/bundle.js public/bundle.css
 	@true  # silences `watch make`
 
+.PHONY: deploy-production
+deploy-production: all
+	make -C $(V23_ROOT)/infrastructure/deploy playground-production
+
 .PHONY: deploy-staging
 deploy-staging: all
-	git rev-parse --verify HEAD > public/version
-	gsutil rsync -c -d -r public gs://playground.staging.v.io
+	make -C $(V23_ROOT)/infrastructure/deploy playground-staging
 
 public/bundle.js: browser/index.js $(js_files) node_modules
 	browserify --debug $< 1> $@
