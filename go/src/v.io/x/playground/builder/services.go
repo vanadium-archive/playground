@@ -56,6 +56,7 @@ func startProxy(timeLimit time.Duration) (proc *os.Process, err error) {
 		"proxyd",
 		"-log_dir=/tmp/logs",
 		"-name="+proxyName,
+		"-access-list", fmt.Sprintf("{\"In\":[\"%v\"]}", identityProvider),
 		"-v23.tcp.address=127.0.0.1:0")
 	if _, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile("NAME=(.*)")); err != nil {
 		return nil, fmt.Errorf("Error starting proxy: %v", err)
