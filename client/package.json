@@ -2,7 +2,7 @@
   "private": true,
   "name": "vanadium-pg-client",
   "description": "Vanadium playground web client",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "bugs": {
     "url": "https://github.com/vanadium/issues/issues"
   },
