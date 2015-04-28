@@ -54,9 +54,9 @@ domready(function domisready() {
     api.bundles(function(err, list) {
       if (err) {
         state.error.set(error({
-          title: 'API Error',
-          body: 'There was problem retrieving the list of examples. ' +
-            'Please try again later.',
+          title: 'Coming soon',
+          body: 'A web-based code editing application for experimenting ' +
+            'with Vanadium.',
           error: err
         }));
 
