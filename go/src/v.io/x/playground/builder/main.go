@@ -352,7 +352,7 @@ func (f *codeFile) run(ch chan exit) {
 		case "js":
 			return f.startJs()
 		default:
-			return fmt.Errorf("Cannot run file: %v", f.Name)
+			return fmt.Errorf("Cannot run file %q", f.Name)
 		}
 	}()
 	if err != nil {

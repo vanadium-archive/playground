@@ -77,7 +77,7 @@ func seedRNG() error {
 func main() {
 	log.InitSyslogLoggers()
 
-	log.Debugf("Compilerd starting.\n")
+	log.Debug("Compilerd starting.")
 	flag.Parse()
 
 	if err := seedRNG(); err != nil {
@@ -100,7 +100,7 @@ func main() {
 	serveMux := http.NewServeMux()
 
 	if *sqlConf != "" {
-		log.Debugf("Using sql config %v\n", *sqlConf)
+		log.Debugf("Using sql config %q", *sqlConf)
 
 		// Parse SQL configuration file and set up TLS.
 		dbConfig, err := dbutil.ActivateSqlConfigFromFile(*sqlConf)
@@ -117,7 +117,7 @@ func main() {
 		serveMux.HandleFunc("/load", handlerLoad)
 		serveMux.HandleFunc("/save", handlerSave)
 	} else {
-		log.Debugln("No sql config provided. Disabling /load and /save routes.")
+		log.Debug("No sql config provided. Disabling /load and /save routes.")
 
 		// Return 501 Not Implemented for the /load and /save routes.
 		serveMux.HandleFunc("/load", handlerNotImplemented)
@@ -127,7 +127,7 @@ func main() {
 	serveMux.HandleFunc("/compile", c.handlerCompile)
 	serveMux.HandleFunc("/healthz", handlerHealthz)
 
-	log.Debugf("Serving %s\n", *address)
+	log.Debugf("Serving %s", *address)
 	s := http.Server{
 		Addr:     *address,
 		Handler:  serveMux,
@@ -146,15 +146,15 @@ func waitForExit(c *compiler, limit time.Duration) {
 
 	// Or if the time limit expires.
 	deadline := time.After(limit)
-	log.Debugln("Exiting at", time.Now().Add(limit))
+	log.Debug("Exiting at ", time.Now().Add(limit))
 Loop:
 	for {
 		select {
 		case <-deadline:
-			log.Debugln("Deadline expired, exiting in at most", exitDelay)
+			log.Debug("Deadline expired, exiting in at most ", exitDelay)
 			break Loop
 		case <-term:
-			log.Debugln("Got SIGTERM, exiting in at most", exitDelay)
+			log.Debug("Got SIGTERM, exiting in at most ", exitDelay)
 			break Loop
 		}
 	}

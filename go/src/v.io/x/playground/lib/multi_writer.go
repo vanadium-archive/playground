@@ -12,8 +12,6 @@ package lib
 import (
 	"io"
 	"sync"
-
-	"v.io/x/playground/lib/log"
 )
 
 // Initialize using NewMultiWriter.
@@ -34,7 +32,7 @@ func (t *MultiWriter) Add(w io.Writer) *MultiWriter {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	if t.wrote {
-		log.Panic("Tried to add writer after data has been written.")
+		panic("Tried to add writer after data has been written.")
 	}
 	t.writers = append(t.writers, w)
 	return t

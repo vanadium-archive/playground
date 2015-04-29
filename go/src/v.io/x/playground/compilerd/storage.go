@@ -44,7 +44,7 @@ func handlerLoad(w http.ResponseWriter, r *http.Request) {
 		storageError(w, http.StatusNotFound, "No data found for provided id.")
 		return
 	} else if err != nil {
-		storageInternalError(w, "Error getting bundleLink for id", bId, ":", err)
+		storageInternalError(w, "Error getting bundleLink for id ", bId, ": ", err)
 		return
 	}
 
@@ -77,7 +77,7 @@ func handlerSave(w http.ResponseWriter, r *http.Request) {
 
 	bLink, bData, err := storage.StoreBundleLinkAndData(requestBody)
 	if err != nil {
-		storageInternalError(w, err)
+		storageInternalError(w, "Error storing bundle: ", err)
 		return
 	}
 
@@ -118,7 +118,7 @@ func storageError(w http.ResponseWriter, status int, msg string) {
 // Logs error internally and sends non-specific error response to client.
 func storageInternalError(w http.ResponseWriter, v ...interface{}) {
 	if len(v) > 0 {
-		log.Errorln(v...)
+		log.Error(v...)
 	}
 	storageError(w, http.StatusInternalServerError, "Internal error, please retry.")
 }

@@ -99,7 +99,7 @@ func (j *Job) Body() []byte {
 func (j *Job) Cancel() {
 	j.mu.Lock()
 	defer j.mu.Unlock()
-	log.Debugf("Cancelling job %v.\n", j.id)
+	log.Debugf("Cancelling job %v.", j.id)
 	j.cancelled = true
 }
 
@@ -125,7 +125,7 @@ type dispatcherImpl struct {
 var _ = Dispatcher((*dispatcherImpl)(nil))
 
 func NewDispatcher(workers int, jobQueueCap int) Dispatcher {
-	log.Debugf("Creating new dispatcher with %v workers and %v queue capacity.\n", workers, jobQueueCap)
+	log.Debugf("Creating new dispatcher with %v workers and %v queue capacity.", workers, jobQueueCap)
 	d := &dispatcherImpl{
 		jobQueue: make(chan *Job, jobQueueCap),
 		stopped:  make(chan bool),
@@ -138,7 +138,7 @@ func NewDispatcher(workers int, jobQueueCap int) Dispatcher {
 // start starts a given number of workers, then reads from the jobQueue and
 // assigns jobs to free workers.
 func (d *dispatcherImpl) start(num int) {
-	log.Debugf("Dispatcher starting.\n")
+	log.Debug("Dispatcher starting.")
 
 	// Workers are published on the workerQueue when they are free.
 	workerQueue := make(chan *worker, num)
@@ -167,18 +167,18 @@ func (d *dispatcherImpl) start(num int) {
 					cancelled := job.cancelled
 					job.mu.Unlock()
 					if cancelled {
-						log.Debugf("Dispatcher encountered cancelled job %v, rejecting.\n", job.id)
+						log.Debugf("Dispatcher encountered cancelled job %v, rejecting.", job.id)
 						job.resultChan <- Result{
 							Success: false,
 							Events:  nil,
 						}
 						workerQueue <- worker
 					} else {
-						log.Debugf("Dispatching job %v to worker %v.\n", job.id, worker.id)
+						log.Debugf("Dispatching job %v to worker %v.", job.id, worker.id)
 						d.wg.Add(1)
 						go func() {
 							job.resultChan <- worker.run(job)
-							log.Debugf("Job %v finished on worker %v.\n", job.id, worker.id)
+							log.Debugf("Job %v finished on worker %v.", job.id, worker.id)
 							d.wg.Done()
 							workerQueue <- worker
 						}()
@@ -187,19 +187,19 @@ func (d *dispatcherImpl) start(num int) {
 			}
 		}
 
-		log.Debugf("Dispatcher stopped.\n")
+		log.Debug("Dispatcher stopped.")
 
 		// Dispatcher stopped, treat all remaining jobs as cancelled.
 		for {
 			select {
 			case job := <-d.jobQueue:
-				log.Debugf("Dispatcher is stopped, rejecting job %v.\n", job.id)
+				log.Debugf("Dispatcher is stopped, rejecting job %v.", job.id)
 				job.resultChan <- Result{
 					Success: false,
 					Events:  nil,
 				}
 			default:
-				log.Debugf("Dispatcher job queue drained.\n")
+				log.Debug("Dispatcher job queue drained.")
 				d.wg.Done()
 				return
 			}
@@ -214,7 +214,7 @@ func (d *dispatcherImpl) start(num int) {
 // jobs, rather than rejecting them.  Or, put logic in the client to retry
 // cancelled jobs.
 func (d *dispatcherImpl) Stop() {
-	log.Debugf("Stopping dispatcher.\n")
+	log.Debug("Stopping dispatcher.")
 	d.stopped <- true
 
 	// Wait for workers to finish their current jobs.
@@ -315,13 +315,14 @@ func (w *worker) run(j *Job) Result {
 		cmdKill()
 	}
 	systemLimitCallback := func() {
+		log.Warn(j.id, " builder stderr output too large, killing.")
 		erroredOut = true
 		cmdKill()
 	}
 	userErrorCallback := func(err error) {
 		// A relay error can result from unparseable JSON caused by a builder bug
 		// or a malicious exploit inside Docker. Panicking could lead to a DoS.
-		log.Errorln(j.id, "builder stdout relay error:", err)
+		log.Error(j.id, " builder stdout relay error: ", err)
 		erroredOut = true
 		cmdKill()
 	}
@@ -377,7 +378,7 @@ func (w *worker) run(j *Job) Result {
 	// Log builder internal errors, if any.
 	// TODO(ivanpi): Prevent caching? Report to client if debug requested?
 	if errBuffer.Len() > 0 {
-		log.Warnln(j.id, "builder stderr:", errBuffer.String())
+		log.Warn(j.id, " builder stderr: ", errBuffer.String())
 	}
 
 	event.Debug(j.res, "Response finished")

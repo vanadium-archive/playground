@@ -143,7 +143,7 @@ func StoreBundleLinkAndData(json []byte) (bLink *BundleLink, bData *BundleData, 
 		// Generate a random id for the bundle link.
 		id, err := randomLink(bHash)
 		if err != nil {
-			return fmt.Errorf("Error creating link id: %v", err)
+			return fmt.Errorf("error creating link id: %v", err)
 		}
 
 		// Check if bundle link with this id already exists in DB.
@@ -151,14 +151,14 @@ func StoreBundleLinkAndData(json []byte) (bLink *BundleLink, bData *BundleData, 
 			// Bundle was found. Retry with new id.
 			return errRetryTransaction
 		} else if err != ErrNotFound {
-			return fmt.Errorf("Error getting bundle link: %v", err)
+			return fmt.Errorf("error checking for bundle link: %v", err)
 		}
 
 		// Check if bundle data with this hash already exists in DB.
 		bData, err = getBundleDataByHash(tx, bHash)
 		if err != nil {
 			if err != ErrNotFound {
-				return fmt.Errorf("Error getting bundle data: %v", err)
+				return fmt.Errorf("error checking for bundle data: %v", err)
 			}
 
 			// Bundle does not exist in DB. Store it.
@@ -167,7 +167,7 @@ func StoreBundleLinkAndData(json []byte) (bLink *BundleLink, bData *BundleData, 
 				Json: string(json),
 			}
 			if err = storeBundleData(tx, bData); err != nil {
-				return fmt.Errorf("Error storing bundle data: %v", err)
+				return fmt.Errorf("error storing bundle data: %v", err)
 			}
 		}
 
@@ -177,7 +177,7 @@ func StoreBundleLinkAndData(json []byte) (bLink *BundleLink, bData *BundleData, 
 			Hash: bHash,
 		}
 		if err = storeBundleLink(tx, bLink); err != nil {
-			return fmt.Errorf("Error storing bundle link: %v", err)
+			return fmt.Errorf("error storing bundle link: %v", err)
 		}
 
 		return nil
