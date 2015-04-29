@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"testing"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/rubenv/sql-migrate"
 
 	"v.io/x/lib/dbutil"
