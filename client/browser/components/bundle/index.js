@@ -27,6 +27,7 @@ function bundle(json) {
       stop: stop,
       save: save,
       fileChange: fileChange,
+      showResults: showResults
     }
   });
 
@@ -51,12 +52,17 @@ function bundle(json) {
 
     // If running clear previous logs and open the console.
     if (running) {
+      state.results.open.set(true);
       state.results.logs.set(hg.array([]));
       state.results.follow.set(true);
     }
   });
 
   return state;
+}
+
+function showResults(state, data) {
+  state.results.open.set(true);
 }
 
 // When a file's contents change via the editor update the state.

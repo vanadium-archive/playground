@@ -88,7 +88,7 @@ API.prototype.url = function(options) {
     clone.query = { id: encodeURIComponent(options.uuid) };
   }
 
-  if (api.options.debug) {
+  if (api.options.debug || options.debug) {
     clone.query = clone.query || {};
     clone.query.debug = 1;
   }
@@ -207,7 +207,10 @@ API.prototype.done = function(uuid) {
 API.prototype.run = function(data, callback) {
   var api = this;
   var uuid = data.uuid;
-  var uri = api.url({ action: 'run' });
+  var uri = api.url({
+        action: 'run',
+        debug: true
+      });
 
   if (api.isPending(uuid)) {
     var message = format('%s is already running');

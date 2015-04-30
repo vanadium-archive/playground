@@ -1,0 +1,127 @@
+.results {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--grey-50);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 35%;
+  right: 0;
+  z-index: 2000;
+  transition: transform ease-in-out 0.3s;
+}
+
+.results.closed {
+  transform: translateX(100%);
+}
+
+.results.opened {
+  transform: translateX(0);
+}
+
+.results-controls {
+  display: flex;
+  background-color: var(--cyan-600);
+  padding: var(--gutter-half) var(--gutter);
+  padding-left: var(--gutter-half);
+  color: var(--white);
+}
+
+.results-controls a.toggle-display {
+  inherit: .icon-base;
+  background-image: url(/icons/chevron-right.svg);
+}
+
+.results-controls a.toggle-display {
+  inherit: .icon-base;
+  margin-right: var(--gutter-half);
+}
+
+.opened .results-controls a.toggle-display {
+  background-image: url(/icons/chevron-right.svg);
+}
+
+.closed .results-controls a.toggle-display {
+  background-image: url(/icons/chevron-left.svg);
+}
+
+.results-controls .title {
+  inherit: .type-body;
+  margin: 0;
+  color: var(--white);
+  /* Push .debug-button to the end. */
+  flex: 1;
+}
+
+.results-controls .debug-button {
+  color: var(--blue-grey-700);
+}
+
+.results-console {
+  flex: 1;
+  position: relative;
+}
+
+.scroller {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: auto;
+  padding: var(--gutter);
+}
+
+.log {
+  margin-bottom: var(--gutter);
+}
+
+.log .meta {
+  display: flex;
+}
+
+.log .meta .source {
+  flex: 1;
+  font-weight: bold;
+}
+
+.log .meta .source .stream {
+  font-weight: normal;
+}
+
+.log .message {
+  font-family: "Source Code Pro", monospace;
+  padding-left: var(--gutter-half);
+  overflow: hidden;
+  overflow-y: scroll;
+}
+
+.log .message pre {
+  padding: 0;
+  margin: 0;
+  white-space: pre-wrap;       /* CSS 3 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;      /* Opera 4-6 */
+  white-space: -o-pre-wrap;    /* Opera 7 */
+  word-wrap: break-word;
+}
+
+.log.debug pre {
+  color: #00B9F7;
+}
+
+.log.stdout {
+
+}
+
+.log.stderr pre {
+  color: #F03A76;
+}
+
+.log.debug {
+  display: none;
+}
+
+.results-console.debug .log.debug {
+  display: block;
+}

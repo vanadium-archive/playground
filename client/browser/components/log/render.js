@@ -8,7 +8,7 @@ module.exports = render;
 
 // This is expected to be called an iterator fn passed to logs.map(render)
 function render(state, index, logs) {
-  var time = moment(state.timestamp).format('MMM D HH:mm:ss SSS');
+  var time = moment(state.timestamp).format('MMM D HH:mm:ss.SSS');
   var stream = state.stream || 'unknown';
 
   return h('.log', {

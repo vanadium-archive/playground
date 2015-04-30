@@ -9,11 +9,13 @@
 @import "./components/buttons.css";
 @import "./components/header.css";
 @import "./components/footer.css";
+@import "./components/results.css";
 
 body, .playground {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
+  overflow: hidden;
 }
 
 main {
@@ -25,8 +27,8 @@ main {
   flex: 1;
   display: flex;
   flex-wrap: wrap;
-  align-content: center;
   justify-content: center;
+  position: relative;
 }
 
 .bundle .code,
@@ -45,6 +47,10 @@ main {
   background-color: var(--cyan-700);
 }
 
+.bundle .tabs .spacer {
+  flex: 1;
+}
+
 .bundle .tabs .tab {
   padding: calc(var(--gutter-half) - 2px) var(--gutter);
   border-bottom: 4px solid transparent;
@@ -56,6 +62,14 @@ main {
   color: var(--white);
 }
 
+.bundle .tabs a.show-results {
+  inherit: .icon-base;
+  background-image: url(/icons/chevron-left.svg);
+  display: block;
+  margin: var(--gutter-half);
+  margin-right: var(--gutter);
+}
+
 .editors {
   flex: 1;
   display: flex;
@@ -65,103 +79,22 @@ main {
 .editor {
   flex: 1;
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  visibility: hidden;
+  display: none;
 }
 
 .editor.active {
-  visibility: visible;
+  display: block;
 }
 
 .ace_editor {
   width: 100%;
   height: 100%;
-}
-
-.results {
-  display: flex;
-  flex-direction: column;
-  background-color: var(--grey-50);
-}
-
-.results .controls {
-  background-color: var(--cyan-600);
-  padding: var(--gutter-half) var(--gutter);
-  color: var(--white);
-}
-
-.results .controls a {
-  color: var(--blue-grey-700);
-}
-
-.results .console {
-  flex: 1;
-  position: relative;
-}
-
-.scroller {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  overflow: auto;
-  padding: var(--gutter);
-}
-
-.log {
-  margin-bottom: var(--gutter);
-}
-
-.log .meta {
-  display: flex;
-}
-
-.log .meta .source {
-  flex: 1;
-  font-weight: bold;
-}
-
-.log .meta .source .stream {
-  font-weight: normal;
-}
-
-.log .message {
-  font-family: "Source Code Pro", monospace;
-  padding-left: var(--gutter-half);
-  overflow: hidden;
-  overflow-y: scroll;
-}
-
-.log .message pre {
-  padding: 0;
-  margin: 0;
-  white-space: pre-wrap;       /* CSS 3 */
-  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
-  white-space: -pre-wrap;      /* Opera 4-6 */
-  white-space: -o-pre-wrap;    /* Opera 7 */
-  word-wrap: break-word;
-}
-
-.log.debug pre {
-  color: #00B9F7;
-}
-
-.log.stdout {
-
-}
-
-.log.stderr pre {
-  color: #F03A76;
-}
-
-.log.debug {
-  display: none;
-}
-
-.console.debug .log.debug {
-  display: block;
 }
 
 .error {

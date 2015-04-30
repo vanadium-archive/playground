@@ -40,8 +40,18 @@ function code(state, channels) {
 
 function tabs(state, channels) {
   var files = toArray(state.files);
+  var children = files.map(tab, state);
 
-  return h('.tabs', files.map(tab, state));
+  // .spacer for flex box pushing a.show-results to the far right
+  children.push(h('.spacer'));
+
+  children.push(h('a.show-results', {
+    title: 'Open the results console.',
+    href: '#',
+    'ev-click': click(channels.showResults)
+  }));
+
+  return h('.tabs', children);
 }
 
 function tab(file, index, array) {

@@ -14,7 +14,8 @@ function results() {
     debug: hg.value(false),
     channels: {
       follow: follow,
-      debug: debug
+      debug: debug,
+      toggle: toggle
     }
   });
 
@@ -39,4 +40,10 @@ function debug(state, data) {
   if (data.debug !== current) {
     state.debug.set(data.debug);
   }
+}
+
+function toggle(state, data) {
+  var current = state.open();
+
+  state.open.set(!current);
 }

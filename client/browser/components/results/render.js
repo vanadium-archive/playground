@@ -8,20 +8,21 @@ var click = require('../../event-handlers/click');
 var followHook = require('./follow-hook');
 var log = require('../log');
 var format = require('format');
+var debug = require('debug')('components:results:render');
 
 module.exports = render;
 
 function render(state, channels) {
-  return h('.results', [
+  debug('update %o', state);
+
+  channels = channels || state.channels;
+
+  return h('.results', {
+    className: state.open ? 'opened' : 'closed'
+  },
+  [
     hg.partial(controls, state, channels),
-    h('.console', {
-      className: state.debug ? 'debug' : ''
-    }, [
-      h('.scroller', {
-        'ev-scroll': scroll(channels.follow, { scrolling: true }),
-        'follow-console': followHook(state.follow)
-      }, state.logs.map(log.render))
-    ])
+    hg.partial(terminal, state, channels)
   ]);
 }
 
@@ -30,12 +31,28 @@ function controls(state, channels) {
   var title = format('Toggle debug console output %s.', onOrOff);
   var text = format(' Debug: %s', onOrOff);
 
-  return h('.controls', [
-    'Results',
-    h('a.debug', {
+  return h('.results-controls', [
+    h('a.toggle-display', {
+      href: '#',
+      title: (state.open ? 'Close' : 'Open') + ' the results console.',
+      'ev-click': click(channels.toggle),
+    }),
+    h('.title', 'Results'),
+    h('a.debug-button', {
       href: '#',
       'ev-click': click(channels.debug, { debug: ! state.debug }),
       title: title
-    }, text)
+    }, text),
+  ]);
+}
+
+function terminal(state, channels) {
+  return h('.results-console', {
+    className: state.debug ? 'debug' : ''
+  }, [
+    h('.scroller', {
+      'ev-scroll': scroll(channels.follow, { scrolling: true }),
+      'follow-console': followHook(state.follow)
+    }, state.logs.map(log.render))
   ]);
 }
