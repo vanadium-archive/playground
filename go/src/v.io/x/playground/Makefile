@@ -34,6 +34,7 @@ start: config/db.json all
 		--sqlconf=$< \
 		--listen-timeout=0 \
 		--address=$(host):$(port) \
+		--origin='*' \
 		--use-docker=false
 
 config/db.json:

@@ -54,11 +54,11 @@ Install the playground binaries:
 
 Run the compiler binary:
 
-    $ $V23_ROOT/release/projects/playground/go/bin/compilerd --listen-timeout=0 --address=localhost:8181
+    $ $V23_ROOT/release/projects/playground/go/bin/compilerd --listen-timeout=0 --address=localhost:8181 --origin='*'
 
 Or, run it without Docker (for faster iterations during development):
 
-    $ PATH=$V23_ROOT/release/go/bin:$V23_ROOT/release/projects/playground/go/bin:$PATH compilerd --listen-timeout=0 --address=localhost:8181 --use-docker=false
+    $ PATH=$V23_ROOT/release/go/bin:$V23_ROOT/release/projects/playground/go/bin:$PATH compilerd --listen-timeout=0 --address=localhost:8181 --origin='*' --use-docker=false
 
 The server should now be running at http://localhost:8181 and responding to
 compile requests at http://localhost:8181/compile.

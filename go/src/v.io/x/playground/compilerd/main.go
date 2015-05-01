@@ -42,6 +42,8 @@ var (
 
 	address = flag.String("address", ":8181", "Address to listen on.")
 
+	origin = flag.String("origin", "https://playground.v.io", "The origin where the playground client is hosted. This will be used in CORS headers to allow XHRs to the playground API. Use '*' to allow all origins.")
+
 	// compilerd exits cleanly on SIGTERM or after a random amount of time,
 	// between listenTimeout/2 and listenTimeout.
 	listenTimeout = flag.Duration("listen-timeout", 60*time.Minute, "Maximum amount of time to listen for before exiting. A value of 0 disables the timeout.")
@@ -194,9 +196,7 @@ Loop:
 // Returns false iff response processing should not continue.
 func handleCORS(w http.ResponseWriter, r *http.Request) bool {
 	// CORS headers.
-	// TODO(nlacasse): Fill the origin header in with actual playground origin
-	// before going to production.
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", *origin)
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding")
 
