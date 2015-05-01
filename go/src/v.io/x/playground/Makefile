@@ -37,6 +37,16 @@ start: config/db.json all
 		--origin='*' \
 		--use-docker=false
 
+.PHONY: pgadmin
+pgadmin:
+	v23 go install v.io/x/playground/pgadmin
+
+.PHONY: updatedb
+updatedb: config/db.json pgadmin
+	pgadmin \
+		--sqlconf=$< \
+		migrate up
+
 config/db.json:
 	@echo "You are missing config/db.json, create this file based"
 	@echo "on the appropriate examples in the config directory."

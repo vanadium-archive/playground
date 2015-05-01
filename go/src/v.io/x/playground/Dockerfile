@@ -35,6 +35,7 @@ WORKDIR /home/playground
 RUN npm install --production $V23_ROOT/release/javascript/core
 
 # Install Vanadium libraries and playground binaries.
+RUN v23 go install -a -tags wspr -v v.io/x/ref/services/wspr/...
 RUN v23 go install -v v.io/...
 
 # Uncomment the following lines to install a version of the builder tool using

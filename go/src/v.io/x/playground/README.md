@@ -82,19 +82,17 @@ Sign in to Maria as root:
 
 Create playground databases:
 
-    MariaDB [(none)]> CREATE DATABASE IF NOT EXISTS playground;
+    MariaDB [(none)]> CREATE DATABASE IF NOT EXISTS pg_moria;
 
 Create a playground user who has access to the playground database:
 
-    MariaDB [(none)]> GRANT ALL PRIVILEGES ON playground.* TO 'playground'@'localhost';
+    MariaDB [(none)]> GRANT ALL PRIVILEGES ON pg_moria.* TO 'pg_gandalf'@'localhost' IDENTIFIED BY 'mellon';
 
-Create config/db.json from example:
+Create `config/db.json` from default:
 
-    $ cp config/db-local-example.json config/db.json
+    $ cp config/db-local-default.json config/db.json
 
-Edit config/db.json and set username, password, and database.
-
-TODO(ivanpi): Describe cloud storage.
+Alternatively, make your own from example.
 
 # Running tests
 
@@ -119,30 +117,28 @@ Run the tests:
 
 ## Running migrations
 
-Build the `sql-migrate` tool:
+Migrations use the `github.com/rubenv/sql-migrate` library, wrapped in a tool
+`pgadmin` to allow TLS connections.
 
-    $ v23 go install github.com/rubenv/sql-migrate/sql-migrate
+Create the database and `config/db.json` file following instructions above.
 
-Edit config/migrate.yml. Find or define whatever environment you plan to
-migrate, and make sure the datasource is correct.
+To migrate up, first run with -n (dry run):
 
-To see the current migration status, run:
+    $ $V23_ROOT/release/projects/playground/go/bin/pgadmin -sqlconf=./config/db.json migrate up -n
 
-    $ $V23_ROOT/third_party/go/bin/sql-migrate status -config=./config/migrate.yml -env=<environment>
+If everything looks good, run the same command without -n; alternatively, run:
 
-To migrate up, first run with -dryrun:
-
-    $ $V23_ROOT/third_party/go/bin/sql-migrate up -config=./config/migrate.yml -env=<environment> -dryrun
-
-If everything looks good, run the tool without -dryrun:
-
-    $ $V23_ROOT/third_party/go/bin/sql-migrate up -config=./config/migrate.yml -env=<environment>
+    $ make updatedb
 
 You can undo the last migration with:
 
-    $ $V23_ROOT/third_party/go/bin/sql-migrate down -limit=1 -config=./config/migrate.yml -env=<environment>
+    $ $V23_ROOT/release/projects/playground/go/bin/pgadmin -sqlconf=./config/db.json migrate down -limit=1
 
-For more options and infomation, see https://github.com/rubenv/sql-migrate#usage
+For more options and infomation, run:
+
+    $ $V23_ROOT/release/projects/playground/go/bin/pgadmin help
+
+and see https://github.com/rubenv/sql-migrate
 
 ## Writing migrations
 

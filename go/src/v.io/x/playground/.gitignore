@@ -1,3 +1,4 @@
 netrc
 config/*.json
 !config/db-*-example.json
+!config/db-*-default.json

@@ -1,0 +1,4 @@
+{
+  "dataSourceName": "pg_gandalf:mellon@tcp(localhost:3306)/pg_moria",
+  "tlsDisable": true
+}
