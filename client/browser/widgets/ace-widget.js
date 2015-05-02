@@ -48,12 +48,10 @@ AceWidget.prototype.init = function() {
   var ace = require('brace');
   require('brace/mode/javascript');
   require('brace/mode/golang');
-  require('brace/theme/monokai');
 
   var element = document.createElement('div');
 
   editor.ace = ace.edit(element);
-  editor.ace.setTheme('ace/theme/monokai');
   editor.ace.on('change', function(data) {
     var event = new window.CustomEvent('ace-change', {
       detail: {
@@ -100,6 +98,10 @@ AceWidget.prototype.init = function() {
 
   // Ensure that update is called on the first vdom cycle.
   editor.update(null, element);
+
+  // Simple way to not deal with ace themes and use our own.
+  element.classList.remove('ace-tm');
+  element.classList.add('vanadium-solarized-light');
 
   return element;
 };
