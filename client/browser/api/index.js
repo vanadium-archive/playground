@@ -19,7 +19,7 @@ var defaults = {
   timeout: 5 * 60 * 1000,
   // Temporarily default to the staging load balancer until bundle lists are
   // available from the API.
-  url: 'https://playground-api.v.io',
+  url: 'https://playground-api.staging.v.io',
   debug: false
 };
 
@@ -106,10 +106,10 @@ API.prototype.bundles = function(callback) {
   // TODO(jasoncampbell): remove this list once a list API endpoint is
   // available.
   var ids = [
-    '_051039d58946cfbe3a603fd7ed3149b0501b8f1e13ee0778e9c30e08d8a94d3',
-    '_9999dc7e35426090058fb0240a8a2c1b128ea958e092b0d53ac5f2a5ca4c54a',
-    '_eee960846ba210e4d9b6b01463625a2e5bf15b9dab61d76b4fc38ae04317bbd',
-    '_5f199e7f67cc6b60efddf2d37cdf2c0d1aeec488007981e972c1e0a43f91c3e'
+    '_cadcfa075a6ac6d1939d12a64ac6e57bc7256c0422fb5d0690b3d8618779565',
+    '_be43fb9b2d03087dfd7c84437fd37dac7f6977d8cac330b9fce6aad94414558',
+    '_5385edd72b550c57bee83b100731338c70349ac7354dc4353665a1998fa7c8c',
+    '_46f8b66f0e80be00adc6222ac0235b1f8e70183daa64ec5924b14267dc6f0fd'
   ];
 
   var workers = ids.map(createWorker);
