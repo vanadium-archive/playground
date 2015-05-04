@@ -7,8 +7,7 @@ footer {
   flex-wrap: wrap;
   align-items: center;
   background-color: var(--blue-grey-100);
-  padding: 0 var(--gutter);
-  padding-top: var(--gutter);
+  padding: var(--gutter-half);
 }
 
 footer .main {
@@ -16,14 +15,8 @@ footer .main {
 }
 
 footer .main a {
-  display: inline-block;
-  margin-right: var(--gutter);
-  margin-bottom: var(--gutter);
-  font-size: 14px;
-  line-height: 14px;
-  font-weight: var(--font-weight-medium);
+  margin-right: var(--gutter-half);
   color: var(--blue-grey-500);
-  text-transform: uppercase;
 }
 
 footer .social {
@@ -31,18 +24,10 @@ footer .social {
 }
 
 footer .social a {
-  margin-left: var(--gutter);
-  margin-bottom: var(--gutter);
+  margin-left: var(--gutter-half);
 }
 
-@media (--narrow-window) {
-  footer .main,
-  footer .social {
-    flex: 0 0 100%;
-  }
-
-  footer .social a {
-    margin-left: 0;
-    margin-right: var(--gutter);
-  }
+footer .icon-github,
+footer .icon-twitter {
+  inherit: .icon-base;
 }

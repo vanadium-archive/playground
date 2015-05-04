@@ -60,26 +60,14 @@ function footer(state, channels) {
   return h('footer', [
     h('nav.main', [
       h('a', {
-        href: 'https://v.io/introduction.html'
-      }, 'Intro'),
-      h('a', {
-        href: 'https://v.io/installation/'
-      }, 'Install'),
-      h('a', {
-        href: 'https://v.io/tutorials/'
-      }, 'Tutorials'),
+        href: 'https://github.com/vanadium/issues/issues/'
+      }, 'File a bug'),
       h('a', {
         href: 'https://v.io/docs.html'
-      }, 'API'),
-      h('a', {
-        href: 'https://v.io/community/'
-      }, 'Community'),
+      }, 'API Docs'),
       h('a', {
         href: 'https://v.io/tos.html'
-      }, 'Terms of Service'),
-      h('a', {
-        href: 'https://github.com/vanadium/issues/issues/'
-      }, 'File a Bug')
+      }, 'Terms of service')
     ]),
     h('nav.social', [
       h('a.icon-github', { href: 'https://github.com/vanadium' }),

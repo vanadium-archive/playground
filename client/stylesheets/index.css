@@ -10,6 +10,7 @@
 @import "./components/header.css";
 @import "./components/footer.css";
 @import "./components/results.css";
+@import "./themes/light.css";
 
 body, .playground {
   display: flex;

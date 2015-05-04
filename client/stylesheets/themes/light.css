@@ -1,0 +1,105 @@
+/* Copyright 2015 The Vanadium Authors. All rights reserved. */
+/* Use of this source code is governed by a BSD-style */
+/* license that can be found in the LICENSE file. */
+
+.vanadium-solarized-light {
+  background-color: var(--codebox-color);
+  color: var(--text-base00);
+}
+
+.vanadium-solarized-light .ace_gutter {
+  background-color: color(var(--codebox-color) shade(5%));
+  color: var(--text-base1);
+}
+
+.vanadium-solarized-light .ace_print-margin {
+  width: 1px;
+  background-color: color(var(--text-base1) tint(20%));
+}
+
+.vanadium-solarized-light .ace_cursor {
+  color: var(--text-base03);
+}
+
+
+.vanadium-solarized-light .ace_marker-layer .ace_selection {
+  background-color: color(var(--text-base2) shade(5%));
+  color: var(--text-base1);
+}
+
+.vanadium-solarized-light.ace_multiselect .ace_selection.ace_start {
+  box-shadow: 0 0 3px 0px magenta;
+  border-radius: 2px;
+}
+
+.vanadium-solarized-light .ace_marker-layer .ace_step {
+  background-color: magenta;
+}
+
+.vanadium-solarized-light .ace_marker-layer .ace_bracket {
+  margin: -1px 0 0 -1px;
+  border: 1px solid var(--text-base1);
+}
+
+.vanadium-solarized-light .ace_marker-layer .ace_active-line {
+  background-color: color(var(--codebox-color) shade(5%));
+}
+.vanadium-solarized-light .ace_gutter-active-line {
+  background-color : color(var(--text-base2) shade(5%));
+}
+.vanadium-solarized-light .ace_marker-layer .ace_selected-word {
+  border: 1px solid var(--text-base2);
+}
+
+.vanadium-solarized-light .ace_invisible {
+  color: color(var(--text-base1) tint(20%));
+}
+
+.vanadium-solarized-light .ace_keyword,
+.vanadium-solarized-light .ace_meta,
+.vanadium-solarized-light .ace_support.ace_class,
+.vanadium-solarized-light .ace_support.ace_type {
+  color: var(--text-green);
+}
+.vanadium-solarized-light .ace_constant.ace_character,
+.vanadium-solarized-light .ace_constant.ace_other {
+  color: var(--text-red);
+}
+.vanadium-solarized-light .ace_constant.ace_language {
+  color: var(--text-yellow);
+}
+.vanadium-solarized-light .ace_constant.ace_numeric {
+  color: var(--text-magenta);
+}
+.vanadium-solarized-light .ace_fold {
+  background-color: var(--text-blue);
+  border-color: var(--text-magenta);
+}
+.vanadium-solarized-light .ace_entity.ace_name.ace_function,
+.vanadium-solarized-light .ace_entity.ace_name.ace_tag,
+.vanadium-solarized-light .ace_support.ace_function,
+.vanadium-solarized-light .ace_variable,
+.vanadium-solarized-light .ace_variable.ace_language {
+  color: var(--text-cyan);
+}
+
+.vanadium-solarized-light .ace_identifier {
+  color: var(--text-base01);
+}
+
+.vanadium-solarized-light .ace_storage {
+  color: var(--text-green);
+}
+.vanadium-solarized-light .ace_string {
+  color: var(--text-blue);
+}
+.vanadium-solarized-light .ace_string.ace_regexp {
+  color: var(--text-red);
+}
+.vanadium-solarized-light .ace_comment,
+.vanadium-solarized-light .ace_entity.ace_other.ace_attribute-name {
+  color: var(--text-base1);
+}
+.vanadium-solarized-light .ace_indent-guide {
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNgYGBgYHjy8NJ/AAjgA5fzQUmBAAAAAElFTkSuQmCC) right repeat-y
+}
