@@ -2,6 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Enabale a global exception logger
+var exceptionLogger = require('./exception-logger');
+
+exceptionLogger.init();
+
 var debug = require('debug')('app');
 var domready = require('domready');
 var window = require('global/window');
