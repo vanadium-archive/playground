@@ -6,12 +6,15 @@ package main_test
 
 import (
 	"bytes"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	_ "v.io/x/ref/profiles"
+	"v.io/x/ref/test/expect"
 	"v.io/x/ref/test/v23tests"
 )
 
@@ -80,6 +83,14 @@ func testWithFiles(i *v23tests.T, builder *v23tests.Binary, testdataDir string, 
 	return runPGExample(i, builder, globFile, testdataDir, "-verbose=true", "--includeV23Env=true", "--runTimeout=5s")
 }
 
+// Echoes invocation output to stdout/stderr in addition to checking for
+// expected patterns.
+func expectAndEcho(inv *v23tests.Invocation, patterns ...string) {
+	es := expect.NewSession(inv.Environment(), io.TeeReader(inv.Stdout(), os.Stdout), time.Minute)
+	es.ExpectSetEventuallyRE(patterns...)
+	inv.WaitOrDie(os.Stdout, os.Stderr)
+}
+
 // Tests the playground builder tool.
 func V23TestPlaygroundBuilder(i *v23tests.T) {
 	i.Pushd(i.NewTempDir(""))
@@ -110,7 +121,7 @@ func V23TestPlaygroundBuilder(i *v23tests.T) {
 			}
 			inv := testWithFiles(i, builderBin, testdataDir, files...)
 			i.Logf("test: %s", c.name)
-			inv.ExpectSetEventuallyRE(patterns...)
+			expectAndEcho(inv, patterns...)
 		}
 	}
 
@@ -156,7 +167,7 @@ func V23TestPlaygroundBundles(i *v23tests.T) {
 			inv := runPGExample(i, builderBin, globFilePath, bundlePath, "-verbose=true", "--runTimeout=5s")
 			i.Logf("glob: %q", globFile)
 			// TODO(ivanpi,sadovsky): Make this "clean exit" check more robust.
-			inv.ExpectSetEventuallyRE("Exited cleanly\\.")
+			expectAndEcho(inv, "client.*Exited cleanly\\.")
 		}
 	}
 }
