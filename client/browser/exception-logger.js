@@ -5,7 +5,9 @@
 var window = require('global/window');
 var UA = window.navigator ? window.navigator.userAgent : '';
 
-module.exports = init;
+module.exports = {
+  init: init
+};
 
 function init() {
   window.addEventListener('error', onerror);

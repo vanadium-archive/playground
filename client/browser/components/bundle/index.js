@@ -115,27 +115,30 @@ function run(state) {
   debug('running');
   state.running.set(true);
 
+  // Temporary message to provide feedback and show that the run is happening.
+  state.results.logs.push(log({
+    File: 'web client',
+    Message: 'Run request initiated.',
+    Stream: 'stdout'
+  }));
+
   var data = {
     uuid: state.uuid(),
     files: toArray(state.files())
   };
 
-  api.run(data, function onrun(err, stream) {
-    if (err) {
-      // TODO(jasoncampbell): handle error appropriately.
-      throw err;
-    }
+  var stream = api.run(data);
 
-    stream.on('error', function onerror(err) {
-      throw err;
-    });
+  stream.on('error', function(err) {
+    // TODO(jasoncampbell): handle errors appropriately.
+    throw err;
+  });
 
-    stream.on('data', function ondata(data) {
-      state.results.logs.push(log(data));
-    });
+  stream.on('data', function ondata(data) {
+    state.results.logs.push(log(data));
+  });
 
-    stream.on('end', function() {
-      state.running.set(false);
-    });
+  stream.on('end', function() {
+    state.running.set(false);
   });
 }

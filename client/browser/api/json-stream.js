@@ -2,27 +2,21 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-var through2 = require('through2');
+// Using jxson/split#ignore-trailing until it is merged upstream.
+//
+// SEE: https://github.com/dominictarr/split/pull/15
+var split = require('split');
 
-module.exports = create;
+module.exports = JSONStream;
 
-function create() {
-  return through2.obj(write);
+function JSONStream() {
+  return split(parse, null, { trailing: false });
 }
 
-function write(buffer, enc, callback) {
+function parse(buffer) {
   if (buffer.length === 0) {
-    return callback();
+    return undefined;
+  } else {
+    return JSON.parse(buffer);
   }
-
-  var json;
-  var err;
-
-  try {
-    json = JSON.parse(buffer);
-  } catch (err) {
-    err.data = buffer;
-  }
-
-  callback(err, json);
 }
