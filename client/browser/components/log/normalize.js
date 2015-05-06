@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+var now = require('date-now');
+
 module.exports = normalize;
 
 // Takes data from API messages and converts them to appropriate objects
@@ -9,7 +11,7 @@ module.exports = normalize;
 function normalize(data) {
   // convert `data.Timestamp` nanosecond value to a float in milliseconds.
   var oneMillion = 1e6;
-  var timestamp = data.Timestamp / oneMillion;
+  var timestamp = data.Timestamp ? (data.Timestamp / oneMillion) : now();
 
   return {
     message: data.Message,

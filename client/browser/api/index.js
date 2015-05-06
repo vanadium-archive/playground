@@ -12,8 +12,7 @@ var url = require('url');
 var extend = require('xtend');
 var prr = require('prr');
 var config = require('../config');
-var JSONStream = require('./json-stream');
-var split = require('split');
+var jsonStream = require('./json-stream');
 var defaults = {
   // Timeout for HTTP requests, 5 secs in milliseconds.
   timeout: 5 * 60 * 1000,
@@ -204,7 +203,7 @@ API.prototype.done = function(uuid) {
 // immediately.
 // TODO(jasoncampbell): stop pending xhr
 // SEE: https://github.com/vanadium/issues/issues/39
-API.prototype.run = function(data, callback) {
+API.prototype.run = function(data) {
   var api = this;
   var uuid = data.uuid;
   var uri = api.url({
@@ -212,10 +211,12 @@ API.prototype.run = function(data, callback) {
         debug: true
       });
 
+  // NOTE: The UI prevents the channel from being fired while the run is in
+  // progress so this should never happen.
   if (api.isPending(uuid)) {
     var message = format('%s is already running');
     var err = new Error(message);
-    return callback(err);
+    throw err;
   }
 
   api.pending(uuid);
@@ -231,23 +232,20 @@ API.prototype.run = function(data, callback) {
   // TODO(jasoncampbell): Consolidate http libraries.
   // TODO(jasoncampbell): Verify XHR timeout logic and handle appropriately.
   var req = hyperquest.post(uri, options);
+  var stream = jsonStream();
 
-  req.once('error', callback);
+  req.on('error', function(err) {
+    stream.emit('error', err);
+  });
 
-  var stream = JSONStream(); // jshint ignore:line
-
-  stream.on('end', function() {
+  req.on('end', function() {
     api.done(uuid);
   });
 
-  req
-  .pipe(split())
-  .pipe(stream);
+  req.pipe(stream);
 
-  callback(null, stream);
-
-  var string = JSON.stringify(data);
-
-  req.write(string);
+  req.write(JSON.stringify(data));
   req.end();
+
+  return stream;
 };

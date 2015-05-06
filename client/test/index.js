@@ -5,3 +5,5 @@
 require('./test-api-url');
 require('./test-config');
 require('./test-component-log');
+require('./test-component-results');
+require('./test-api-json-stream');
