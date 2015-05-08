@@ -13,7 +13,7 @@ import (
 
 	"v.io/v23"
 	"v.io/v23/context"
-	_ "v.io/x/ref/profiles"
+	_ "v.io/x/ref/runtime/factories/generic"
 
 	"fortune"
 )
