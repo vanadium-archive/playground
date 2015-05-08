@@ -19,7 +19,7 @@ import (
 
 	"github.com/rubenv/sql-migrate"
 
-	"v.io/x/lib/cmdline"
+	"v.io/x/lib/cmdline2"
 	"v.io/x/lib/dbutil"
 )
 
@@ -32,28 +32,28 @@ repairing database state!
 // TODO(ivanpi): Add status command and sanity checks (e.g. "skipped" migrations are incorrectly applied by rubenv/sql-migrate).
 // TODO(ivanpi): Guard against version skew corrupting data (e.g. add version check to client).
 
-var cmdMigrate = &cmdline.Command{
+var cmdMigrate = &cmdline2.Command{
 	Name:  "migrate",
 	Short: "Database schema migrations",
 	Long: `
 See github.com/rubenv/sql-migrate
 ` + mysqlWarning,
-	Children: []*cmdline.Command{cmdMigrateUp, cmdMigrateDown},
+	Children: []*cmdline2.Command{cmdMigrateUp, cmdMigrateDown},
 }
 
-var cmdMigrateUp = &cmdline.Command{
-	Run:   runWithDBConn(runMigrate(migrate.Up)),
-	Name:  "up",
-	Short: "Apply new database schema migrations",
+var cmdMigrateUp = &cmdline2.Command{
+	Runner: runWithDBConn(runMigrate(migrate.Up, &flagMigrationsLimitUp)),
+	Name:   "up",
+	Short:  "Apply new database schema migrations",
 	Long: `
 See github.com/rubenv/sql-migrate
 ` + mysqlWarning,
 }
 
-var cmdMigrateDown = &cmdline.Command{
-	Run:   runWithDBConn(runMigrate(migrate.Down)),
-	Name:  "down",
-	Short: "Roll back database schema migrations",
+var cmdMigrateDown = &cmdline2.Command{
+	Runner: runWithDBConn(runMigrate(migrate.Down, &flagMigrationsLimitDown)),
+	Name:   "down",
+	Short:  "Roll back database schema migrations",
 	Long: `
 See github.com/rubenv/sql-migrate
 ` + mysqlWarning,
@@ -66,19 +66,20 @@ const (
 )
 
 var (
-	flagMigrationsDir   string
-	flagMigrationsLimit int
+	flagMigrationsDir       string
+	flagMigrationsLimitUp   int
+	flagMigrationsLimitDown int
 )
 
 func init() {
 	cmdMigrate.Flags.StringVar(&flagMigrationsDir, "dir", pgMigrationsDir, "Path to directory containing migrations.")
-	cmdMigrateUp.Flags.IntVar(&flagMigrationsLimit, "limit", 0, "Maximum number of up migrations to apply. 0 for unlimited.")
-	cmdMigrateDown.Flags.IntVar(&flagMigrationsLimit, "limit", 1, "Maximum number of down migrations to apply. 0 for unlimited.")
+	cmdMigrateUp.Flags.IntVar(&flagMigrationsLimitUp, "limit", 0, "Maximum number of up migrations to apply. 0 for unlimited.")
+	cmdMigrateDown.Flags.IntVar(&flagMigrationsLimitDown, "limit", 1, "Maximum number of down migrations to apply. 0 for unlimited.")
 }
 
 // Returns a DBCommand for applying migrations in the provided direction.
-func runMigrate(direction migrate.MigrationDirection) DBCommand {
-	return func(db *sql.DB, cmd *cmdline.Command, args []string) error {
+func runMigrate(direction migrate.MigrationDirection, limit *int) DBCommand {
+	return func(db *sql.DB, env *cmdline2.Env, args []string) error {
 		migrate.SetTable(migrationsTable)
 
 		source := migrate.FileMigrationSource{
@@ -86,37 +87,37 @@ func runMigrate(direction migrate.MigrationDirection) DBCommand {
 		}
 
 		if *flagDryRun {
-			planned, _, err := migrate.PlanMigration(db, sqlDialect, source, direction, flagMigrationsLimit)
+			planned, _, err := migrate.PlanMigration(db, sqlDialect, source, direction, *limit)
 			if err != nil {
 				return fmt.Errorf("Failed getting migrations to apply: %v", err)
 			}
 			for i, m := range planned {
-				fmt.Fprintf(cmd.Stdout(), "#%d: %q\n", i, m.Migration.Id)
+				fmt.Fprintf(env.Stdout, "#%d: %q\n", i, m.Migration.Id)
 				for _, q := range m.Queries {
-					fmt.Fprint(cmd.Stdout(), q)
+					fmt.Fprint(env.Stdout, q)
 				}
 			}
 			return nil
 		} else {
-			amount, err := migrate.ExecMax(db, sqlDialect, source, direction, flagMigrationsLimit)
+			amount, err := migrate.ExecMax(db, sqlDialect, source, direction, *limit)
 			if err != nil {
 				return fmt.Errorf("Migration FAILED (applied %d migrations): %v", amount, err)
 			}
-			fmt.Fprintf(cmd.Stdout(), "Successfully applied %d migrations\n", amount)
+			fmt.Fprintf(env.Stdout, "Successfully applied %d migrations\n", amount)
 			return nil
 		}
 	}
 }
 
 // Command to be wrapped with runWithDBConn().
-type DBCommand func(db *sql.DB, cmd *cmdline.Command, args []string) error
+type DBCommand func(db *sql.DB, env *cmdline2.Env, args []string) error
 
 // runWithDBConn is a wrapper method that handles opening and closing the
 // database connection.
-func runWithDBConn(fx DBCommand) cmdline.Runner {
-	return func(cmd *cmdline.Command, args []string) (rerr error) {
+func runWithDBConn(fx DBCommand) cmdline2.RunnerFunc {
+	return func(env *cmdline2.Env, args []string) (rerr error) {
 		if *flagSQLConf == "" {
-			return cmd.UsageErrorf("SQL configuration file (-sqlconf) must be provided")
+			return env.UsageErrorf("SQL configuration file (-sqlconf) must be provided")
 		}
 
 		// Open database connection from config,
@@ -142,6 +143,6 @@ func runWithDBConn(fx DBCommand) cmdline.Runner {
 		}
 
 		// Run wrapped function.
-		return fx(db, cmd, args)
+		return fx(db, env, args)
 	}
 }
