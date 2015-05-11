@@ -19,7 +19,7 @@ import (
 
 	"github.com/rubenv/sql-migrate"
 
-	"v.io/x/lib/cmdline2"
+	"v.io/x/lib/cmdline"
 	"v.io/x/lib/dbutil"
 )
 
@@ -32,16 +32,16 @@ repairing database state!
 // TODO(ivanpi): Add status command and sanity checks (e.g. "skipped" migrations are incorrectly applied by rubenv/sql-migrate).
 // TODO(ivanpi): Guard against version skew corrupting data (e.g. add version check to client).
 
-var cmdMigrate = &cmdline2.Command{
+var cmdMigrate = &cmdline.Command{
 	Name:  "migrate",
 	Short: "Database schema migrations",
 	Long: `
 See github.com/rubenv/sql-migrate
 ` + mysqlWarning,
-	Children: []*cmdline2.Command{cmdMigrateUp, cmdMigrateDown},
+	Children: []*cmdline.Command{cmdMigrateUp, cmdMigrateDown},
 }
 
-var cmdMigrateUp = &cmdline2.Command{
+var cmdMigrateUp = &cmdline.Command{
 	Runner: runWithDBConn(runMigrate(migrate.Up, &flagMigrationsLimitUp)),
 	Name:   "up",
 	Short:  "Apply new database schema migrations",
@@ -50,7 +50,7 @@ See github.com/rubenv/sql-migrate
 ` + mysqlWarning,
 }
 
-var cmdMigrateDown = &cmdline2.Command{
+var cmdMigrateDown = &cmdline.Command{
 	Runner: runWithDBConn(runMigrate(migrate.Down, &flagMigrationsLimitDown)),
 	Name:   "down",
 	Short:  "Roll back database schema migrations",
@@ -79,7 +79,7 @@ func init() {
 
 // Returns a DBCommand for applying migrations in the provided direction.
 func runMigrate(direction migrate.MigrationDirection, limit *int) DBCommand {
-	return func(db *sql.DB, env *cmdline2.Env, args []string) error {
+	return func(db *sql.DB, env *cmdline.Env, args []string) error {
 		migrate.SetTable(migrationsTable)
 
 		source := migrate.FileMigrationSource{
@@ -110,12 +110,12 @@ func runMigrate(direction migrate.MigrationDirection, limit *int) DBCommand {
 }
 
 // Command to be wrapped with runWithDBConn().
-type DBCommand func(db *sql.DB, env *cmdline2.Env, args []string) error
+type DBCommand func(db *sql.DB, env *cmdline.Env, args []string) error
 
 // runWithDBConn is a wrapper method that handles opening and closing the
 // database connection.
-func runWithDBConn(fx DBCommand) cmdline2.RunnerFunc {
-	return func(env *cmdline2.Env, args []string) (rerr error) {
+func runWithDBConn(fx DBCommand) cmdline.RunnerFunc {
+	return func(env *cmdline.Env, args []string) (rerr error) {
 		if *flagSQLConf == "" {
 			return env.UsageErrorf("SQL configuration file (-sqlconf) must be provided")
 		}

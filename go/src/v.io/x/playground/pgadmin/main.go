@@ -9,15 +9,15 @@ package main
 import (
 	"flag"
 
-	"v.io/x/lib/cmdline2"
+	"v.io/x/lib/cmdline"
 	"v.io/x/lib/dbutil"
 )
 
 func main() {
-	cmdline2.Main(cmdPGAdmin)
+	cmdline.Main(cmdPGAdmin)
 }
 
-var cmdPGAdmin = &cmdline2.Command{
+var cmdPGAdmin = &cmdline.Command{
 	Name:  "pgadmin",
 	Short: "Playground database management tool",
 	Long: `
@@ -25,7 +25,7 @@ Tool for managing the playground database and default bundles.
 Supports database schema migration.
 TODO(ivanpi): bundle bootstrap
 `,
-	Children: []*cmdline2.Command{cmdMigrate},
+	Children: []*cmdline.Command{cmdMigrate},
 }
 
 var (
