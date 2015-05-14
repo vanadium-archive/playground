@@ -21,6 +21,7 @@ import (
 
 	"v.io/x/lib/cmdline"
 	"v.io/x/lib/dbutil"
+	"v.io/x/playground/lib"
 )
 
 const mysqlWarning = `
@@ -129,12 +130,7 @@ func runWithDBConn(fx DBCommand) cmdline.RunnerFunc {
 		defer func() {
 			if cerr := db.Close(); cerr != nil {
 				cerr = fmt.Errorf("Failed closing database connection: %v", cerr)
-				// Merge errors.
-				if rerr == nil {
-					rerr = cerr
-				} else {
-					rerr = fmt.Errorf("%v\n%v", rerr, cerr)
-				}
+				rerr = lib.MergeErrors(rerr, cerr, "\n")
 			}
 		}()
 		// Ping database to check connection.

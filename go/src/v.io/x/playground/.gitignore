@@ -1,4 +1,7 @@
 netrc
+node_modules
 config/*.json
 !config/db-*-example.json
 !config/db-*-default.json
+bundles/*/*/bin
+bundles/*/*/pkg

@@ -52,7 +52,7 @@ Install the playground binaries:
 
     $ GOPATH=$V23_ROOT/release/projects/playground/go v23 go install v.io/x/playground/...
 
-Run the compiler binary:
+Run the compilerd binary:
 
     $ $V23_ROOT/release/projects/playground/go/bin/compilerd --listen-timeout=0 --address=localhost:8181 --origin='*'
 
@@ -93,6 +93,11 @@ Create `config/db.json` from default:
     $ cp config/db-local-default.json config/db.json
 
 Alternatively, make your own from example.
+
+The compilerd server can now be started with persistence enabled by:
+
+    $ make start
+
 
 # Running tests
 
@@ -158,3 +163,28 @@ Applying a single migration "up" and then "down" should leave the database in
 the same state it was to begin with.
 
 For more information on writing migrations, see https://github.com/rubenv/sql-migrate#writing-migrations
+
+## Bootstrapping default examples
+
+The playground client expects to find up-to-date default examples already
+present in the database to use as templates for editing. The unpacked example
+source code can be found in the `bundles` directory, described in
+`bundles/config.json`. Each example is obtained by filtering files from a
+folder according to a glob-like configuration file and bundling them into a
+JSON object that the client can parse.
+
+Bundling and loading the examples into a fresh database, as well as updating,
+is handled by the `pgadmin` tool:
+
+    $ make pgbundle
+    $ $V23_ROOT/release/projects/playground/go/bin/pgadmin -sqlconf=./config/db.json bundle bootstrap
+
+Or simply:
+
+    $ make bootstrap
+
+When adding new default examples or implementations of existing ones,
+`bundles/config.json` must also be edited to include them in bootstrapping and
+tests. For config file format documentation, see:
+
+    $ $V23_ROOT/release/projects/playground/go/bin/pgadmin bundle help bootstrap

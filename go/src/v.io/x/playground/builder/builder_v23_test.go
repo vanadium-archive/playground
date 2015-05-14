@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"v.io/x/playground/lib/bundle"
 	_ "v.io/x/ref/runtime/factories/generic"
 	"v.io/x/ref/test/expect"
 	"v.io/x/ref/test/v23tests"
@@ -138,36 +139,32 @@ func V23TestPlaygroundBuilder(i *v23tests.T) {
 	runCases("src/ids/unauthorized.id", []string{"not authorized"})
 }
 
-// Tests that default playground examples execute successfully.
-// If any new examples are added, they should be added to bundles below.
+// Tests that default playground examples specified in `config.json` execute
+// successfully.
 func V23TestPlaygroundBundles(i *v23tests.T) {
 	i.Pushd(i.NewTempDir(""))
 	defer i.Popd()
 	builderBin := initTest(i)
 
-	bundlesDir := filepath.Join(playgroundRoot, "client", "bundles")
-
-	// Add any new examples here.
-	bundles := []string{
-		"fortune",
+	bundlesDir := filepath.Join(playgroundRoot, "go", "src", "v.io", "x", "playground", "bundles")
+	bundlesCfgFile := filepath.Join(bundlesDir, "config.json")
+	bundlesCfg, err := bundle.ParseConfigFromFile(bundlesCfgFile, bundlesDir)
+	if err != nil {
+		i.Fatalf("%s: failed parsing bundle config from %q: %v", i.Caller(0), bundlesCfgFile, err)
 	}
 
-	globFiles := []string{
-		"go.bundle",
-		"js.bundle",
-		"go_js.bundle",
-		"js_go.bundle",
-	}
+	for _, example := range bundlesCfg.Examples {
+		i.Logf("Test example %s (%q)", example.Name, example.Path)
 
-	for _, bundle := range bundles {
-		i.Logf("Test bundle %q", bundle)
-		bundlePath := filepath.Join(bundlesDir, bundle)
-		for _, globFile := range globFiles {
-			globFilePath := filepath.Join(bundlesDir, globFile)
-			inv := runPGExample(i, builderBin, globFilePath, bundlePath, "-verbose=true", "--runTimeout=5s")
-			i.Logf("glob: %q", globFile)
-			// TODO(ivanpi,sadovsky): Make this "clean exit" check more robust.
-			expectAndEcho(inv, "client.*Exited cleanly\\.")
+		for _, globName := range example.Globs {
+			glob, globExists := bundlesCfg.Globs[globName]
+			if !globExists {
+				i.Fatalf("%s: unknown glob %q", i.Caller(0), globName)
+			}
+
+			inv := runPGExample(i, builderBin, glob.Path, example.Path, "-verbose=true", "--runTimeout=5s")
+			i.Logf("glob: %s (%q)", globName, glob.Path)
+			expectAndEcho(inv, example.Output...)
 		}
 	}
 }

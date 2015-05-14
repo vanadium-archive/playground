@@ -2,6 +2,10 @@ PATH := node_modules/.bin:$(PATH)
 PATH := $(PATH):$(V23_ROOT)/third_party/cout/node/bin
 SHELL := /bin/bash -euo pipefail
 
+.DEFAULT_GOAL := node_modules
+
+.DELETE_ON_ERROR:
+
 node_modules: package.json
 	@npm prune
 	@npm install

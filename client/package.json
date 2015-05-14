@@ -38,7 +38,6 @@
     "jshint": "^2.6.0",
     "minimist": "^1.1.1",
     "myth": "^1.4.0",
-    "pgbundle": "0.0.1",
     "raf": "^2.0.4",
     "rework": "^1.0.1",
     "rework-inherit": "^0.2.3",

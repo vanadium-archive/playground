@@ -22,10 +22,9 @@ var cmdPGAdmin = &cmdline.Command{
 	Short: "Playground database management tool",
 	Long: `
 Tool for managing the playground database and default bundles.
-Supports database schema migration.
-TODO(ivanpi): bundle bootstrap
+Supports database schema migration and loading default bundles into database.
 `,
-	Children: []*cmdline.Command{cmdMigrate},
+	Children: []*cmdline.Command{cmdMigrate, cmdBundle},
 }
 
 var (

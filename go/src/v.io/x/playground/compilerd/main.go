@@ -25,8 +25,8 @@ import (
 	"time"
 
 	"v.io/x/lib/dbutil"
-	"v.io/x/playground/compilerd/storage"
 	"v.io/x/playground/lib/log"
+	"v.io/x/playground/lib/storage"
 )
 
 func init() {
@@ -118,12 +118,14 @@ func main() {
 		// Add routes for storage.
 		serveMux.HandleFunc("/load", handlerLoad)
 		serveMux.HandleFunc("/save", handlerSave)
+		serveMux.HandleFunc("/list", handlerListDefault)
 	} else {
-		log.Debug("No sql config provided. Disabling /load and /save routes.")
+		log.Debug("No sql config provided. Disabling /load, /save, /list routes.")
 
-		// Return 501 Not Implemented for the /load and /save routes.
+		// Return 501 Not Implemented for the storage routes.
 		serveMux.HandleFunc("/load", handlerNotImplemented)
 		serveMux.HandleFunc("/save", handlerNotImplemented)
+		serveMux.HandleFunc("/list", handlerNotImplemented)
 	}
 
 	serveMux.HandleFunc("/compile", c.handlerCompile)

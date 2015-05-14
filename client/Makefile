@@ -12,7 +12,7 @@ port ?= 8088
 .DELETE_ON_ERROR:
 
 .PHONY: all
-all: public/bundles public/bundle.js public/bundle.css
+all: public/bundle.js public/bundle.css
 	@true  # silences `watch make`
 
 .PHONY: deploy-production
@@ -29,36 +29,8 @@ public/bundle.js: browser/index.js $(js_files) node_modules
 public/bundle.css: stylesheets/index.css $(css_files) node_modules
 	bin/compile-css $< 1> $@
 
-# Each profile (glob file with file patterns to include) from
-# `bundles/<profile>.bundle` is applied to each example folder of the
-# form `bundles/<example>/`.
-example_profiles := $(shell find bundles -maxdepth 1 -name "*.bundle")
-example_code_bundle_dirs := $(shell find bundles -maxdepth 1 -mindepth 1 -type d)
-example_files := $(shell find bundles -mindepth 1)
-bundle_temp_file := public/bundle.json.tmp
-
-# Builds the playground bundles for each folder and profile combination.
-# This task depends on example_profiles and example_files because we want
-# to re-bundle if any of those change. However, the bundle tool works on
-# directories, so we pass in example_code_bundle_dirs as the path argument.
-# Note: Bundle correctness test was moved to builder integration test.
-# TODO(ivanpi): Move bundles out of client when bootstrap support is ready.
-public/bundles: $(example_profiles) $(example_files) | node_modules
-	$(RM) -rf $@
-	mkdir -p $(dir $(bundle_temp_file))
-	@for profile in $(example_profiles); do \
-			echo "Bundling with profile \"$${profile}\""; \
-				for folder in $(example_code_bundle_dirs); do \
-				pgbundle --verbose "$${profile}" "$${folder}" > $(bundle_temp_file); \
-				mv -f $(bundle_temp_file) "$${folder}/bundle_$$(basename $${profile} .bundle).json"; \
-			done; \
-		done
-	cp -r bundles $(@D)
-
 node_modules: package.json
 	@npm prune
-	# Temporary workaround: install pgbundle directly from source.
-	@npm install $(V23_ROOT)/release/projects/playground/pgbundle
 	@npm install
 	@touch $@
 
@@ -75,8 +47,6 @@ clean:
 .PHONY: distclean
 distclean: clean
 	@npm cache clean
-	@$(RM) -rf public/bundles
-	@$(RM) -rf $(shell find bundles -name "bundle*.json")
 
 .PHONY: dependency-check
 dependency-check: package.json node_modules

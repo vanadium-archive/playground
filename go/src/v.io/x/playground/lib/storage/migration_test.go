@@ -54,13 +54,13 @@ func TestMigrationsUpAndDown(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Error migrating up: %v", err)
 		}
-		fmt.Printf("Applied %v migration up.\n", up)
+		fmt.Printf("Applied %v migrations up.\n", up)
 
 		down, err := migrate.Exec(db, "mysql", migrationSource, migrate.Down)
 		if err != nil {
 			t.Fatalf("Error migrating down: %v", err)
 		}
-		fmt.Printf("Applied %v migration down.\n", down)
+		fmt.Printf("Applied %v migrations down.\n", down)
 	}
 
 	// Run each migration up, down, up individually.
@@ -68,25 +68,25 @@ func TestMigrationsUpAndDown(t *testing.T) {
 	if err != nil {
 		t.Fatalf("migrationSource.FindMigrations() failed: %v", err)
 	}
-	for i, migration := range migrations {
+	for i, _ := range migrations {
 		memMigrationSource := &migrate.MemoryMigrationSource{
-			Migrations: []*migrate.Migration{migration},
+			Migrations: append([]*migrate.Migration(nil), migrations[:i+1]...),
 		}
 
 		// Migrate up.
-		if _, err := migrate.Exec(db, "mysql", memMigrationSource, migrate.Up); err != nil {
+		if _, err := migrate.ExecMax(db, "mysql", memMigrationSource, migrate.Up, 1); err != nil {
 			t.Fatalf("Error migrating migration %v up: %v", i, err)
 		}
 		fmt.Printf("Applied migration %v up.\n", i)
 
 		// Migrate down.
-		if _, err := migrate.Exec(db, "mysql", memMigrationSource, migrate.Down); err != nil {
+		if _, err := migrate.ExecMax(db, "mysql", memMigrationSource, migrate.Down, 1); err != nil {
 			t.Fatalf("Error migrating migration %v down: %v", i, err)
 		}
 		fmt.Printf("Applied migration %v down.\n", i)
 
 		// Migrate up.
-		if _, err := migrate.Exec(db, "mysql", memMigrationSource, migrate.Up); err != nil {
+		if _, err := migrate.ExecMax(db, "mysql", memMigrationSource, migrate.Up, 1); err != nil {
 			t.Fatalf("Error migrating migration %v up: %v", i, err)
 		}
 		fmt.Printf("Applied migration %v up.\n", i)

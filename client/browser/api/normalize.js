@@ -7,10 +7,10 @@ module.exports = normalize;
 // TODO: Update once the API returns the correct data structures.
 // map old data format to a new one and return a bundle state object.
 function normalize(old) {
-  var data = JSON.parse(old.Data);
+  var data = JSON.parse(old.data);
 
   return {
-    uuid: old.Link,
+    uuid: old.slug || old.link,
     files: data.files
   };
 }

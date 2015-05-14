@@ -1,9 +1,5 @@
-bundles/*/*/bin
-bundles/*/*/pkg
-public/bundles
 public/version
 bundle.*
 !browser/components/bundle.js
-bundle_*.json
 node_modules
 npm-debug.log

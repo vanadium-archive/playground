@@ -3,9 +3,7 @@ RUN /usr/sbin/useradd -d /home/playground -m playground
 
 # Install various prereqs.
 RUN apt-get update
-RUN apt-get install -y curl git nodejs npm
-# node -> nodejs needed for Ubuntu.
-RUN ln -s "$(which nodejs)" "$(dirname $(which nodejs))/node"
+RUN apt-get install -y curl git nodejs nodejs-legacy npm
 
 # Install Go. Note, the apt-get "golang" target is too old.
 RUN (cd /tmp; curl -O https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz)

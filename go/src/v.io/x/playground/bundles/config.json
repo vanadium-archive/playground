@@ -1,0 +1,33 @@
+{
+  "examples": [
+    {
+      "name": "fortune",
+      "path": "fortune",
+      "globs": [
+        "go",
+        "js",
+        "js-go",
+        "go-js"
+      ],
+      "output": [
+        "server.*Serving:",
+        "client.*Received:",
+        "client.*Exited cleanly\\."
+      ]
+    }
+  ],
+  "globs": {
+    "go": {
+      "path": "go.bundle"
+    },
+    "js": {
+      "path": "js.bundle"
+    },
+    "js-go": {
+      "path": "js_go.bundle"
+    },
+    "go-js": {
+      "path": "go_js.bundle"
+    }
+  }
+}

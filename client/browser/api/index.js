@@ -78,6 +78,9 @@ API.prototype.url = function(options) {
     case 'read':
       clone.pathname = url.resolve(clone.pathname, 'load');
       break;
+    case 'list':
+      clone.pathname = url.resolve(clone.pathname, 'list');
+      break;
     case 'run':
       clone.pathname = url.resolve(clone.pathname, 'compile');
       break;
@@ -99,28 +102,44 @@ API.prototype.url = function(options) {
   }
 };
 
-// Temporary way to list bundles until there is an API endpoint to hit.
 API.prototype.bundles = function(callback) {
   var api = this;
-  // TODO(jasoncampbell): remove this list once a list API endpoint is
-  // available.
-  var ids = [
-    '_cadcfa075a6ac6d1939d12a64ac6e57bc7256c0422fb5d0690b3d8618779565',
-    '_be43fb9b2d03087dfd7c84437fd37dac7f6977d8cac330b9fce6aad94414558',
-    '_5385edd72b550c57bee83b100731338c70349ac7354dc4353665a1998fa7c8c',
-    '_46f8b66f0e80be00adc6222ac0235b1f8e70183daa64ec5924b14267dc6f0fd'
-  ];
+  var uri = api.url({ action: 'list' });
 
-  var workers = ids.map(createWorker);
+  request
+  .get(uri)
+  .accept('json')
+  .timeout(api.options.timeout)
+  .end(onlist);
 
-  // Request all ids in parallel.
-  parallel(workers, callback);
+  function onlist(err, res, body) {
+    if (err) {
+      return callback(err);
+    }
 
-  function createWorker(id) {
-    return worker;
+    if (! res.ok) {
+      var message = format('GET %s - %s NOT OK', uri, res.statusCode);
+      err = new Error(message);
+      return callback(err);
+    }
 
-    function worker(cb) {
-      api.get(id, cb);
+    var slugs = res.body.map(getSlugs);
+
+    function getSlugs(bundle) {
+      return bundle.slug;
+    }
+
+    var workers = slugs.map(createWorker);
+
+    // Request all ids in parallel.
+    parallel(workers, callback);
+
+    function createWorker(id) {
+      return worker;
+
+      function worker(cb) {
+        api.get(id, cb);
+      }
     }
   }
 };

@@ -6,14 +6,14 @@ As of dec-2014, the playground doc is [here][playground-doc].
 
 ## Directory structure
 
-* `browser` - JS modules to be compiled/bundle via `[browserify]`.
-* `bundles` - Default playground examples. Each combination of directory and `.bundle` file forms a bundle.
-* _Makefile_ - Targets for building the client (browserifying Javascript, compile CSS, etc.).
+* `bin` - Utility scripts for building the client.
+* `browser` - JS modules to be compiled/bundled via `[browserify]`.
+* _Makefile_ - Targets for building the client (browserifying Javascript, compiling CSS, etc.).
 * `node_modules` - JS dependencies created by `npm install`.
 * _package.json_ - Used by `npm install` to resolve and download dependencies.
-* `public` - Static assets, including bundle targets for JS/CSS served by `make start`.
+* `public` - Static assets, including JS/CSS bundles, served by `make start`.
 * `stylesheets` - CSS to be compiled to `public/bundle.css`.
-* _test.sh_ - Script testing correctness of default playground examples.
+* `test` - Client TAP unit tests.
 
 Requires [npm] and [Node.js].
 
@@ -21,8 +21,8 @@ Build the playground web client:
 
     make
 
-The command above automatically fetches node dependencies, and builds necessary assets for the client bundles to the `public`
-directory for serving.
+The command above automatically fetches Node dependencies and builds necessary
+assets for the client bundles to the `public` directory for serving.
 
 ## Local server
 
