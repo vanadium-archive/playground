@@ -38,7 +38,7 @@ import (
 
 	"v.io/x/playground/lib"
 	"v.io/x/playground/lib/event"
-	"v.io/x/ref/envvar"
+	"v.io/x/ref"
 )
 
 var (
@@ -396,7 +396,7 @@ func makeCmd(fileName string, isService bool, credentials, progName string, args
 	cmd := exec.Command(progName, args...)
 	cmd.Env = os.Environ()
 	if credentials != "" {
-		cmd.Env = append(cmd.Env, fmt.Sprintf("%v=%s", envvar.Credentials, filepath.Join(credentialsDir, credentials)))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("%v=%s", ref.EnvCredentials, filepath.Join(credentialsDir, credentials)))
 	}
 	stdout, stderr := lib.NewMultiWriter(), lib.NewMultiWriter()
 	prefix := ""
@@ -414,7 +414,7 @@ func makeCmd(fileName string, isService bool, credentials, progName string, args
 func main() {
 	// Remove any association with other credentials, start from a clean
 	// slate.
-	envvar.ClearCredentials()
+	ref.EnvClearCredentials()
 	flag.Parse()
 
 	out = event.NewJsonSink(os.Stdout, !*verbose)

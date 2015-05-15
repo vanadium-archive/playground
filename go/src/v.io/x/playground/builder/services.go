@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"v.io/x/playground/lib"
-	"v.io/x/ref/envvar"
+	"v.io/x/ref"
 )
 
 var (
@@ -46,7 +46,7 @@ func startMount(timeLimit time.Duration) (proc *os.Process, err error) {
 	if endpoint == "" {
 		return nil, fmt.Errorf("Failed to get mounttable endpoint")
 	}
-	return cmd.Process, os.Setenv(envvar.NamespacePrefix, endpoint)
+	return cmd.Process, os.Setenv(ref.EnvNamespacePrefix, endpoint)
 }
 
 // startProxy starts a proxyd process.  We run one proxyd process for the
