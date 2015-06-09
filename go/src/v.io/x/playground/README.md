@@ -42,8 +42,7 @@ uncomment marked lines before running the command.
 
 Test your image (without running compilerd):
 
-    $ cd $V23_ROOT/release/projects/playground/client && make src/example_bundles
-    $ docker run -i playground < $V23_ROOT/release/projects/playground/client/bundles/fortune/bundle_js_go.json
+    $ $V23_ROOT/release/projects/playground/go/bin/pgadmin bundle make fortune js-go | docker run -i playground
 
 
 ## Running the playground server (compilerd)
@@ -170,13 +169,12 @@ The playground client expects to find up-to-date default examples already
 present in the database to use as templates for editing. The unpacked example
 source code can be found in the `bundles` directory, described in
 `bundles/config.json`. Each example is obtained by filtering files from a
-folder according to a glob-like configuration file and bundling them into a
-JSON object that the client can parse.
+folder according to a glob-like configuration and bundling them into a JSON
+object that the client can parse.
 
 Bundling and loading the examples into a fresh database, as well as updating,
 is handled by the `pgadmin` tool:
 
-    $ make pgbundle
     $ $V23_ROOT/release/projects/playground/go/bin/pgadmin -sqlconf=./config/db.json bundle bootstrap
 
 Or simply:

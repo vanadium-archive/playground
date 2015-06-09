@@ -28,8 +28,13 @@ Supports database schema migration and loading default bundles into database.
 }
 
 var (
-	flagDryRun = flag.Bool("n", false, "Show what commands will run, but do not execute them.")
+	flagDryRun  = flag.Bool("n", false, "Show necessary database modifications, but do not apply them.")
+	flagVerbose = flag.Bool("v", true, "Show more verbose output.")
 
 	// Path to SQL configuration file, as described in v.io/x/lib/dbutil/mysql.go. Required parameter for most commands.
 	flagSQLConf = flag.String("sqlconf", "", "Path to SQL configuration file. "+dbutil.SqlConfigFileDescription)
 )
+
+func logVerbose() bool {
+	return *flagDryRun || *flagVerbose
+}

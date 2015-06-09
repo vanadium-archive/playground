@@ -3,10 +3,10 @@
 // license that can be found in the LICENSE file.
 
 // Bundle commands support bundling playground examples into JSON objects
-// compatible with the playground client. Glob files allow specifying file
+// compatible with the playground client. Glob filters allow specifying file
 // subsets for different implementations of the same example. Bundles specified
-// in a configuration file can be loaded into the database as named, default
-// examples.
+// in a configuration file can be individually bundled or loaded into the
+// database as named, default examples.
 
 package main
 
@@ -18,7 +18,7 @@ import (
 	"v.io/x/lib/cmdline"
 	"v.io/x/lib/dbutil"
 	"v.io/x/playground/lib"
-	"v.io/x/playground/lib/bundle"
+	"v.io/x/playground/lib/bundle/bundler"
 	"v.io/x/playground/lib/storage"
 )
 
@@ -35,16 +35,21 @@ database.
 var cmdBundleMake = &cmdline.Command{
 	Runner: cmdline.RunnerFunc(runBundleMake),
 	Name:   "make",
-	Short:  "Make a single manually specified bundle",
+	Short:  "Make a single bundle from config file",
 	Long: `
-Bundles the example specified by <root_path>, as filtered by <glob_file>, into
-a JSON object compatible with the playground client.
+Bundles the example named <example>, as filtered by <glob_spec>, specified
+in the bundle config file into a JSON object compatible with the playground
+client.
 `,
-	ArgsName: "<glob_file> <root_path>",
-	ArgsLong: bundle.BundleUsage,
+	ArgsName: "<example> <glob_spec>",
+	ArgsLong: `
+<example>: Name of example in config file to be bundled.
+
+<glob_spec>: Name of glob spec in config file to apply when bundling example.
+             Glob spec must be referenced by the example as a valid choice.
+`,
 }
 
-// TODO(ivanpi): Make a single bundle from config file instead of manually specified.
 // TODO(ivanpi): Add bundle metadata (title, description) via config file.
 // TODO(ivanpi): Iterate over config file, applying commands to bundles (similar to POSIX find)?
 var cmdBundleBootstrap = &cmdline.Command{
@@ -65,52 +70,85 @@ const (
 var (
 	flagBundleCfgFile string
 	flagBundleDir     string
+	flagEmpty         bool
 )
 
 func init() {
-	cmdBundleBootstrap.Flags.StringVar(&flagBundleCfgFile, "bundleconf", defaultBundleCfg, "Path to bundle config file. "+bundle.BundleConfigFileDescription)
-	cmdBundleBootstrap.Flags.StringVar(&flagBundleDir, "bundledir", "", "Path relative to which paths in the bundle config file are interpreted. If empty, defaults to the config file directory.")
+	cmdBundle.Flags.StringVar(&flagBundleCfgFile, "bundleconf", defaultBundleCfg, "Path to bundle config file. "+bundler.BundleConfigFileDescription)
+	cmdBundle.Flags.StringVar(&flagBundleDir, "bundledir", "", "Path relative to which paths in the bundle config file are interpreted. If empty, defaults to the config file directory.")
+	cmdBundle.Flags.BoolVar(&flagEmpty, "empty", false, "Omit file contents in bundle, include only paths and metadata.")
 }
 
-// Bundles an example from the specified folder using the specified glob file.
-// TODO(ivanpi): Expose --verbose and --empty options.
+// Bundles an example from the specified folder using the specified glob.
 func runBundleMake(env *cmdline.Env, args []string) error {
 	if len(args) != 2 {
 		return env.UsageErrorf("exactly two arguments expected")
 	}
-	bOut, err := bundle.Bundle(env.Stderr, args[0], args[1], true)
+	exampleName, globName := args[0], args[1]
+	emptyFlagWarn(env)
+
+	bundleCfg, err := parseBundleConfig(env)
 	if err != nil {
-		return fmt.Errorf("Bundling failed: %v", err)
+		return err
 	}
-	fmt.Fprintln(env.Stdout, string(bOut))
-	return nil
+
+	glob, globExists := bundleCfg.Globs[globName]
+	if !globExists {
+		return fmt.Errorf("Unknown glob: %s", globName)
+	}
+
+	for _, example := range bundleCfg.Examples {
+		if example.Name == exampleName {
+			globValid := false
+			for _, gn := range example.Globs {
+				if gn == globName {
+					globValid = true
+				}
+			}
+			if !globValid {
+				return fmt.Errorf("Invalid glob for example %s: %s", example.Name, globName)
+			}
+
+			bOut, err := bundler.MakeBundleJson(example.Path, glob.Patterns, flagEmpty)
+			if err != nil {
+				return fmt.Errorf("Bundling %s with %s failed: %v", example.Name, globName, err)
+			}
+			fmt.Fprintln(env.Stdout, string(bOut))
+			if logVerbose() {
+				fmt.Fprintf(env.Stderr, "Bundled %s using %s\n", example.Name, globName)
+			}
+
+			return nil
+		}
+	}
+	return fmt.Errorf("Unknown example: %s", exampleName)
 }
 
 // Returns a cmdline.RunnerFunc for loading all bundles specified in the bundle
 // config file into the database as default bundles.
 func runBundleBootstrap(env *cmdline.Env, args []string) error {
-	bundleDir := os.ExpandEnv(flagBundleDir)
-	// If bundleDir is empty, interpret paths relative to bundleCfg directory.
-	if bundleDir == "" {
-		bundleDir = filepath.Dir(os.ExpandEnv(flagBundleCfgFile))
-	}
-	bundleCfg, err := bundle.ParseConfigFromFile(os.ExpandEnv(flagBundleCfgFile), bundleDir)
+	emptyFlagWarn(env)
+	bundleCfg, err := parseBundleConfig(env)
 	if err != nil {
-		return fmt.Errorf("Failed parsing bundle config from %q: %v", os.ExpandEnv(flagBundleCfgFile), err)
+		return err
 	}
 
 	var newDefBundles []*storage.NewBundle
 	for _, example := range bundleCfg.Examples {
-		fmt.Fprintf(env.Stdout, "Bundling example: %s (%q)\n", example.Name, example.Path)
+		if logVerbose() {
+			fmt.Fprintf(env.Stderr, "Bundling example: %s (%q)\n", example.Name, example.Path)
+		}
 
 		for _, globName := range example.Globs {
 			glob, globExists := bundleCfg.Globs[globName]
 			if !globExists {
-				return fmt.Errorf("Unknown glob %q", globName)
+				return fmt.Errorf("Unknown glob: %s", globName)
 			}
-			fmt.Fprintf(env.Stdout, "> glob: %s (%q)\n", globName, glob.Path)
+			if logVerbose() {
+				fmt.Fprintf(env.Stderr, "> glob: %s\n", globName)
+			}
 
-			bOut, err := bundle.Bundle(env.Stderr, glob.Path, example.Path, false)
+			bOut, err := bundler.MakeBundleJson(example.Path, glob.Patterns, flagEmpty)
 			if err != nil {
 				return fmt.Errorf("Bundling %s with %s failed: %v", example.Name, globName, err)
 			}
@@ -126,41 +164,65 @@ func runBundleBootstrap(env *cmdline.Env, args []string) error {
 	}
 
 	if *flagDryRun {
-		fmt.Fprintf(env.Stdout, "Run without dry run to load %d bundles into database\n", len(newDefBundles))
+		fmt.Fprintf(env.Stderr, "Run without dry run to load %d bundles into database\n", len(newDefBundles))
 	} else {
 		// Unmark old default bundles and store new ones.
 		if err := storage.ReplaceDefaultBundles(newDefBundles); err != nil {
 			return fmt.Errorf("Failed to replace default bundles: %v", err)
 		}
-		fmt.Fprintf(env.Stdout, "Successfully loaded %d bundles into database\n", len(newDefBundles))
+		if logVerbose() {
+			fmt.Fprintf(env.Stderr, "Successfully loaded %d bundles into database\n", len(newDefBundles))
+		}
 	}
 	return nil
+}
+
+func emptyFlagWarn(env *cmdline.Env) {
+	if logVerbose() && flagEmpty {
+		fmt.Fprintf(env.Stderr, "Flag -empty set, omitting file contents\n")
+	}
+}
+
+func parseBundleConfig(env *cmdline.Env) (*bundler.Config, error) {
+	bundleCfgFile := os.ExpandEnv(flagBundleCfgFile)
+	bundleDir := os.ExpandEnv(flagBundleDir)
+	// If bundleDir is empty, interpret paths relative to bundleCfg directory.
+	if bundleDir == "" {
+		bundleDir = filepath.Dir(bundleCfgFile)
+	}
+	bundleCfg, err := bundler.ParseConfigFromFile(bundleCfgFile, bundleDir)
+	if err != nil {
+		return nil, fmt.Errorf("Failed parsing bundle config from %q: %v", bundleCfgFile, err)
+	}
+	return bundleCfg, nil
 }
 
 // runWithStorage is a wrapper method that handles opening and closing the
 // database connections used by `v.io/x/playground/lib/storage`.
 func runWithStorage(fx cmdline.RunnerFunc) cmdline.RunnerFunc {
 	return func(env *cmdline.Env, args []string) (rerr error) {
-		if *flagSQLConf == "" {
-			return env.UsageErrorf("SQL configuration file (-sqlconf) must be provided")
-		}
-
-		// Parse SQL configuration file and set up TLS.
-		dbConf, err := dbutil.ActivateSqlConfigFromFile(*flagSQLConf)
-		if err != nil {
-			return fmt.Errorf("Error parsing SQL configuration: %v", err)
-		}
-		// Connect to storage backend.
-		if err := storage.Connect(dbConf); err != nil {
-			return fmt.Errorf("Error opening database connection: %v", err)
-		}
-		// Best effort close.
-		defer func() {
-			if cerr := storage.Close(); cerr != nil {
-				cerr = fmt.Errorf("Failed closing database connection: %v", cerr)
-				rerr = lib.MergeErrors(rerr, cerr, "\n")
+		if !*flagDryRun {
+			if *flagSQLConf == "" {
+				return env.UsageErrorf("SQL configuration file (-sqlconf) must be provided")
 			}
-		}()
+
+			// Parse SQL configuration file and set up TLS.
+			dbConf, err := dbutil.ActivateSqlConfigFromFile(*flagSQLConf)
+			if err != nil {
+				return fmt.Errorf("Error parsing SQL configuration: %v", err)
+			}
+			// Connect to storage backend.
+			if err := storage.Connect(dbConf); err != nil {
+				return fmt.Errorf("Error opening database connection: %v", err)
+			}
+			// Best effort close.
+			defer func() {
+				if cerr := storage.Close(); cerr != nil {
+					cerr = fmt.Errorf("Failed closing database connection: %v", cerr)
+					rerr = lib.MergeErrors(rerr, cerr, "\n")
+				}
+			}()
+		}
 
 		// Run wrapped function.
 		return fx(env, args)

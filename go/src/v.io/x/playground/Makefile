@@ -48,7 +48,7 @@ updatedb: config/db.json pgadmin
 		migrate up
 
 .PHONY: bootstrap
-bootstrap: config/db.json pgadmin pgbundle
+bootstrap: config/db.json pgadmin
 	pgadmin \
 		--sqlconf=$< \
 		bundle bootstrap
@@ -57,17 +57,6 @@ config/db.json:
 	@echo "You are missing config/db.json, create this file based"
 	@echo "on the appropriate examples in the config directory."
 	@exit 1;
-
-# TODO(ivanpi): Remove when pgbundle is ported to Go.
-.PHONY: pgbundle
-pgbundle:
-	PATH="$(PATH):$(V23_ROOT)/third_party/cout/node/bin" \
-		npm install --production "$(V23_ROOT)/release/projects/playground/pgbundle"
-
-.PHONY: clean
-clean:
-	@$(RM) -rf node_modules
-	@$(RM) -rf npm-debug.log
 
 # Temporary workaround for linking Go tests into Jenkins.
 .PHONY: test

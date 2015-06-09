@@ -18,16 +18,32 @@
   ],
   "globs": {
     "go": {
-      "path": "go.bundle"
+      "patterns": [
+        "*.vdl",
+        "client/**/*.go",
+        "server/**/*.go"
+      ]
     },
     "js": {
-      "path": "js.bundle"
+      "patterns": [
+        "*.vdl",
+        "client/**/*.js",
+        "server/**/*.js"
+      ]
     },
     "js-go": {
-      "path": "js_go.bundle"
+      "patterns": [
+        "*.vdl",
+        "client/**/*.js",
+        "server/**/*.go"
+      ]
     },
     "go-js": {
-      "path": "go_js.bundle"
+      "patterns": [
+        "*.vdl",
+        "client/**/*.go",
+        "server/**/*.js"
+      ]
     }
   }
 }

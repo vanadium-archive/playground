@@ -93,9 +93,9 @@ func runMigrate(direction migrate.MigrationDirection, limit *int) DBCommand {
 				return fmt.Errorf("Failed getting migrations to apply: %v", err)
 			}
 			for i, m := range planned {
-				fmt.Fprintf(env.Stdout, "#%d: %q\n", i, m.Migration.Id)
+				fmt.Fprintf(env.Stderr, "#%d: %q\n", i, m.Migration.Id)
 				for _, q := range m.Queries {
-					fmt.Fprint(env.Stdout, q)
+					fmt.Fprint(env.Stderr, q)
 				}
 			}
 			return nil
@@ -104,7 +104,9 @@ func runMigrate(direction migrate.MigrationDirection, limit *int) DBCommand {
 			if err != nil {
 				return fmt.Errorf("Migration FAILED (applied %d migrations): %v", amount, err)
 			}
-			fmt.Fprintf(env.Stdout, "Successfully applied %d migrations\n", amount)
+			if logVerbose() {
+				fmt.Fprintf(env.Stderr, "Successfully applied %d migrations\n", amount)
+			}
 			return nil
 		}
 	}

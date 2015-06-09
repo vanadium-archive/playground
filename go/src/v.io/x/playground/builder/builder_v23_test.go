@@ -7,13 +7,11 @@ package main_test
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
-	"v.io/x/playground/lib/bundle"
+	"v.io/x/playground/lib/bundle/bundler"
 	_ "v.io/x/ref/runtime/factories/generic"
 	"v.io/x/ref/test/expect"
 	"v.io/x/ref/test/v23tests"
@@ -41,7 +39,6 @@ func initTest(i *v23tests.T) (builder *v23tests.Binary) {
 	playgroundRoot = filepath.Join(vanadiumRoot, "release", "projects", "playground")
 
 	npmInstall(i, filepath.Join(vanadiumRoot, "release/javascript/core"))
-	npmInstall(i, filepath.Join(playgroundRoot, "pgbundle"))
 
 	return i.BuildGoPkg("v.io/x/playground/builder")
 }
@@ -53,35 +50,28 @@ func npmInstall(i *v23tests.T, dir string) {
 
 // Bundles a playground example and tests it using builder.
 // - dir is the root directory of example to test
-// - globFile is the path to the glob file with file patterns to use from dir
+// - globList is the list of glob patterns specifying files to use from dir
 // - args are the arguments to call builder with
-func runPGExample(i *v23tests.T, builder *v23tests.Binary, globFile, dir string, args ...string) *v23tests.Invocation {
-	nodeBin := i.BinaryFromPath(filepath.Join(nodejsRoot, "node"))
-	bundle := nodeBin.Run("./node_modules/.bin/pgbundle", "--verbose", globFile, dir)
+func runPGExample(i *v23tests.T, builder *v23tests.Binary, dir string, globList []string, args ...string) *v23tests.Invocation {
+	bundle, err := bundler.MakeBundleJson(dir, globList, false)
+	if err != nil {
+		i.Fatalf("%s: bundler: failed: %v", i.Caller(1), err)
+	}
 
 	tmp := i.NewTempDir("")
 	cwd := i.Pushd(tmp)
 	defer i.Popd()
 	old := filepath.Join(cwd, "node_modules")
 	if err := os.Symlink(old, filepath.Join(".", filepath.Base(old))); err != nil {
-		i.Fatalf("%s: symlink: failed: %v", i.Caller(2), err)
+		i.Fatalf("%s: symlink: failed: %v", i.Caller(1), err)
 	}
 
 	PATH := "PATH=" + i.BinDir() + ":" + nodejsRoot
 	if path := os.Getenv("PATH"); len(path) > 0 {
 		PATH += ":" + path
 	}
-	stdin := bytes.NewBufferString(bundle)
+	stdin := bytes.NewBuffer(bundle)
 	return builder.WithEnv(PATH).WithStdin(stdin).Start(args...)
-}
-
-// Sets up a glob file with the given files, then runs builder.
-func testWithFiles(i *v23tests.T, builder *v23tests.Binary, testdataDir string, files ...string) *v23tests.Invocation {
-	globFile := filepath.Join(i.NewTempDir(""), "test.bundle")
-	if err := ioutil.WriteFile(globFile, []byte(strings.Join(files, "\n")+"\n"), 0644); err != nil {
-		i.Fatalf("%s: write(%q): failed: %v", i.Caller(1), globFile, err)
-	}
-	return runPGExample(i, builder, globFile, testdataDir, "-verbose=true", "--includeV23Env=true", "--runTimeout=5s")
 }
 
 // Echoes invocation output to stdout/stderr in addition to checking for
@@ -120,7 +110,7 @@ func V23TestPlaygroundBuilder(i *v23tests.T) {
 			if len(authfile) > 0 {
 				files = append(files, authfile)
 			}
-			inv := testWithFiles(i, builderBin, testdataDir, files...)
+			inv := runPGExample(i, builderBin, testdataDir, files, "--verbose=true", "--includeV23Env=true", "--runTimeout=5s")
 			i.Logf("test: %s", c.name)
 			expectAndEcho(inv, patterns...)
 		}
@@ -148,7 +138,7 @@ func V23TestPlaygroundBundles(i *v23tests.T) {
 
 	bundlesDir := filepath.Join(playgroundRoot, "go", "src", "v.io", "x", "playground", "bundles")
 	bundlesCfgFile := filepath.Join(bundlesDir, "config.json")
-	bundlesCfg, err := bundle.ParseConfigFromFile(bundlesCfgFile, bundlesDir)
+	bundlesCfg, err := bundler.ParseConfigFromFile(bundlesCfgFile, bundlesDir)
 	if err != nil {
 		i.Fatalf("%s: failed parsing bundle config from %q: %v", i.Caller(0), bundlesCfgFile, err)
 	}
@@ -162,8 +152,8 @@ func V23TestPlaygroundBundles(i *v23tests.T) {
 				i.Fatalf("%s: unknown glob %q", i.Caller(0), globName)
 			}
 
-			inv := runPGExample(i, builderBin, glob.Path, example.Path, "-verbose=true", "--runTimeout=5s")
-			i.Logf("glob: %s (%q)", globName, glob.Path)
+			inv := runPGExample(i, builderBin, example.Path, glob.Patterns, "--verbose=true", "--runTimeout=5s")
+			i.Logf("glob: %s", globName)
 			expectAndEcho(inv, example.Output...)
 		}
 	}
