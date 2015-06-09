@@ -1,7 +1,7 @@
 PATH := $(V23_ROOT)/release/projects/playground/go/bin:$(PATH)
 SHELL := /bin/bash -euo pipefail
 export GOPATH := $(V23_ROOT)/release/projects/playground/go:$(GOPATH)
-export VDLPATH := $(GOPATH)
+export VDLPATH := $(V23_ROOT)/release/projects/playground/go/src:$(VDLPATH)
 
 host ?= 127.0.0.1
 port ?= 8181

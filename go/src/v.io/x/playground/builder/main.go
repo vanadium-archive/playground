@@ -218,7 +218,7 @@ func compileFiles(files []*codeFile) (badInput bool, cerr error) {
 		return true, nil
 	}
 	os.Setenv("GOPATH", pwd+":"+os.Getenv("GOPATH"))
-	os.Setenv("VDLPATH", pwd+":"+os.Getenv("VDLPATH"))
+	os.Setenv("VDLPATH", pwd+"/src:"+os.Getenv("VDLPATH"))
 	// We set isService=false for compilation because "go install" only produces
 	// output on error, and we always want clients to see such errors.
 	// TODO(ivanpi): We assume *exec.ExitError results from uncompilable input

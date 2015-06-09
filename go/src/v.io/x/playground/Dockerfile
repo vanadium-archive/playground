@@ -13,7 +13,7 @@ ENV PATH /usr/local/go/bin:$PATH
 ENV HOME /root
 ENV V23_ROOT /usr/local/vanadium
 ENV GOPATH $V23_ROOT/release/projects/playground/go
-ENV VDLPATH $GOPATH
+ENV VDLPATH $V23_ROOT/release/projects/playground/go/src
 ENV PATH $V23_ROOT/release/projects/playground/go/bin:$V23_ROOT/release/go/bin:$V23_ROOT/devtools/bin:$PATH
 
 # Setup Vanadium.
