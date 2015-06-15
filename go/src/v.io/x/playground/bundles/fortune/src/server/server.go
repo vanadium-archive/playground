@@ -17,6 +17,7 @@ import (
 	"v.io/x/lib/vlog"
 	"v.io/x/ref/lib/security/securityflag"
 	"v.io/x/ref/lib/signals"
+	"v.io/x/ref/lib/xrpc"
 	_ "v.io/x/ref/runtime/factories/generic"
 
 	"fortune"
@@ -62,28 +63,16 @@ func main() {
 	ctx, shutdown := v23.Init()
 	defer shutdown()
 
-	// Create a new instance of the runtime's server functionality.
-	server, err := v23.NewServer(ctx)
-	if err != nil {
-		vlog.Panic("failure creating server: ", err)
-	}
-
 	// Create the fortune server stub.
 	fortuneServer := fortune.FortuneServer(newFortuned())
 
-	// Create an endpoint and begin listening.
-	if endpoint, err := server.Listen(v23.GetListenSpec(ctx)); err == nil {
-		fmt.Printf("Listening at: %v\n", endpoint)
-	} else {
-		vlog.Panic("error listening at endpoint: ", err)
+	// Create a new instance of the runtime's server functionality.
+	server, err := xrpc.NewServer(ctx, "bakery/cookie/fortune", fortuneServer, securityflag.NewAuthorizerOrDie())
+	if err != nil {
+		vlog.Panic("failure creating server: ", err)
 	}
-
-	// Start the fortune server at "fortune".
-	if err := server.Serve("bakery/cookie/fortune", fortuneServer, securityflag.NewAuthorizerOrDie()); err == nil {
-		fmt.Printf("Fortune server serving under: bakery/cookie/fortune\n")
-	} else {
-		vlog.Panic("error serving fortune server: ", err)
-	}
+	fmt.Printf("Listening at: %v\n", server.Status().Endpoints[0])
+	fmt.Printf("Fortune server serving under: bakery/cookie/fortune\n")
 
 	// Wait forever.
 	<-signals.ShutdownOnSignals(ctx)
