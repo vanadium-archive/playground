@@ -67,15 +67,8 @@ make target `deploy-staging`.
 
     make deploy-staging
 
-This will sync the public directory to the private Google Storage bucket
-`gs://staging.playground.v.io` which gets automatically updated to the nginx
-front-end servers. Currently all static content is protected by OAuth. For
-more details on the deployment infrastructure see [this doc][deploy] and the
-[infrastructure] repository.
-
 [Node.js]: http://nodejs.org/
 [npm]: https://www.npmjs.com/
 [playground-doc]: https://docs.google.com/document/d/1OYuE3XLc5CvDKoJSJ2mYjb9wm9IzTttZtP8coJ_t0Wg/edit#heading=h.i9kd9dq3kqco
-[deploy]: http://goo.gl/QfD4gl
 [infrastructure]: https://vanadium.googlesource.com/infrastructure/+/master/nginx/README.md
 [browserify]: https://www.npmjs.com/package/browserify
