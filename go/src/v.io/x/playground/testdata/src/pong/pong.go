@@ -15,7 +15,6 @@ import (
 	"v.io/v23/security"
 	"v.io/x/lib/vlog"
 	"v.io/x/ref/lib/signals"
-	"v.io/x/ref/lib/xrpc"
 	_ "v.io/x/ref/runtime/factories/generic"
 
 	"pingpong"
@@ -34,7 +33,7 @@ func main() {
 	defer shutdown()
 
 	serverPong := pingpong.PingPongServer(&pongd{})
-	s, err := xrpc.NewServer(ctx, "pingpong", serverPong, nil)
+	ctx, s, err := v23.WithNewServer(ctx, "pingpong", serverPong, nil)
 	if err != nil {
 		vlog.Fatal("failure creating server: ", err)
 	}

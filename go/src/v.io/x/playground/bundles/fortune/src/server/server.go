@@ -17,7 +17,6 @@ import (
 	"v.io/x/lib/vlog"
 	"v.io/x/ref/lib/security/securityflag"
 	"v.io/x/ref/lib/signals"
-	"v.io/x/ref/lib/xrpc"
 	_ "v.io/x/ref/runtime/factories/generic"
 
 	"fortune"
@@ -67,7 +66,7 @@ func main() {
 	fortuneServer := fortune.FortuneServer(newFortuned())
 
 	// Create a new instance of the runtime's server functionality.
-	server, err := xrpc.NewServer(ctx, "bakery/cookie/fortune", fortuneServer, securityflag.NewAuthorizerOrDie())
+	ctx, server, err := v23.WithNewServer(ctx, "bakery/cookie/fortune", fortuneServer, securityflag.NewAuthorizerOrDie())
 	if err != nil {
 		vlog.Panic("failure creating server: ", err)
 	}
