@@ -10,7 +10,7 @@ vanadium.init(function(err, rt) {
   var ctx = rt.getContext();
 
   console.log('Binding to service');
-  rt.newClient().bindTo(ctx, 'pingpong', function(err, s) {
+  rt.getClient().bindTo(ctx, 'pingpong', function(err, s) {
     if (err) throw err;
 
     console.log('Pinging');

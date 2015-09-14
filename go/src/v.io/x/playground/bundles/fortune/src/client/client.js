@@ -14,7 +14,7 @@ vanadium.init(function(err, rt) {
   if (err) { return error(err); }
 
   var ctx = rt.getContext();
-  var client = rt.newClient();
+  var client = rt.getClient();
 
   console.info('Binding to service');
   retryBindTo(ctx, client, function(err, fortuneService) {

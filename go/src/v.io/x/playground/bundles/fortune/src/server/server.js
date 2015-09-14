@@ -50,9 +50,8 @@ var fortuneService = new FortuneService();
 
 // Create a Vanadium runtime using the configuration
 vanadium.init().then(function(rt) {
-  var server = rt.newServer();
   // Serve the fortune server under a name. Serve returns a Promise object
-  server.serve('bakery/cookie/fortune', fortuneService).then(function() {
+  rt.newServer('bakery/cookie/fortune', fortuneService).then(function() {
     console.log('Fortune server serving under: bakery/cookie/fortune');
   }).catch(function(err) {
     console.error('Failed to serve the fortune server because:\n', err);
