@@ -63,10 +63,7 @@ function footer(state, channels) {
         href: 'https://github.com/vanadium/issues/issues/'
       }, 'File a bug'),
       h('a', {
-        href: 'https://v.io/docs.html'
-      }, 'API Docs'),
-      h('a', {
-        href: 'https://v.io/tos.html'
+        href: 'https://github.com/vanadium/docs/blob/master/tos.md'
       }, 'Terms of service')
     ]),
     h('nav.social', [

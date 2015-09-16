@@ -21,7 +21,7 @@ ENV PATH $V23_ROOT/release/projects/playground/go/bin:$V23_ROOT/release/go/bin:$
 # fresh Vanadium code, you must pass "--no-cache" to the docker build command.
 # See README.md.
 ADD netrc /root/.netrc
-RUN curl -u vanadium:D6HT]P,LrJ7e https://v.io/bootstrap | bash
+RUN curl https://v.io/bootstrap | bash
 RUN rm /root/.netrc
 
 # Install the release/javascript/core library.
