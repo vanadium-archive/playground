@@ -1,5 +1,5 @@
 PATH := bin:node_modules/.bin:$(PATH)
-PATH := $(PATH):$(V23_ROOT)/third_party/cout/node/bin
+PATH := $(PATH):$(JIRI_ROOT)/third_party/cout/node/bin
 SHELL := /bin/bash -euo pipefail
 
 js_files := $(shell find browser -name "*.js")
@@ -17,11 +17,11 @@ all: public/bundle.js public/bundle.css
 
 .PHONY: deploy-production
 deploy-production: all
-	make -C $(V23_ROOT)/infrastructure/deploy playground-production
+	make -C $(JIRI_ROOT)/infrastructure/deploy playground-production
 
 .PHONY: deploy-staging
 deploy-staging: all
-	make -C $(V23_ROOT)/infrastructure/deploy playground-staging
+	make -C $(JIRI_ROOT)/infrastructure/deploy playground-staging
 
 public/bundle.js: browser/index.js $(js_files) node_modules
 	browserify --debug $< 1> $@

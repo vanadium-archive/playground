@@ -23,8 +23,8 @@ Start (or restart) the Docker daemon:
 
 Build the playground Docker image (this will take a while...):
 
-    $ cp ~/.netrc $V23_ROOT/release/projects/playground/go/src/v.io/x/playground/netrc
-    $ docker build -t playground $V23_ROOT/release/projects/playground/go/src/v.io/x/playground/.
+    $ cp ~/.netrc $JIRI_ROOT/release/projects/playground/go/src/v.io/x/playground/netrc
+    $ docker build -t playground $JIRI_ROOT/release/projects/playground/go/src/v.io/x/playground/.
 
 Note: If you want to ensure an up-to-date version of Vanadium is installed in
 the Docker image, run the above command with the "--no-cache" flag.
@@ -42,22 +42,22 @@ uncomment marked lines before running the command.
 
 Test your image (without running compilerd):
 
-    $ $V23_ROOT/release/projects/playground/go/bin/pgadmin bundle make fortune js-go | docker run -i playground
+    $ $JIRI_ROOT/release/projects/playground/go/bin/pgadmin bundle make fortune js-go | docker run -i playground
 
 
 ## Running the playground server (compilerd)
 
 Install the playground binaries:
 
-    $ GOPATH=$V23_ROOT/release/projects/playground/go v23 go install v.io/x/playground/...
+    $ GOPATH=$JIRI_ROOT/release/projects/playground/go v23 go install v.io/x/playground/...
 
 Run the compilerd binary:
 
-    $ $V23_ROOT/release/projects/playground/go/bin/compilerd --listen-timeout=0 --address=localhost:8181 --origin='*'
+    $ $JIRI_ROOT/release/projects/playground/go/bin/compilerd --listen-timeout=0 --address=localhost:8181 --origin='*'
 
 Or, run it without Docker (for faster iterations during development):
 
-    $ PATH=$V23_ROOT/release/go/bin:$V23_ROOT/release/projects/playground/go/bin:$PATH compilerd --listen-timeout=0 --address=localhost:8181 --origin='*' --use-docker=false
+    $ PATH=$JIRI_ROOT/release/go/bin:$JIRI_ROOT/release/projects/playground/go/bin:$PATH compilerd --listen-timeout=0 --address=localhost:8181 --origin='*' --use-docker=false
 
 The server should now be running at http://localhost:8181 and responding to
 compile requests at http://localhost:8181/compile.
@@ -114,7 +114,7 @@ that can access it.
 
 Run the tests:
 
-    $ GOPATH=$V23_ROOT/release/projects/playground/go v23 go test v.io/x/playground/compilerd/...
+    $ GOPATH=$JIRI_ROOT/release/projects/playground/go v23 go test v.io/x/playground/compilerd/...
 
 
 # Database migrations
@@ -128,7 +128,7 @@ Create the database and `config/db.json` file following instructions above.
 
 To migrate up, first run with -n (dry run):
 
-    $ $V23_ROOT/release/projects/playground/go/bin/pgadmin -sqlconf=./config/db.json migrate up -n
+    $ $JIRI_ROOT/release/projects/playground/go/bin/pgadmin -sqlconf=./config/db.json migrate up -n
 
 If everything looks good, run the same command without -n; alternatively, run:
 
@@ -136,11 +136,11 @@ If everything looks good, run the same command without -n; alternatively, run:
 
 You can undo the last migration with:
 
-    $ $V23_ROOT/release/projects/playground/go/bin/pgadmin -sqlconf=./config/db.json migrate down -limit=1
+    $ $JIRI_ROOT/release/projects/playground/go/bin/pgadmin -sqlconf=./config/db.json migrate down -limit=1
 
 For more options and infomation, run:
 
-    $ $V23_ROOT/release/projects/playground/go/bin/pgadmin help
+    $ $JIRI_ROOT/release/projects/playground/go/bin/pgadmin help
 
 and see https://github.com/rubenv/sql-migrate
 
@@ -175,7 +175,7 @@ object that the client can parse.
 Bundling and loading the examples into a fresh database, as well as updating,
 is handled by the `pgadmin` tool:
 
-    $ $V23_ROOT/release/projects/playground/go/bin/pgadmin -sqlconf=./config/db.json bundle bootstrap
+    $ $JIRI_ROOT/release/projects/playground/go/bin/pgadmin -sqlconf=./config/db.json bundle bootstrap
 
 Or simply:
 
@@ -185,4 +185,4 @@ When adding new default examples or implementations of existing ones,
 `bundles/config.json` must also be edited to include them in bootstrapping and
 tests. For config file format documentation, see:
 
-    $ $V23_ROOT/release/projects/playground/go/bin/pgadmin bundle help bootstrap
+    $ $JIRI_ROOT/release/projects/playground/go/bin/pgadmin bundle help bootstrap

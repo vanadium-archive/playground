@@ -64,7 +64,7 @@ existing default examples. Bundle slugs are '<example_name>-<glob_name>'.
 }
 
 const (
-	defaultBundleCfg = "${V23_ROOT}/release/projects/playground/go/src/v.io/x/playground/bundles/config.json"
+	defaultBundleCfg = "${JIRI_ROOT}/release/projects/playground/go/src/v.io/x/playground/bundles/config.json"
 )
 
 var (

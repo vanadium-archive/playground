@@ -24,9 +24,9 @@ var (
 )
 
 func initTest(i *v23tests.T) (builder *v23tests.Binary) {
-	vanadiumRoot = os.Getenv("V23_ROOT")
+	vanadiumRoot = os.Getenv("JIRI_ROOT")
 	if len(vanadiumRoot) == 0 {
-		i.Fatal("V23_ROOT must be set")
+		i.Fatal("JIRI_ROOT must be set")
 	}
 	nodejsRoot = filepath.Join(vanadiumRoot, "third_party", "cout", "node", "bin")
 

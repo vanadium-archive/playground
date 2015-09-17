@@ -63,7 +63,7 @@ See github.com/rubenv/sql-migrate
 const (
 	migrationsTable = "migrations"
 	sqlDialect      = "mysql"
-	pgMigrationsDir = "${V23_ROOT}/release/projects/playground/go/src/v.io/x/playground/migrations"
+	pgMigrationsDir = "${JIRI_ROOT}/release/projects/playground/go/src/v.io/x/playground/migrations"
 )
 
 var (
