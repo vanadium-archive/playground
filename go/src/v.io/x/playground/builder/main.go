@@ -44,7 +44,7 @@ import (
 var (
 	verbose              = flag.Bool("verbose", true, "Whether to output debug messages.")
 	includeServiceOutput = flag.Bool("includeServiceOutput", false, "Whether to stream service (mounttable, wspr, proxy) output to clients.")
-	includeV23Env        = flag.Bool("includeV23Env", false, "Whether to log the output of \"v23 env\" before compilation.")
+	includeV23Env        = flag.Bool("includeV23Env", false, "Whether to log the output of \"jiri env\" before compilation.")
 	// TODO(ivanpi): Separate out mounttable, proxy, wspr timeouts. Add compile timeout. Revise default.
 	runTimeout = flag.Duration("runTimeout", 3*time.Second, "Time limit for running user code.")
 
@@ -102,7 +102,7 @@ func panicOnError(err error) {
 
 func logV23Env() error {
 	if *includeV23Env {
-		return makeCmd("<environment>", false, "", "v23", "env").Run()
+		return makeCmd("<environment>", false, "", "jiri", "env").Run()
 	}
 	return nil
 }
@@ -237,7 +237,7 @@ func compileFiles(files []*codeFile) (badInput bool, cerr error) {
 	if found["go"] {
 		debug("Generating VDL for Go and compiling Go")
 		err = makeCmd("<compile>", false, "",
-			"v23", "go", "install", "./...").Run()
+			"jiri", "go", "install", "./...").Run()
 		if _, ok := err.(*exec.ExitError); ok {
 			return true, nil
 		} else if err != nil {

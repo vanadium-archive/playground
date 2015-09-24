@@ -49,7 +49,7 @@ Test your image (without running compilerd):
 
 Install the playground binaries:
 
-    $ GOPATH=$JIRI_ROOT/release/projects/playground/go v23 go install v.io/x/playground/...
+    $ GOPATH=$JIRI_ROOT/release/projects/playground/go jiri go install v.io/x/playground/...
 
 Run the compilerd binary:
 
@@ -114,7 +114,7 @@ that can access it.
 
 Run the tests:
 
-    $ GOPATH=$JIRI_ROOT/release/projects/playground/go v23 go test v.io/x/playground/compilerd/...
+    $ GOPATH=$JIRI_ROOT/release/projects/playground/go jiri go test v.io/x/playground/compilerd/...
 
 
 # Database migrations
