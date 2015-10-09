@@ -1,5 +1,5 @@
-PATH := bin:node_modules/.bin:$(PATH)
-PATH := $(PATH):$(JIRI_ROOT)/third_party/cout/node/bin
+NODE_DIR := $(shell jiri v23-profile env --profile=nodejs V23_TARGET_INSTALLATION_DIR=)
+PATH := bin:node_modules/.bin:$(PATH):$(NODE_DIR)/bin
 SHELL := /bin/bash -euo pipefail
 
 js_files := $(shell find browser -name "*.js")
