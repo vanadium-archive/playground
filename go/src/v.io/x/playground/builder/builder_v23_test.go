@@ -8,7 +8,9 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"v.io/x/playground/lib/bundle/bundler"
@@ -20,7 +22,7 @@ import (
 //go:generate jiri test generate
 
 var (
-	vanadiumRoot, nodejsRoot, playgroundRoot string
+	vanadiumRoot, nodejsBinRoot, playgroundRoot string
 )
 
 func initTest(i *v23tests.T) (builder *v23tests.Binary) {
@@ -28,7 +30,13 @@ func initTest(i *v23tests.T) (builder *v23tests.Binary) {
 	if len(vanadiumRoot) == 0 {
 		i.Fatal("JIRI_ROOT must be set")
 	}
-	nodejsRoot = filepath.Join(vanadiumRoot, "third_party", "cout", "node", "bin")
+
+	out, err := exec.Command("jiri", "v23-profile", "env", "--profile=nodejs", "V23_TARGET_INSTALLATION_DIR=").Output()
+	if err != nil {
+		i.Fatalf("could not find nodejs installation dir: %v", err)
+	}
+
+	nodejsBinRoot = filepath.Join(strings.TrimSpace(string(out)), "bin")
 
 	i.BuildGoPkg("v.io/x/ref/services/wspr/wsprd", "-a", "-tags", "wspr")
 	i.BuildGoPkg("v.io/x/ref/cmd/principal")
@@ -44,7 +52,7 @@ func initTest(i *v23tests.T) (builder *v23tests.Binary) {
 }
 
 func npmInstall(i *v23tests.T, dir string) {
-	npmBin := i.BinaryFromPath(filepath.Join(nodejsRoot, "npm"))
+	npmBin := i.BinaryFromPath(filepath.Join(nodejsBinRoot, "npm"))
 	npmBin.Run("install", "--production", dir)
 }
 
@@ -66,7 +74,7 @@ func runPGExample(i *v23tests.T, builder *v23tests.Binary, dir string, globList 
 		i.Fatalf("%s: symlink: failed: %v", i.Caller(1), err)
 	}
 
-	PATH := "PATH=" + i.BinDir() + ":" + nodejsRoot
+	PATH := "PATH=" + i.BinDir() + ":" + nodejsBinRoot
 	if path := os.Getenv("PATH"); len(path) > 0 {
 		PATH += ":" + path
 	}
