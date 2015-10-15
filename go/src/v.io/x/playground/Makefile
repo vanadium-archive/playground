@@ -14,19 +14,19 @@ all: builder compilerd
 # builder-deps target builds the binaries that the builder calls.
 .PHONY: builder-deps
 builder-deps:
-	v23 go install -a -tags wspr v.io/x/ref/services/wspr/wsprd
-	v23 go install v.io/x/ref/cmd/principal
-	v23 go install v.io/x/ref/services/identity/identityd
-	v23 go install v.io/x/ref/services/mounttable/mounttabled
-	v23 go install v.io/x/ref/services/proxy/proxyd
+	jiri go install -a -tags wspr v.io/x/ref/services/wspr/wsprd
+	jiri go install v.io/x/ref/cmd/principal
+	jiri go install v.io/x/ref/services/identity/identityd
+	jiri go install v.io/x/ref/services/mounttable/mounttabled
+	jiri go install v.io/x/ref/services/proxy/proxyd
 
 .PHONY: builder
 builder: builder-deps
-	v23 go install v.io/x/playground/builder
+	jiri go install v.io/x/playground/builder
 
 .PHONY: compilerd
 compilerd:
-	v23 go install v.io/x/playground/compilerd
+	jiri go install v.io/x/playground/compilerd
 
 .PHONY: start
 start: config/db.json all
@@ -39,7 +39,7 @@ start: config/db.json all
 
 .PHONY: pgadmin
 pgadmin:
-	v23 go install v.io/x/playground/pgadmin
+	jiri go install v.io/x/playground/pgadmin
 
 .PHONY: updatedb
 updatedb: config/db.json pgadmin
@@ -61,4 +61,4 @@ config/db.json:
 # Temporary workaround for linking Go tests into Jenkins.
 .PHONY: test
 test:
-	v23 go test v.io/x/playground/builder -v23.tests
+	jiri go test v.io/x/playground/builder -v23.tests
