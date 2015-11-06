@@ -31,7 +31,7 @@ func initTest(i *v23tests.T) (builder *v23tests.Binary) {
 		i.Fatal("JIRI_ROOT must be set")
 	}
 
-	out, err := exec.Command("jiri", "v23-profile", "env", "--profile=nodejs", "V23_TARGET_INSTALLATION_DIR=").Output()
+	out, err := exec.Command("jiri", "v23-profile", "list", "--info=Target.InstallationDir", "nodejs").Output()
 	if err != nil {
 		i.Fatalf("could not find nodejs installation dir: %v", err)
 	}
