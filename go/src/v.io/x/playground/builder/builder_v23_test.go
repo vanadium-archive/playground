@@ -42,7 +42,7 @@ func initTest(i *v23tests.T) (builder *v23tests.Binary) {
 	i.BuildGoPkg("v.io/x/ref/cmd/principal")
 	i.BuildGoPkg("v.io/x/ref/cmd/vdl")
 	i.BuildGoPkg("v.io/x/ref/services/mounttable/mounttabled")
-	i.BuildGoPkg("v.io/x/ref/services/proxy/proxyd")
+	i.BuildGoPkg("v.io/x/ref/services/xproxy/xproxyd")
 
 	playgroundRoot = filepath.Join(vanadiumRoot, "release", "projects", "playground")
 

@@ -53,7 +53,7 @@ func startMount(timeLimit time.Duration) (proc *os.Process, err error) {
 // entire environment.
 func startProxy(timeLimit time.Duration) (proc *os.Process, err error) {
 	cmd := makeServiceCmd(
-		"proxyd",
+		"xproxyd",
 		"-log_dir=/tmp/logs",
 		"-name="+proxyName,
 		"-access-list", fmt.Sprintf("{\"In\":[\"%v\"]}", identityProvider),

@@ -18,7 +18,7 @@ builder-deps:
 	jiri go install v.io/x/ref/cmd/principal
 	jiri go install v.io/x/ref/services/identity/identityd
 	jiri go install v.io/x/ref/services/mounttable/mounttabled
-	jiri go install v.io/x/ref/services/proxy/proxyd
+	jiri go install v.io/x/ref/services/xproxy/xproxyd
 
 .PHONY: builder
 builder: builder-deps
