@@ -8,93 +8,96 @@ import (
 	"bytes"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
+	"testing"
 	"time"
 
 	"v.io/x/playground/lib/bundle/bundler"
+	"v.io/x/ref/lib/v23test"
 	_ "v.io/x/ref/runtime/factories/generic"
 	"v.io/x/ref/test/expect"
-	"v.io/x/ref/test/v23tests"
+	tu "v.io/x/ref/test/testutil"
 )
-
-//go:generate jiri test generate
 
 var (
 	vanadiumRoot, nodejsBinRoot, playgroundRoot string
 )
 
-func initTest(i *v23tests.T) (builder *v23tests.Binary) {
+func initTest(t *testing.T, sh *v23test.Shell) (builderPath string) {
 	vanadiumRoot = os.Getenv("JIRI_ROOT")
 	if len(vanadiumRoot) == 0 {
-		i.Fatal("JIRI_ROOT must be set")
+		t.Fatal("JIRI_ROOT must be set")
 	}
 
-	out, err := exec.Command("jiri", "v23-profile", "list", "--info=Target.InstallationDir", "nodejs").Output()
-	if err != nil {
-		i.Fatalf("could not find nodejs installation dir: %v", err)
-	}
+	out, _ := sh.Cmd("jiri", "v23-profile", "list", "--info=Target.InstallationDir", "nodejs").Output()
 
 	nodejsBinRoot = filepath.Join(strings.TrimSpace(string(out)), "bin")
 
-	i.BuildGoPkg("v.io/x/ref/services/wspr/wsprd", "-a", "-tags", "wspr")
-	i.BuildGoPkg("v.io/x/ref/cmd/principal")
-	i.BuildGoPkg("v.io/x/ref/cmd/vdl")
-	i.BuildGoPkg("v.io/x/ref/services/mounttable/mounttabled")
-	i.BuildGoPkg("v.io/x/ref/services/xproxy/xproxyd")
+	sh.JiriBuildGoPkg("v.io/x/ref/services/wspr/wsprd", "-a", "-tags", "wspr")
+	sh.JiriBuildGoPkg("v.io/x/ref/cmd/principal")
+	sh.JiriBuildGoPkg("v.io/x/ref/cmd/vdl")
+	sh.JiriBuildGoPkg("v.io/x/ref/services/mounttable/mounttabled")
+	sh.JiriBuildGoPkg("v.io/x/ref/services/xproxy/xproxyd")
 
 	playgroundRoot = filepath.Join(vanadiumRoot, "release", "projects", "playground")
 
-	npmInstall(i, filepath.Join(vanadiumRoot, "release/javascript/core"))
+	npmInstall(sh, filepath.Join(vanadiumRoot, "release/javascript/core"))
 
-	return i.BuildGoPkg("v.io/x/playground/builder")
+	return sh.JiriBuildGoPkg("v.io/x/playground/builder")
 }
 
-func npmInstall(i *v23tests.T, dir string) {
-	npmBin := i.BinaryFromPath(filepath.Join(nodejsBinRoot, "npm"))
-	npmBin.Run("install", "--production", dir)
+func npmInstall(sh *v23test.Shell, dir string) {
+	npmBinPath := filepath.Join(nodejsBinRoot, "npm")
+	sh.Cmd(npmBinPath, "install", "--production", dir).Run()
 }
 
 // Bundles a playground example and tests it using builder.
 // - dir is the root directory of example to test
 // - globList is the list of glob patterns specifying files to use from dir
 // - args are the arguments to call builder with
-func runPGExample(i *v23tests.T, builder *v23tests.Binary, dir string, globList []string, args ...string) *v23tests.Invocation {
+func runPGExample(t *testing.T, sh *v23test.Shell, builderPath, dir string, globList []string, args ...string) (*v23test.Cmd, *expect.Session) {
 	bundle, err := bundler.MakeBundleJson(dir, globList, false)
 	if err != nil {
-		i.Fatalf("%s: bundler: failed: %v", i.Caller(1), err)
+		t.Fatal(tu.FormatLogLine(1, "bundler: failed: %v", err))
 	}
 
-	tmp := i.NewTempDir("")
-	cwd := i.Pushd(tmp)
-	defer i.Popd()
+	tmp := sh.MakeTempDir()
+	// TODO(ivanpi): Make sh.Pushd return old wd?
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(tu.FormatLogLine(1, "getwd: failed: %v", err))
+	}
+	sh.Pushd(tmp)
+	defer sh.Popd()
 	old := filepath.Join(cwd, "node_modules")
 	if err := os.Symlink(old, filepath.Join(".", filepath.Base(old))); err != nil {
-		i.Fatalf("%s: symlink: failed: %v", i.Caller(1), err)
+		t.Fatal(tu.FormatLogLine(1, "symlink: failed: %v", err))
 	}
 
-	PATH := "PATH=" + i.BinDir() + ":" + nodejsBinRoot
+	PATH := sh.Opts.BinDir + ":" + nodejsBinRoot
 	if path := os.Getenv("PATH"); len(path) > 0 {
 		PATH += ":" + path
 	}
-	stdin := bytes.NewBuffer(bundle)
-	return builder.WithEnv(PATH).WithStdin(stdin).Start(args...)
-}
-
-// Echoes invocation output to stdout/stderr in addition to checking for
-// expected patterns.
-func expectAndEcho(inv *v23tests.Invocation, patterns ...string) {
-	es := expect.NewSession(inv.Environment(), io.TeeReader(inv.Stdout(), os.Stdout), time.Minute)
-	es.ExpectSetEventuallyRE(patterns...)
-	inv.WaitOrDie(os.Stdout, os.Stderr)
+	builder := sh.Cmd(builderPath, args...)
+	builder.Vars["PATH"] = PATH
+	builder.Stdin = bytes.NewBuffer(bundle)
+	// TODO(ivanpi): Use Session built into v23test.Shell when checked in.
+	es := expect.NewSession(t, builder.StdoutPipe(), time.Minute)
+	// TODO(ivanpi): Use echo built into v23test.Shell when checked in.
+	go io.Copy(os.Stdout, builder.StdoutPipe())
+	go io.Copy(os.Stderr, builder.StderrPipe())
+	builder.Start()
+	return builder, es
 }
 
 // Tests the playground builder tool.
-func V23TestPlaygroundBuilder(i *v23tests.T) {
-	i.Pushd(i.NewTempDir(""))
-	defer i.Popd()
-	builderBin := initTest(i)
+func TestV23PlaygroundBuilder(t *testing.T) {
+	sh := v23test.NewShell(t, v23test.Opts{Large: true})
+	defer sh.Cleanup()
+	sh.Pushd(sh.MakeTempDir())
+	defer sh.Popd()
+	builderPath := initTest(t, sh)
 
 	cases := []struct {
 		name  string
@@ -118,51 +121,59 @@ func V23TestPlaygroundBuilder(i *v23tests.T) {
 			if len(authfile) > 0 {
 				files = append(files, authfile)
 			}
-			inv := runPGExample(i, builderBin, testdataDir, files, "--verbose=true", "--includeV23Env=true", "--runTimeout=5s")
-			i.Logf("test: %s", c.name)
-			expectAndEcho(inv, patterns...)
+			inv, es := runPGExample(t, sh, builderPath, testdataDir, files, "--verbose=true", "--includeV23Env=true", "--runTimeout=5s")
+			t.Logf("test: %s", c.name)
+			es.ExpectSetEventuallyRE(patterns...)
+			inv.Wait()
 		}
 	}
 
-	i.Logf("Test as the same principal")
+	t.Logf("Test as the same principal")
 	runCases("", []string{"PING", "PONG"})
 
-	i.Logf("Test with authorized blessings")
+	t.Logf("Test with authorized blessings")
 	runCases("src/ids/authorized.id", []string{"PING", "PONG"})
 
-	i.Logf("Test with expired blessings")
+	t.Logf("Test with expired blessings")
 	runCases("src/ids/expired.id", []string{"not authorized"})
 
-	i.Logf("Test with unauthorized blessings")
+	t.Logf("Test with unauthorized blessings")
 	runCases("src/ids/unauthorized.id", []string{"not authorized"})
 }
 
 // Tests that default playground examples specified in `config.json` execute
 // successfully.
-func V23TestPlaygroundBundles(i *v23tests.T) {
-	i.Pushd(i.NewTempDir(""))
-	defer i.Popd()
-	builderBin := initTest(i)
+func TestV23PlaygroundBundles(t *testing.T) {
+	sh := v23test.NewShell(t, v23test.Opts{Large: true})
+	defer sh.Cleanup()
+	sh.Pushd(sh.MakeTempDir())
+	defer sh.Popd()
+	builderPath := initTest(t, sh)
 
 	bundlesDir := filepath.Join(playgroundRoot, "go", "src", "v.io", "x", "playground", "bundles")
 	bundlesCfgFile := filepath.Join(bundlesDir, "config.json")
 	bundlesCfg, err := bundler.ParseConfigFromFile(bundlesCfgFile, bundlesDir)
 	if err != nil {
-		i.Fatalf("%s: failed parsing bundle config from %q: %v", i.Caller(0), bundlesCfgFile, err)
+		t.Fatal(tu.FormatLogLine(0, "failed parsing bundle config from %q: %v", bundlesCfgFile, err))
 	}
 
 	for _, example := range bundlesCfg.Examples {
-		i.Logf("Test example %s (%q)", example.Name, example.Path)
+		t.Logf("Test example %s (%q)", example.Name, example.Path)
 
 		for _, globName := range example.Globs {
 			glob, globExists := bundlesCfg.Globs[globName]
 			if !globExists {
-				i.Fatalf("%s: unknown glob %q", i.Caller(0), globName)
+				t.Fatal(tu.FormatLogLine(0, "unknown glob %q", globName))
 			}
 
-			inv := runPGExample(i, builderBin, example.Path, glob.Patterns, "--verbose=true", "--runTimeout=5s")
-			i.Logf("glob: %s", globName)
-			expectAndEcho(inv, example.Output...)
+			inv, es := runPGExample(t, sh, builderPath, example.Path, glob.Patterns, "--verbose=true", "--runTimeout=5s")
+			t.Logf("glob: %s", globName)
+			es.ExpectSetEventuallyRE(example.Output...)
+			inv.Wait()
 		}
 	}
+}
+
+func TestMain(m *testing.M) {
+	os.Exit(v23test.Run(m.Run))
 }
