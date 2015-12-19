@@ -5,18 +5,14 @@
 package main_test
 
 import (
-	"bytes"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"v.io/x/playground/lib/bundle/bundler"
 	"v.io/x/ref/lib/v23test"
 	_ "v.io/x/ref/runtime/factories/generic"
-	"v.io/x/ref/test/expect"
 	tu "v.io/x/ref/test/testutil"
 )
 
@@ -30,21 +26,21 @@ func initTest(t *testing.T, sh *v23test.Shell) (builderPath string) {
 		t.Fatal("JIRI_ROOT must be set")
 	}
 
-	out, _ := sh.Cmd("jiri", "v23-profile", "list", "--info=Target.InstallationDir", "nodejs").Output()
+	out := sh.Cmd("jiri", "v23-profile", "list", "--info=Target.InstallationDir", "nodejs").Stdout()
 
-	nodejsBinRoot = filepath.Join(strings.TrimSpace(string(out)), "bin")
+	nodejsBinRoot = filepath.Join(strings.TrimSpace(out), "bin")
 
-	sh.JiriBuildGoPkg("v.io/x/ref/services/wspr/wsprd", "-a", "-tags", "wspr")
-	sh.JiriBuildGoPkg("v.io/x/ref/cmd/principal")
-	sh.JiriBuildGoPkg("v.io/x/ref/cmd/vdl")
-	sh.JiriBuildGoPkg("v.io/x/ref/services/mounttable/mounttabled")
-	sh.JiriBuildGoPkg("v.io/x/ref/services/xproxy/xproxyd")
+	sh.BuildGoPkg("v.io/x/ref/services/wspr/wsprd", "-a", "-tags", "wspr")
+	sh.BuildGoPkg("v.io/x/ref/cmd/principal")
+	sh.BuildGoPkg("v.io/x/ref/cmd/vdl")
+	sh.BuildGoPkg("v.io/x/ref/services/mounttable/mounttabled")
+	sh.BuildGoPkg("v.io/x/ref/services/xproxy/xproxyd")
 
 	playgroundRoot = filepath.Join(vanadiumRoot, "release", "projects", "playground")
 
 	npmInstall(sh, filepath.Join(vanadiumRoot, "release/javascript/core"))
 
-	return sh.JiriBuildGoPkg("v.io/x/playground/builder")
+	return sh.BuildGoPkg("v.io/x/playground/builder")
 }
 
 func npmInstall(sh *v23test.Shell, dir string) {
@@ -56,7 +52,7 @@ func npmInstall(sh *v23test.Shell, dir string) {
 // - dir is the root directory of example to test
 // - globList is the list of glob patterns specifying files to use from dir
 // - args are the arguments to call builder with
-func runPGExample(t *testing.T, sh *v23test.Shell, builderPath, dir string, globList []string, args ...string) (*v23test.Cmd, *expect.Session) {
+func runPGExample(t *testing.T, sh *v23test.Shell, builderPath, dir string, globList []string, args ...string) *v23test.Cmd {
 	bundle, err := bundler.MakeBundleJson(dir, globList, false)
 	if err != nil {
 		t.Fatal(tu.FormatLogLine(1, "bundler: failed: %v", err))
@@ -81,19 +77,16 @@ func runPGExample(t *testing.T, sh *v23test.Shell, builderPath, dir string, glob
 	}
 	builder := sh.Cmd(builderPath, args...)
 	builder.Vars["PATH"] = PATH
-	builder.Stdin = bytes.NewBuffer(bundle)
-	// TODO(ivanpi): Use Session built into v23test.Shell when checked in.
-	es := expect.NewSession(t, builder.StdoutPipe(), time.Minute)
-	// TODO(ivanpi): Use echo built into v23test.Shell when checked in.
-	go io.Copy(os.Stdout, builder.StdoutPipe())
-	go io.Copy(os.Stderr, builder.StderrPipe())
+	builder.Stdin = string(bundle)
+	builder.PropagateOutput = true
 	builder.Start()
-	return builder, es
+	return builder
 }
 
 // Tests the playground builder tool.
 func TestV23PlaygroundBuilder(t *testing.T) {
-	sh := v23test.NewShell(t, v23test.Opts{Large: true})
+	v23test.SkipUnlessRunningIntegrationTests(t)
+	sh := v23test.NewShell(t, v23test.Opts{})
 	defer sh.Cleanup()
 	sh.Pushd(sh.MakeTempDir())
 	defer sh.Popd()
@@ -121,9 +114,9 @@ func TestV23PlaygroundBuilder(t *testing.T) {
 			if len(authfile) > 0 {
 				files = append(files, authfile)
 			}
-			inv, es := runPGExample(t, sh, builderPath, testdataDir, files, "--verbose=true", "--includeV23Env=true", "--runTimeout=5s")
+			inv := runPGExample(t, sh, builderPath, testdataDir, files, "--verbose=true", "--includeV23Env=true", "--runTimeout=5s")
 			t.Logf("test: %s", c.name)
-			es.ExpectSetEventuallyRE(patterns...)
+			inv.S.ExpectSetEventuallyRE(patterns...)
 			inv.Wait()
 		}
 	}
@@ -144,7 +137,8 @@ func TestV23PlaygroundBuilder(t *testing.T) {
 // Tests that default playground examples specified in `config.json` execute
 // successfully.
 func TestV23PlaygroundBundles(t *testing.T) {
-	sh := v23test.NewShell(t, v23test.Opts{Large: true})
+	v23test.SkipUnlessRunningIntegrationTests(t)
+	sh := v23test.NewShell(t, v23test.Opts{})
 	defer sh.Cleanup()
 	sh.Pushd(sh.MakeTempDir())
 	defer sh.Popd()
@@ -166,9 +160,9 @@ func TestV23PlaygroundBundles(t *testing.T) {
 				t.Fatal(tu.FormatLogLine(0, "unknown glob %q", globName))
 			}
 
-			inv, es := runPGExample(t, sh, builderPath, example.Path, glob.Patterns, "--verbose=true", "--runTimeout=5s")
+			inv := runPGExample(t, sh, builderPath, example.Path, glob.Patterns, "--verbose=true", "--runTimeout=5s")
 			t.Logf("glob: %s", globName)
-			es.ExpectSetEventuallyRE(example.Output...)
+			inv.S.ExpectSetEventuallyRE(example.Output...)
 			inv.Wait()
 		}
 	}
