@@ -11,9 +11,9 @@ import (
 	"testing"
 
 	"v.io/x/playground/lib/bundle/bundler"
-	"v.io/x/ref/lib/v23test"
 	_ "v.io/x/ref/runtime/factories/generic"
 	tu "v.io/x/ref/test/testutil"
+	"v.io/x/ref/test/v23test"
 )
 
 var (
