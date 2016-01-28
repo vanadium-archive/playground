@@ -5,6 +5,7 @@
 package main_test
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
@@ -77,7 +78,7 @@ func runPGExample(t *testing.T, sh *v23test.Shell, builderPath, dir string, glob
 	}
 	builder := sh.Cmd(builderPath, args...)
 	builder.Vars["PATH"] = PATH
-	builder.Stdin = string(bundle)
+	builder.SetStdinReader(bytes.NewReader(bundle))
 	builder.PropagateOutput = true
 	builder.Start()
 	return builder
