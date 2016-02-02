@@ -23,18 +23,10 @@ Start (or restart) the Docker daemon:
 
 Build the playground Docker image (this will take a while...):
 
-    $ cp ~/.netrc $JIRI_ROOT/release/projects/playground/go/src/v.io/x/playground/netrc
     $ docker build -t playground $JIRI_ROOT/release/projects/playground/go/src/v.io/x/playground/.
 
 Note: If you want to ensure an up-to-date version of Vanadium is installed in
 the Docker image, run the above command with the "--no-cache" flag.
-
-Note: If you have only a .gitcookies googlesource.com entry and not a .netrc
-one, you can convert it to a .netrc entry using:
-
-    $ cat ~/.gitcookies | grep vanadium.googlesource.com | tail -n 1 | sed -E 's/(\S+)\s+(\S+\s+){5}([^=]+)=(\S+)/machine \1 login \3 password \4/' >> ~/.netrc
-
-(see http://www.chromium.org/chromium-os/developer-guide/gerrit-guide for details)
 
 The 'docker build' command above will compile builder from the main Vanadium
 repository. If you want to use local code instead, open Dockerfile and

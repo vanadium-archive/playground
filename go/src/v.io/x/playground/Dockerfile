@@ -2,12 +2,15 @@ FROM ubuntu
 RUN /usr/sbin/useradd -d /home/playground -m playground
 
 # Install various prereqs.
-RUN apt-get update
-RUN apt-get install -y curl git nodejs nodejs-legacy npm
+RUN apt-get update && \
+    apt-get install -y curl git nodejs nodejs-legacy npm && \
+    apt-get clean
 
 # Install Go. Note, the apt-get "golang" target is too old.
-RUN (cd /tmp; curl -O https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz)
-RUN tar -C /usr/local -xzf /tmp/go1.4.2.linux-amd64.tar.gz
+ENV GOLANG_TAR go1.5.3.linux-amd64.tar.gz
+RUN (cd /tmp; curl -O https://storage.googleapis.com/golang/${GOLANG_TAR}) && \
+    tar -C /usr/local -xzf /tmp/${GOLANG_TAR} && \
+    rm /tmp/${GOLANG_TAR}
 ENV PATH /usr/local/go/bin:$PATH
 
 ENV HOME /root
@@ -20,9 +23,10 @@ ENV PATH $JIRI_ROOT/release/projects/playground/go/bin:$JIRI_ROOT/release/go/bin
 # Note: This will be cached! If you want to re-build the docker image using
 # fresh Vanadium code, you must pass "--no-cache" to the docker build command.
 # See README.md.
-ADD netrc /root/.netrc
 RUN curl https://v.io/bootstrap | bash
-RUN rm /root/.netrc
+
+# Setup Vanadium profiles.
+RUN jiri v23-profile install base
 
 # Install the release/javascript/core library.
 # TODO(nlacasse): Switch to "npm install -g vanadium" once release/javascript/core

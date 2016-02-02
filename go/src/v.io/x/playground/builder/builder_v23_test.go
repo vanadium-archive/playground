@@ -115,7 +115,7 @@ func TestV23PlaygroundBuilder(t *testing.T) {
 			if len(authfile) > 0 {
 				files = append(files, authfile)
 			}
-			inv := runPGExample(t, sh, builderPath, testdataDir, files, "--verbose=true", "--includeV23Env=true", "--runTimeout=5s")
+			inv := runPGExample(t, sh, builderPath, testdataDir, files, "--verbose=true", "--includeProfileEnv=true", "--runTimeout=5s")
 			t.Logf("test: %s", c.name)
 			inv.S.ExpectSetEventuallyRE(patterns...)
 			inv.Wait()

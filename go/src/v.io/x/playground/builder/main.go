@@ -44,9 +44,9 @@ import (
 var (
 	verbose              = flag.Bool("verbose", true, "Whether to output debug messages.")
 	includeServiceOutput = flag.Bool("includeServiceOutput", false, "Whether to stream service (mounttable, wspr, proxy) output to clients.")
-	includeV23Env        = flag.Bool("includeV23Env", false, "Whether to log the output of \"jiri env\" before compilation.")
+	includeProfileEnv    = flag.Bool("includeProfileEnv", false, "Whether to log the output of \"jiri v23-profile env\" before compilation.")
 	// TODO(ivanpi): Separate out mounttable, proxy, wspr timeouts. Add compile timeout. Revise default.
-	runTimeout = flag.Duration("runTimeout", 3*time.Second, "Time limit for running user code.")
+	runTimeout = flag.Duration("runTimeout", 5*time.Second, "Time limit for running user code.")
 
 	stopped = false    // Whether we have stopped execution of running files.
 	out     event.Sink // Sink for writing events (debug and run output) to stdout as JSON, one event per line.
@@ -100,9 +100,9 @@ func panicOnError(err error) {
 	}
 }
 
-func logV23Env() error {
-	if *includeV23Env {
-		return makeCmd("<environment>", false, "", "jiri", "env").Run()
+func logProfileEnv() error {
+	if *includeProfileEnv {
+		return makeCmd("<environment>", false, "", "jiri", "v23-profile", "env").Run()
 	}
 	return nil
 }
@@ -447,7 +447,7 @@ func main() {
 
 	panicOnError(writeFiles(r.Files))
 
-	logV23Env()
+	logProfileEnv()
 
 	badInput, err := compileFiles(r.Files)
 	// Panic on internal error, but not on user error.

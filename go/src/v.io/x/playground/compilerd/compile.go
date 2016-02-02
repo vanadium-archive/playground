@@ -45,7 +45,7 @@ var (
 	// Arbitrary deadline (enough to compile, run, shutdown).
 	// TODO(sadovsky): For now this is set high to avoid spurious timeouts.
 	// Playground execution speed needs to be optimized.
-	maxTime = flag.Duration("max-time", 10*time.Second, "Maximum time for build to run.")
+	maxTime = flag.Duration("max-time", 30*time.Second, "Maximum time for build to run.")
 
 	// TODO(nlacasse): The default value of 100 was chosen arbitrarily and
 	// should be tuned.

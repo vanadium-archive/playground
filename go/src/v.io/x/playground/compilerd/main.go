@@ -59,7 +59,7 @@ var (
 
 	// Maximum time to finish serving currently running requests before exiting
 	// cleanly. No new requests are accepted during this time.
-	exitDelay = 30 * time.Second
+	exitDelay = 60 * time.Second
 
 	// Path to SQL configuration file, as described in v.io/x/lib/dbutil/mysql.go.
 	sqlConf = flag.String("sqlconf", "", "Path to SQL configuration file. If empty, load and save requests are disabled. "+dbutil.SqlConfigFileDescription)

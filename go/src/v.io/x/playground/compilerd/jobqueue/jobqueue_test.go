@@ -26,8 +26,9 @@ var (
 )
 
 func init() {
-	// Compile builder binary and put in path.
+	// Compile builder binary and dependencies and put in path.
 	pgDir := os.ExpandEnv("${JIRI_ROOT}/release/projects/playground/go")
+	v23ReleaseDir := os.ExpandEnv("${JIRI_ROOT}/release/go")
 
 	cmd := exec.Command("make", "builder")
 	cmd.Dir = path.Join(pgDir, "src", "v.io", "x", "playground")
@@ -38,7 +39,8 @@ func init() {
 	}
 
 	pgBinDir := path.Join(pgDir, "bin")
-	if err := os.Setenv("PATH", pgBinDir+":"+os.Getenv("PATH")); err != nil {
+	v23ReleaseBinDir := path.Join(v23ReleaseDir, "bin")
+	if err := os.Setenv("PATH", pgBinDir+":"+v23ReleaseBinDir+":"+os.Getenv("PATH")); err != nil {
 		panic(err)
 	}
 }
@@ -200,7 +202,6 @@ func runTest(t *testing.T, c testConfig) {
 }
 
 func TestJobQueue(t *testing.T) {
-
 	// Test success cases without docker.
 	runTest(t, testConfig{
 		jobs:      1,
