@@ -9,6 +9,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"v.io/v23"
@@ -20,7 +21,11 @@ import (
 
 func main() {
 	// Initialize Vanadium.
-	ctx, shutdown := v23.Init()
+	ctx, shutdown, err := v23.TryInit()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to initialize vanadium runtime: %v", err)
+		os.Exit(1)
+	}
 	defer shutdown()
 
 	// Create a new stub that binds to address without
