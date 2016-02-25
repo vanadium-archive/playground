@@ -31,17 +31,17 @@ func initTest(t *testing.T, sh *v23test.Shell) (builderPath string) {
 
 	nodejsBinRoot = filepath.Join(strings.TrimSpace(out), "bin")
 
-	sh.BuildGoPkg("v.io/x/ref/services/wspr/wsprd", "-a", "-tags", "wspr")
-	sh.BuildGoPkg("v.io/x/ref/cmd/principal")
-	sh.BuildGoPkg("v.io/x/ref/cmd/vdl")
-	sh.BuildGoPkg("v.io/x/ref/services/mounttable/mounttabled")
-	sh.BuildGoPkg("v.io/x/ref/services/xproxy/xproxyd")
+	v23test.BuildGoPkg(sh, "v.io/x/ref/services/wspr/wsprd", "-a", "-tags", "wspr")
+	v23test.BuildGoPkg(sh, "v.io/x/ref/cmd/principal")
+	v23test.BuildGoPkg(sh, "v.io/x/ref/cmd/vdl")
+	v23test.BuildGoPkg(sh, "v.io/x/ref/services/mounttable/mounttabled")
+	v23test.BuildGoPkg(sh, "v.io/x/ref/services/xproxy/xproxyd")
 
 	playgroundRoot = filepath.Join(vanadiumRoot, "release", "projects", "playground")
 
 	npmInstall(sh, filepath.Join(vanadiumRoot, "release/javascript/core"))
 
-	return sh.BuildGoPkg("v.io/x/playground/builder")
+	return v23test.BuildGoPkg(sh, "v.io/x/playground/builder")
 }
 
 func npmInstall(sh *v23test.Shell, dir string) {
@@ -72,7 +72,7 @@ func runPGExample(t *testing.T, sh *v23test.Shell, builderPath, dir string, glob
 		t.Fatal(tu.FormatLogLine(1, "symlink: failed: %v", err))
 	}
 
-	PATH := sh.Opts.BinDir + ":" + nodejsBinRoot
+	PATH := os.Getenv("V23_BIN_DIR") + ":" + nodejsBinRoot
 	if path := os.Getenv("PATH"); len(path) > 0 {
 		PATH += ":" + path
 	}
