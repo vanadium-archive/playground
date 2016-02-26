@@ -87,7 +87,7 @@ func runPGExample(t *testing.T, sh *v23test.Shell, builderPath, dir string, glob
 // Tests the playground builder tool.
 func TestV23PlaygroundBuilder(t *testing.T) {
 	v23test.SkipUnlessRunningIntegrationTests(t)
-	sh := v23test.NewShell(t, v23test.Opts{})
+	sh := v23test.NewShell(t, nil)
 	defer sh.Cleanup()
 	sh.Pushd(sh.MakeTempDir())
 	defer sh.Popd()
@@ -139,7 +139,7 @@ func TestV23PlaygroundBuilder(t *testing.T) {
 // successfully.
 func TestV23PlaygroundBundles(t *testing.T) {
 	v23test.SkipUnlessRunningIntegrationTests(t)
-	sh := v23test.NewShell(t, v23test.Opts{})
+	sh := v23test.NewShell(t, nil)
 	defer sh.Cleanup()
 	sh.Pushd(sh.MakeTempDir())
 	defer sh.Popd()
