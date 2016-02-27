@@ -44,7 +44,7 @@ import (
 var (
 	verbose              = flag.Bool("verbose", true, "Whether to output debug messages.")
 	includeServiceOutput = flag.Bool("includeServiceOutput", false, "Whether to stream service (mounttable, wspr, proxy) output to clients.")
-	includeProfileEnv    = flag.Bool("includeProfileEnv", false, "Whether to log the output of \"jiri v23-profile env\" before compilation.")
+	includeProfileEnv    = flag.Bool("includeProfileEnv", false, "Whether to log the output of \"jiri profile env\" before compilation.")
 	// TODO(ivanpi): Separate out mounttable, proxy, wspr timeouts. Add compile timeout. Revise default.
 	runTimeout = flag.Duration("runTimeout", 5*time.Second, "Time limit for running user code.")
 
@@ -102,7 +102,7 @@ func panicOnError(err error) {
 
 func logProfileEnv() error {
 	if *includeProfileEnv {
-		return makeCmd("<environment>", false, "", "jiri", "v23-profile", "env").Run()
+		return makeCmd("<environment>", false, "", "jiri", "profile", "env").Run()
 	}
 	return nil
 }

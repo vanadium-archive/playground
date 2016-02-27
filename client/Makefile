@@ -1,4 +1,4 @@
-NODE_DIR := $(shell jiri v23-profile list --info Target.InstallationDir nodejs)
+NODE_DIR := $(shell jiri profile list --info Target.InstallationDir v23:nodejs)
 PATH := bin:node_modules/.bin:$(PATH):$(NODE_DIR)/bin
 SHELL := /bin/bash -euo pipefail
 

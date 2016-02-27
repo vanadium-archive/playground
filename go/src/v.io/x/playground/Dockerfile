@@ -26,7 +26,7 @@ ENV PATH $JIRI_ROOT/release/projects/playground/go/bin:$JIRI_ROOT/release/go/bin
 RUN curl https://v.io/bootstrap | bash
 
 # Setup Vanadium profiles.
-RUN jiri v23-profile install base
+RUN jiri profile install v23:base
 
 # Install the release/javascript/core library.
 # TODO(nlacasse): Switch to "npm install -g vanadium" once release/javascript/core
