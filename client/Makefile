@@ -2,6 +2,10 @@ NODE_DIR := $(shell jiri profile list --info Target.InstallationDir v23:nodejs)
 PATH := bin:node_modules/.bin:$(PATH):$(NODE_DIR)/bin
 SHELL := /bin/bash -euo pipefail
 
+# NOTE: we run npm using 'node npm' to avoid relying on the shebang line in the
+# npm script, which can exceed the Linux shebang length limit on Jenkins.
+NPM := $(NODE_DIR)/bin/npm
+
 js_files := $(shell find browser -name "*.js")
 css_files := $(shell find stylesheets -name "*.css")
 host ?= 127.0.0.1
@@ -30,8 +34,8 @@ public/bundle.css: stylesheets/index.css $(css_files) node_modules
 	bin/compile-css $< 1> $@
 
 node_modules: package.json
-	@npm prune
-	@npm install
+	@node $(NPM) prune
+	@node $(NPM) install
 	@touch $@
 
 .PHONY: start
@@ -46,7 +50,7 @@ clean:
 
 .PHONY: distclean
 distclean: clean
-	@npm cache clean
+	@node $(NPM) cache clean
 
 .PHONY: dependency-check
 dependency-check: package.json node_modules
