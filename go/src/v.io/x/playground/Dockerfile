@@ -3,7 +3,7 @@ RUN /usr/sbin/useradd -d /home/playground -m playground
 
 # Install various prereqs.
 RUN apt-get update && \
-    apt-get install -y curl git && \
+    apt-get install -y curl git make && \
     apt-get clean
 
 # Install Go. Note, the apt-get "golang" target is too old.
@@ -17,24 +17,16 @@ ENV HOME /root
 ENV JIRI_ROOT /usr/local/vanadium
 ENV GOPATH $JIRI_ROOT/release/projects/playground/go
 ENV VDLPATH $JIRI_ROOT/release/projects/playground/go/src
-ENV PATH $JIRI_ROOT/release/projects/playground/go/bin:$JIRI_ROOT/release/go/bin:$JIRI_ROOT/devtools/bin:$PATH
+ENV PATH $JIRI_ROOT/release/projects/playground/go/bin:$JIRI_ROOT/.jiri_root/bin:$JIRI_ROOT/release/go/bin:$PATH
 
 # Setup Vanadium.
 # Note: This will be cached! If you want to re-build the docker image using
 # fresh Vanadium code, you must pass "--no-cache" to the docker build command.
 # See README.md.
-RUN curl https://v.io/bootstrap | bash
+RUN curl -f https://vanadium.github.io/bootstrap.sh | bash
 
 # Setup Vanadium profiles.
-RUN jiri profile install v23:base
-
-# Install the release/javascript/core library.
-# TODO(nlacasse): Switch to "npm install -g vanadium" once release/javascript/core
-# is publicly visible in NPM.
-# NOTE(sadovsky): NPM is flaky. If any of the NPM commands below fail, simply
-# retry them.
-WORKDIR /home/playground
-RUN npm install --production $JIRI_ROOT/release/javascript/core
+RUN jiri profile-v23 install v23:base
 
 # Install Vanadium libraries and playground binaries.
 RUN jiri go install -v v.io/...

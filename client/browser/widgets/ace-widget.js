@@ -83,9 +83,6 @@ AceWidget.prototype.init = function() {
     case 'json':
       session.setMode('ace/mode/javascript');
       break;
-    case 'js':
-      session.setMode('ace/mode/javascript');
-      break;
     default:
       throw new Error('Language type not supported: ' + editor.extname);
   }
