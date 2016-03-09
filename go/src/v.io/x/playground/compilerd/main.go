@@ -57,10 +57,6 @@ var (
 	// written by compilerd to prevent reaching the hard limit.
 	maxSize = flag.Int("max-size", 1<<16, "Maximum request and output size.")
 
-	// Maximum time to finish serving currently running requests before exiting
-	// cleanly. No new requests are accepted during this time.
-	exitDelay = 60 * time.Second
-
 	// Path to SQL configuration file, as described in v.io/x/lib/dbutil/mysql.go.
 	sqlConf = flag.String("sqlconf", "", "Path to SQL configuration file. If empty, load and save requests are disabled. "+dbutil.SqlConfigFileDescription)
 )
@@ -151,6 +147,9 @@ func waitForExit(c *compiler, limit time.Duration) {
 	// Or if the time limit expires.
 	deadline := time.After(limit)
 	log.Debug("Exiting at ", time.Now().Add(limit))
+
+	exitDelay := *maxTime + (10 * time.Second)
+
 Loop:
 	for {
 		select {

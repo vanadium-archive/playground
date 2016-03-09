@@ -40,12 +40,12 @@ var (
 	// docker daemon. The GCE n1-standard machines have 3.75GB of RAM, so the
 	// default value below should leave plenty of room.
 	parallelism    = flag.Int("parallelism", 5, "Maximum number of builds to run in parallel.")
-	dockerMemLimit = flag.Int("total-docker-memory", 3000, "Total memory limit for all Docker build instances in MB.")
+	dockerMemLimit = flag.Int("total-docker-memory", 5000, "Total memory limit for all Docker build instances in MB.")
 
 	// Arbitrary deadline (enough to compile, run, shutdown).
 	// TODO(sadovsky): For now this is set high to avoid spurious timeouts.
 	// Playground execution speed needs to be optimized.
-	maxTime = flag.Duration("max-time", 30*time.Second, "Maximum time for build to run.")
+	maxTime = flag.Duration("max-time", 60*time.Second, "Maximum time for build to run.")
 
 	// TODO(nlacasse): The default value of 100 was chosen arbitrarily and
 	// should be tuned.
