@@ -15,7 +15,6 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"strconv"
 	"time"
 
 	"v.io/x/playground/lib"
@@ -62,28 +61,6 @@ func startProxy(timeLimit time.Duration) (proc *os.Process, err error) {
 		return nil, fmt.Errorf("Error starting proxy: %v", err)
 	}
 	return cmd.Process, nil
-}
-
-// startWspr starts a wsprd process. We run one wsprd process for each
-// javascript file being run.
-func startWspr(fileName, credentials string, timeLimit time.Duration) (proc *os.Process, port int, err error) {
-	cmd := makeCmd("<wsprd>:"+fileName, true, credentials,
-		"wsprd",
-		"-v23.proxy="+proxyName,
-		"-v23.tcp.address=127.0.0.1:0",
-		"-port=0",
-		// The identd server won't be used, so pass a fake name.
-		"-identd=/unused")
-	parts, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile(".*port: (.*)"))
-	if err != nil {
-		return nil, 0, fmt.Errorf("Error starting wspr: %v", err)
-	}
-	portstr := parts[1]
-	port, err = strconv.Atoi(portstr)
-	if err != nil {
-		return nil, 0, fmt.Errorf("Malformed port: %q: %v", portstr, err)
-	}
-	return cmd.Process, port, nil
 }
 
 // Helper function to start a command and wait for output.  Arguments are a cmd

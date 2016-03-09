@@ -34,7 +34,7 @@ uncomment marked lines before running the command.
 
 Test your image (without running compilerd):
 
-    $ $JIRI_ROOT/release/projects/playground/go/bin/pgadmin bundle make fortune js-go | docker run -i playground
+    $ $JIRI_ROOT/release/projects/playground/go/bin/pgadmin bundle make fortune go | docker run -i playground
 
 
 ## Running the playground server (compilerd)

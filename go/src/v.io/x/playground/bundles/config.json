@@ -4,10 +4,7 @@
       "name": "fortune",
       "path": "fortune",
       "globs": [
-        "go",
-        "js",
-        "js-go",
-        "go-js"
+        "go"
       ],
       "output": [
         "server.*Serving:",
@@ -22,27 +19,6 @@
         "*.vdl",
         "client/**/*.go",
         "server/**/*.go"
-      ]
-    },
-    "js": {
-      "patterns": [
-        "*.vdl",
-        "client/**/*.js",
-        "server/**/*.js"
-      ]
-    },
-    "js-go": {
-      "patterns": [
-        "*.vdl",
-        "client/**/*.js",
-        "server/**/*.go"
-      ]
-    },
-    "go-js": {
-      "patterns": [
-        "*.vdl",
-        "client/**/*.go",
-        "server/**/*.js"
       ]
     }
   }

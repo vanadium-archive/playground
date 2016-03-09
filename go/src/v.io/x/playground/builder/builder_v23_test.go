@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"v.io/x/playground/lib/bundle/bundler"
@@ -18,7 +17,7 @@ import (
 )
 
 var (
-	vanadiumRoot, nodejsBinRoot, playgroundRoot string
+	vanadiumRoot, playgroundRoot string
 )
 
 func initTest(t *testing.T, sh *v23test.Shell) (builderPath string) {
@@ -27,11 +26,6 @@ func initTest(t *testing.T, sh *v23test.Shell) (builderPath string) {
 		t.Fatal("JIRI_ROOT must be set")
 	}
 
-	out := sh.Cmd("jiri", "v23-profile", "list", "--info=Target.InstallationDir", "nodejs").Stdout()
-
-	nodejsBinRoot = filepath.Join(strings.TrimSpace(out), "bin")
-
-	v23test.BuildGoPkg(sh, "v.io/x/ref/services/wspr/wsprd", "-a", "-tags", "wspr")
 	v23test.BuildGoPkg(sh, "v.io/x/ref/cmd/principal")
 	v23test.BuildGoPkg(sh, "v.io/x/ref/cmd/vdl")
 	v23test.BuildGoPkg(sh, "v.io/x/ref/services/mounttable/mounttabled")
@@ -39,14 +33,7 @@ func initTest(t *testing.T, sh *v23test.Shell) (builderPath string) {
 
 	playgroundRoot = filepath.Join(vanadiumRoot, "release", "projects", "playground")
 
-	npmInstall(sh, filepath.Join(vanadiumRoot, "release/javascript/core"))
-
 	return v23test.BuildGoPkg(sh, "v.io/x/playground/builder")
-}
-
-func npmInstall(sh *v23test.Shell, dir string) {
-	npmBinPath := filepath.Join(nodejsBinRoot, "npm")
-	sh.Cmd(npmBinPath, "install", "--production", dir).Run()
 }
 
 // Bundles a playground example and tests it using builder.
@@ -60,19 +47,10 @@ func runPGExample(t *testing.T, sh *v23test.Shell, builderPath, dir string, glob
 	}
 
 	tmp := sh.MakeTempDir()
-	// TODO(ivanpi): Make sh.Pushd return old wd?
-	cwd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(tu.FormatLogLine(1, "getwd: failed: %v", err))
-	}
 	sh.Pushd(tmp)
 	defer sh.Popd()
-	old := filepath.Join(cwd, "node_modules")
-	if err := os.Symlink(old, filepath.Join(".", filepath.Base(old))); err != nil {
-		t.Fatal(tu.FormatLogLine(1, "symlink: failed: %v", err))
-	}
 
-	PATH := os.Getenv("V23_BIN_DIR") + ":" + nodejsBinRoot
+	PATH := os.Getenv("V23_BIN_DIR")
 	if path := os.Getenv("PATH"); len(path) > 0 {
 		PATH += ":" + path
 	}
@@ -99,12 +77,6 @@ func TestV23PlaygroundBuilder(t *testing.T) {
 	}{
 		{"basic ping (go -> go)",
 			[]string{"src/pong/pong.go", "src/ping/ping.go", "src/pingpong/wire.vdl"}},
-		{"basic ping (js -> js)",
-			[]string{"src/pong/pong.js", "src/ping/ping.js", "src/pingpong/wire.vdl"}},
-		{"basic ping (js -> go)",
-			[]string{"src/pong/pong.go", "src/ping/ping.js", "src/pingpong/wire.vdl"}},
-		{"basic ping (go -> js)",
-			[]string{"src/pong/pong.js", "src/ping/ping.go", "src/pingpong/wire.vdl"}},
 	}
 
 	testdataDir := filepath.Join(playgroundRoot, "go", "src", "v.io", "x", "playground", "testdata")

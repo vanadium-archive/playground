@@ -30,7 +30,6 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -43,9 +42,9 @@ import (
 
 var (
 	verbose              = flag.Bool("verbose", true, "Whether to output debug messages.")
-	includeServiceOutput = flag.Bool("includeServiceOutput", false, "Whether to stream service (mounttable, wspr, proxy) output to clients.")
+	includeServiceOutput = flag.Bool("includeServiceOutput", false, "Whether to stream service (mounttable, proxy) output to clients.")
 	includeProfileEnv    = flag.Bool("includeProfileEnv", false, "Whether to log the output of \"jiri profile env\" before compilation.")
-	// TODO(ivanpi): Separate out mounttable, proxy, wspr timeouts. Add compile timeout. Revise default.
+	// TODO(ivanpi): Separate out mounttable and proxy timeouts. Add compile timeout. Revise default.
 	runTimeout = flag.Duration("runTimeout", 5*time.Second, "Time limit for running user code.")
 
 	stopped = false    // Whether we have stopped execution of running files.
@@ -79,7 +78,7 @@ type codeFile struct {
 	binaryName string
 	// Running cmd process for the file.
 	cmd *exec.Cmd
-	// Any subprocesses that are needed to support running the file (e.g. wspr).
+	// Any subprocesses that are needed to support running the file (e.g. mounttable).
 	subprocs []*os.Process
 	// The index of the file in the request.
 	index int
@@ -142,10 +141,6 @@ func parseRequest(in io.Reader) (request, error) {
 			i--
 		} else {
 			switch path.Ext(f.Name) {
-			case ".js":
-				// JavaScript files are always executable.
-				f.executable = true
-				f.lang = "js"
 			case ".go":
 				// Go files will be marked as executable if their package name is
 				// "main". This happens in the "maybeSetExecutableAndBinaryName"
@@ -224,16 +219,6 @@ func compileFiles(files []*codeFile) (badInput bool, cerr error) {
 	// TODO(ivanpi): We assume *exec.ExitError results from uncompilable input
 	// files; other cases can result from bugs in playground backend or compiler
 	// itself.
-	if found["js"] && found["vdl"] {
-		debug("Generating VDL for Javascript")
-		err = makeCmd("<compile>", false, "",
-			"vdl", "generate", "-lang=Javascript", "-js-out-dir="+srcd, "./...").Run()
-		if _, ok := err.(*exec.ExitError); ok {
-			return true, nil
-		} else if err != nil {
-			return false, err
-		}
-	}
 	if found["go"] {
 		debug("Generating VDL for Go and compiling Go")
 		err = makeCmd("<compile>", false, "",
@@ -321,17 +306,6 @@ func (f *codeFile) write() error {
 	return ioutil.WriteFile(f.Name, []byte(f.Body), 0644)
 }
 
-func (f *codeFile) startJs() error {
-	wsprProc, wsprPort, err := startWspr(f.Name, f.credentials, *runTimeout)
-	if err != nil {
-		return fmt.Errorf("Error starting wspr: %v", err)
-	}
-	f.subprocs = append(f.subprocs, wsprProc)
-	os.Setenv("WSPR", "http://localhost:"+strconv.Itoa(wsprPort))
-	f.cmd = makeCmd(f.Name, false, "", "node", f.Name)
-	return f.cmd.Start()
-}
-
 func (f *codeFile) startGo() error {
 	f.cmd = makeCmd(f.Name, false, f.credentials, filepath.Join("bin", f.binaryName))
 	return f.cmd.Start()
@@ -349,8 +323,6 @@ func (f *codeFile) run(ch chan exit) {
 		switch f.lang {
 		case "go":
 			return f.startGo()
-		case "js":
-			return f.startJs()
 		default:
 			return fmt.Errorf("Cannot run file %q", f.Name)
 		}

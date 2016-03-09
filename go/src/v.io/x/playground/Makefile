@@ -14,7 +14,6 @@ all: builder compilerd
 # builder-deps target builds the binaries that the builder calls.
 .PHONY: builder-deps
 builder-deps:
-	jiri go install -a -tags wspr v.io/x/ref/services/wspr/wsprd
 	jiri go install v.io/x/ref/cmd/principal
 	jiri go install v.io/x/ref/services/identity/identityd
 	jiri go install v.io/x/ref/services/mounttable/mounttabled

@@ -3,7 +3,7 @@ RUN /usr/sbin/useradd -d /home/playground -m playground
 
 # Install various prereqs.
 RUN apt-get update && \
-    apt-get install -y curl git nodejs nodejs-legacy npm && \
+    apt-get install -y curl git && \
     apt-get clean
 
 # Install Go. Note, the apt-get "golang" target is too old.
@@ -37,7 +37,6 @@ WORKDIR /home/playground
 RUN npm install --production $JIRI_ROOT/release/javascript/core
 
 # Install Vanadium libraries and playground binaries.
-RUN jiri go install -a -tags wspr -v v.io/x/ref/services/wspr/...
 RUN jiri go install -v v.io/...
 
 # Uncomment the following lines to install a version of the builder tool using
