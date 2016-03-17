@@ -50,7 +50,7 @@ func runPGExample(t *testing.T, sh *v23test.Shell, builderPath, dir string, glob
 	sh.Pushd(tmp)
 	defer sh.Popd()
 
-	PATH := os.Getenv("V23_BIN_DIR")
+	PATH := filepath.Dir(builderPath)
 	if path := os.Getenv("PATH"); len(path) > 0 {
 		PATH += ":" + path
 	}
