@@ -16,6 +16,7 @@ import (
 	"v.io/x/lib/vlog"
 	"v.io/x/ref/lib/signals"
 	_ "v.io/x/ref/runtime/factories/generic"
+	"v.io/x/ref/test"
 
 	"pingpong"
 )
@@ -29,7 +30,7 @@ func (f *pongd) Ping(ctx *context.T, call rpc.ServerCall, message string) (resul
 }
 
 func main() {
-	ctx, shutdown := v23.Init()
+	ctx, shutdown := test.V23Init()
 	defer shutdown()
 
 	serverPong := pingpong.PingPongServer(&pongd{})

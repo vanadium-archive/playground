@@ -9,15 +9,15 @@ package main
 import (
 	"fmt"
 
-	"v.io/v23"
 	"v.io/x/lib/vlog"
 	_ "v.io/x/ref/runtime/factories/generic"
+	"v.io/x/ref/test"
 
 	"pingpong"
 )
 
 func main() {
-	ctx, shutdown := v23.Init()
+	ctx, shutdown := test.V23Init()
 	defer shutdown()
 
 	s := pingpong.PingPongClient("pingpong")
