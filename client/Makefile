@@ -1,10 +1,10 @@
-NODE_DIR := $(shell jiri profile list --info Target.InstallationDir v23:nodejs)
-PATH := bin:node_modules/.bin:$(PATH):$(NODE_DIR)/bin
+NODE_BIN := $(shell jiri profile env --profiles=v23:base,v23:nodejs NODE_BIN=)
+PATH := bin:node_modules/.bin:$(PATH):$(NODE_BIN)
 SHELL := /bin/bash -euo pipefail
 
 # NOTE: we run npm using 'node npm' to avoid relying on the shebang line in the
 # npm script, which can exceed the Linux shebang length limit on Jenkins.
-NPM := $(NODE_DIR)/bin/npm
+NPM := $(NODE_BIN)/npm
 
 js_files := $(shell find browser -name "*.js")
 css_files := $(shell find stylesheets -name "*.css")
