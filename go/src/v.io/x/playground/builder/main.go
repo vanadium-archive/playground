@@ -35,6 +35,7 @@ import (
 	"syscall"
 	"time"
 
+	"v.io/x/lib/envvar"
 	"v.io/x/playground/lib"
 	"v.io/x/playground/lib/event"
 	"v.io/x/ref"
@@ -47,9 +48,10 @@ var (
 	// TODO(ivanpi): Separate out mounttable and proxy timeouts. Add compile timeout. Revise default.
 	runTimeout = flag.Duration("runTimeout", 5*time.Second, "Time limit for running user code.")
 
-	stopped = false    // Whether we have stopped execution of running files.
-	out     event.Sink // Sink for writing events (debug and run output) to stdout as JSON, one event per line.
-	mu      sync.Mutex
+	stopped  = false    // Whether we have stopped execution of running files.
+	out      event.Sink // Sink for writing events (debug and run output) to stdout as JSON, one event per line.
+	mu       sync.Mutex
+	credsMgr *credentialsManager
 )
 
 // Type of data sent to the builder on stdin.  Input should contain Files.  We
@@ -101,7 +103,11 @@ func panicOnError(err error) {
 
 func logProfileEnv() error {
 	if *includeProfileEnv {
-		return makeCmd("<environment>", false, "", "jiri", "profile", "env").Run()
+		cmd, err := makeCmd("<environment>", false, "", "jiri", "profile", "env")
+		if err != nil {
+			return err
+		}
+		return cmd.Run()
 	}
 	return nil
 }
@@ -221,15 +227,18 @@ func compileFiles(files []*codeFile) (badInput bool, cerr error) {
 	// itself.
 	if found["go"] {
 		debug("Generating VDL for Go and compiling Go")
-		err = makeCmd("<compile>", false, "",
-			"jiri", "go", "install", "./...").Run()
+		cmd, err := makeCmd("<compile>", false, "", "jiri", "go", "install", "./...")
+		if err != nil {
+			return false, err
+		}
+		err = cmd.Run()
 		if _, ok := err.(*exec.ExitError); ok {
 			return true, nil
 		} else if err != nil {
 			return false, err
 		}
 	}
-	if err = os.Chdir(pwd); err != nil {
+	if err := os.Chdir(pwd); err != nil {
 		return false, fmt.Errorf("Error returning to parent directory: %v", err)
 	}
 	return false, nil
@@ -307,7 +316,11 @@ func (f *codeFile) write() error {
 }
 
 func (f *codeFile) startGo() error {
-	f.cmd = makeCmd(f.Name, false, f.credentials, filepath.Join("bin", f.binaryName))
+	var err error
+	f.cmd, err = makeCmd(f.Name, false, f.credentials, filepath.Join("bin", f.binaryName))
+	if err != nil {
+		return err
+	}
 	return f.cmd.Start()
 }
 
@@ -364,12 +377,17 @@ func (f *codeFile) stop() {
 // Creates a cmd whose outputs (stdout and stderr) are streamed to stdout as
 // Event objects. If you want to watch the output streams yourself, add your
 // own writer(s) to the MultiWriter before starting the command.
-func makeCmd(fileName string, isService bool, credentials, progName string, args ...string) *exec.Cmd {
+func makeCmd(fileName string, isService bool, credentials, progName string, args ...string) (*exec.Cmd, error) {
 	cmd := exec.Command(progName, args...)
-	cmd.Env = os.Environ()
+	vars := envvar.VarsFromOS()
 	if credentials != "" {
-		cmd.Env = append(cmd.Env, fmt.Sprintf("%v=%s", ref.EnvCredentials, filepath.Join(credentialsDir, credentials)))
+		sock, err := credsMgr.socket(credentials)
+		if err != nil {
+			return nil, err
+		}
+		vars.Set(ref.EnvAgentPath, sock)
 	}
+	cmd.Env = vars.ToSlice()
 	stdout, stderr := lib.NewMultiWriter(), lib.NewMultiWriter()
 	prefix := ""
 	if isService {
@@ -380,13 +398,17 @@ func makeCmd(fileName string, isService bool, credentials, progName string, args
 		stderr.Add(event.NewStreamWriter(out, fileName, prefix+"stderr"))
 	}
 	cmd.Stdout, cmd.Stderr = stdout, stderr
-	return cmd
+	return cmd, nil
 }
 
 func main() {
 	// Remove any association with other credentials, start from a clean
 	// slate.
 	ref.EnvClearCredentials()
+	// TODO(caprita): This should really be part of EnvClearCredentials.
+	if err := os.Unsetenv(ref.EnvAgentPath); err != nil {
+		panic(err)
+	}
 	flag.Parse()
 
 	out = event.NewJsonSink(os.Stdout, !*verbose)
@@ -394,20 +416,9 @@ func main() {
 	r, err := parseRequest(os.Stdin)
 	panicOnError(err)
 
-	// Create a common "identity provider" that will bless each principal
-	// in this test (including mounttable, proxy, etc. that will be
-	// started).
-	//
-	// TODO(ivanpi,ashankar): Credential management in this playground has
-	// become very unwieldy. As of March 2015, ashankar@ just what was
-	// expedient to get some other changes through, but what is left is
-	// certainly hacky. If the plan is to move all this process management
-	// to the "modules" framework, then we should be able to leverage that
-	// to manage and set credentials for each subprocess. If not, will have
-	// to think of something else, but in any case, should clean this up!
-	panicOnError(createCredentials(
-		append(baseCredentials(),
-			rootCredentialsAtIdentityProvider(r.Credentials)...)))
+	credsMgr, err = newCredentialsManager(r.Credentials)
+	panicOnError(err)
+	defer credsMgr.Close()
 
 	mt, err := startMount(*runTimeout)
 	panicOnError(err)

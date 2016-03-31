@@ -7,11 +7,16 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"os"
-	"os/exec"
-	"path"
+	"path/filepath"
+	"sync"
+	"time"
+
+	"v.io/v23/security"
+	libsecurity "v.io/x/ref/lib/security"
+	"v.io/x/ref/services/agent"
+	"v.io/x/ref/services/agent/agentlib"
+	"v.io/x/ref/services/agent/keymgr"
 )
 
 type credentials struct {
@@ -27,113 +32,7 @@ const (
 	defaultCredentials = "default"     // What codeFile.credentials defaults to if empty
 )
 
-var reservedCredentials = []string{identityProvider, "mounttabled", "proxyd", defaultCredentials}
-
-func (c credentials) create() error {
-	if err := c.init(); err != nil {
-		return err
-	}
-	if c.Blesser == "" && c.Duration != "" {
-		return c.initWithDuration()
-	}
-	if c.Blesser != "" {
-		return c.getblessed()
-	}
-	return nil
-}
-
-func (c credentials) init() error {
-	dir := path.Join(credentialsDir, c.Name)
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		return c.toolCmd("", "create", dir, c.Name).Run()
-	}
-	return nil
-}
-
-func (c credentials) initWithDuration() error {
-	// (1) principal blessself --for=<duration> <c.Name> | principal set default -
-	// (2) principal get default | principal set forpeer - ...
-	if err := c.pipe(c.toolCmd(c.Name, "blessself", "--for", c.Duration),
-		c.toolCmd(c.Name, "set", "default", "-")); err != nil {
-		return err
-	}
-	if err := c.pipe(c.toolCmd(c.Name, "get", "default"),
-		c.toolCmd(c.Name, "set", "forpeer", "-", "...")); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (c credentials) getblessed() error {
-	// (1) V23_CREDENTIALS=<c.Blesser> principal bless <c.Name> --for=<c.Duration> <c.Name> | V23_CREDENTIALS=<c.Name> principal set default -
-	// (2) principal get default | principal set forpeer - ...
-	duration := c.Duration
-	if duration == "" {
-		duration = "1h"
-	}
-	if err := c.pipe(c.toolCmd(c.Blesser, "bless", "--for", duration, path.Join(credentialsDir, c.Name), c.Name),
-		c.toolCmd(c.Name, "set", "default", "-")); err != nil {
-		return err
-	}
-	if err := c.pipe(c.toolCmd(c.Name, "get", "default"),
-		c.toolCmd(c.Name, "set", "forpeer", "-", "...")); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (c credentials) pipe(from, to *exec.Cmd) error {
-	buf := new(bytes.Buffer)
-	from.Stdout = buf
-	to.Stdin = buf
-	if err := from.Run(); err != nil {
-		return fmt.Errorf("%v %v: %v", from.Path, from.Args, err)
-	}
-	if err := to.Run(); err != nil {
-		return fmt.Errorf("%v %v: %v", to.Path, to.Args, err)
-	}
-	return nil
-}
-
-func (c credentials) toolCmd(credentials string, args ...string) *exec.Cmd {
-	cmd := makeCmd("<principal>", false, credentials, "principal", args...)
-	// Set Stdout to /dev/null so that output does not leak into the
-	// playground output. If the output is needed, it can be overridden by
-	// clients of this method.
-	cmd.Stdout = nil
-	return cmd
-}
-
-func createCredentials(creds []credentials) error {
-	debug("Generating credentials")
-	for _, c := range creds {
-		if err := c.create(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func baseCredentials() []credentials {
-	ret := []credentials{{Name: identityProvider}}
-	for _, name := range reservedCredentials {
-		if name != identityProvider {
-			ret = append(ret, credentials{Name: name, Blesser: identityProvider})
-		}
-	}
-	return ret
-}
-
-func rootCredentialsAtIdentityProvider(in []credentials) []credentials {
-	out := make([]credentials, len(in))
-	for idx, creds := range in {
-		if creds.Blesser == "" {
-			creds.Blesser = identityProvider
-		}
-		out[idx] = creds
-	}
-	return out
-}
+var reservedCredentials = []string{identityProvider, "mounttabled", "xproxyd", defaultCredentials}
 
 func isReservedCredential(name string) bool {
 	for _, c := range reservedCredentials {
@@ -142,4 +41,139 @@ func isReservedCredential(name string) bool {
 		}
 	}
 	return false
+}
+
+type credentialsManager struct {
+	sync.Mutex
+	dir    string
+	keyMgr agent.KeyManager
+	// Map from blessing to socket file path.
+	socks map[string]string
+}
+
+func (cm *credentialsManager) socket(name string) (string, error) {
+	cm.Lock()
+	defer cm.Unlock()
+	return cm.socketLocked(name)
+}
+
+// called with cm's lock held.
+func (cm *credentialsManager) socketLocked(name string) (string, error) {
+	sock, ok := cm.socks[name]
+	if !ok {
+		return "", fmt.Errorf("principal for blessing \"%s\" doesn't exist", name)
+	}
+	return sock, nil
+}
+
+func (cm *credentialsManager) principal(name string) (agent.Principal, error) {
+	cm.Lock()
+	defer cm.Unlock()
+	return cm.principalLocked(name)
+}
+
+// called with cm's lock held.
+func (cm *credentialsManager) principalLocked(name string) (agent.Principal, error) {
+	sock, err := cm.socketLocked(name)
+	if err != nil {
+		return nil, err
+	}
+	return agentlib.NewAgentPrincipal(sock, 0)
+}
+
+func (cm *credentialsManager) createPrincipal(blesser agent.Principal, name string, expiresAfter time.Duration) error {
+	cm.Lock()
+	defer cm.Unlock()
+	if _, ok := cm.socks[name]; ok {
+		return fmt.Errorf("principal with blessing name \"%s\" already exists", name)
+	}
+	handle, err := cm.keyMgr.NewPrincipal(true)
+	if err != nil {
+		return err
+	}
+	sockPath := filepath.Join(cm.dir, fmt.Sprintf("sock%d", len(cm.socks)))
+	if err := cm.keyMgr.ServePrincipal(handle, sockPath); err != nil {
+		return err
+	}
+	cm.socks[name] = sockPath
+	p, err := cm.principalLocked(name)
+	if err != nil {
+		return err
+	}
+	defer p.Close()
+	expiry, err := security.NewExpiryCaveat(time.Now().Add(expiresAfter))
+	if err != nil {
+		return err
+	}
+	var blessing security.Blessings
+	if blesser == nil {
+		// Self-blessed.
+		if blessing, err = p.BlessSelf(name, expiry); err != nil {
+			return err
+		}
+	} else {
+		with, _ := blesser.BlessingStore().Default()
+		if blessing, err = blesser.Bless(p.PublicKey(), with, name, expiry); err != nil {
+			return err
+		}
+	}
+	return libsecurity.SetDefaultBlessings(p, blessing)
+}
+
+func newCredentialsManager(creds []credentials) (*credentialsManager, error) {
+	keyMgr, err := keymgr.NewLocalAgent(credentialsDir, nil)
+	if err != nil {
+		return nil, err
+	}
+	credsMgr := &credentialsManager{
+		dir:    credentialsDir,
+		keyMgr: keyMgr,
+		socks:  make(map[string]string),
+	}
+	// Create the root identity provider.
+	if err := credsMgr.createPrincipal(nil, identityProvider, time.Hour); err != nil {
+		return nil, err
+	}
+	rootPrincipal, err := credsMgr.principal(identityProvider)
+	if err != nil {
+		return nil, err
+	}
+	defer rootPrincipal.Close()
+	// Create the other reserved principals.
+	for _, name := range reservedCredentials {
+		if name != identityProvider {
+			if err := credsMgr.createPrincipal(rootPrincipal, name, time.Hour); err != nil {
+				return nil, err
+			}
+		}
+	}
+	// Create all the user-specified principals.
+	for _, cred := range creds {
+		var blesser agent.Principal
+		if cred.Blesser == "" {
+			blesser = rootPrincipal
+		} else {
+			blesser, err = credsMgr.principal(cred.Blesser)
+			if err != nil {
+				return nil, err
+			}
+			defer blesser.Close()
+		}
+		expiry := time.Hour
+		if cred.Duration != "" {
+			expiry, err = time.ParseDuration(cred.Duration)
+			if err != nil {
+				return nil, err
+			}
+		}
+		if err := credsMgr.createPrincipal(blesser, cred.Name, expiry); err != nil {
+			return nil, err
+		}
+	}
+
+	return credsMgr, nil
+}
+
+func (cm *credentialsManager) Close() error {
+	return cm.keyMgr.Close()
 }
