@@ -87,7 +87,7 @@ func TestV23PlaygroundBuilder(t *testing.T) {
 			if len(authfile) > 0 {
 				files = append(files, authfile)
 			}
-			inv := runPGExample(t, sh, builderPath, testdataDir, files, "--verbose=true", "--includeProfileEnv=true", "--runTimeout=5s")
+			inv := runPGExample(t, sh, builderPath, testdataDir, files, "--verbose=true", "--includeProfileEnv=true")
 			t.Logf("test: %s", c.name)
 			inv.S.ExpectSetEventuallyRE(patterns...)
 			inv.Wait()
@@ -133,7 +133,7 @@ func TestV23PlaygroundBundles(t *testing.T) {
 				t.Fatal(tu.FormatLogLine(0, "unknown glob %q", globName))
 			}
 
-			inv := runPGExample(t, sh, builderPath, example.Path, glob.Patterns, "--verbose=true", "--runTimeout=5s")
+			inv := runPGExample(t, sh, builderPath, example.Path, glob.Patterns, "--verbose=true")
 			t.Logf("glob: %s", globName)
 			inv.S.ExpectSetEventuallyRE(example.Output...)
 			inv.Wait()

@@ -317,7 +317,9 @@ func (f *codeFile) write() error {
 
 func (f *codeFile) startGo() error {
 	var err error
-	f.cmd, err = makeCmd(f.Name, false, f.credentials, filepath.Join("bin", f.binaryName))
+	f.cmd, err = makeCmd(f.Name, false, f.credentials,
+		filepath.Join("bin", f.binaryName),
+		"-v23.tcp.address=127.0.0.1:0")
 	if err != nil {
 		return err
 	}
