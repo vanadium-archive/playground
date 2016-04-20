@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"v.io/x/playground/lib/bundle/bundler"
-	_ "v.io/x/ref/runtime/factories/generic"
+	_ "v.io/x/ref/runtime/factories/roaming"
 	tu "v.io/x/ref/test/testutil"
 	"v.io/x/ref/test/v23test"
 )

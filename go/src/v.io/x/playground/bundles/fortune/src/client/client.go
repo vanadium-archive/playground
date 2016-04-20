@@ -14,7 +14,7 @@ import (
 
 	"v.io/v23"
 	"v.io/v23/context"
-	_ "v.io/x/ref/runtime/factories/generic"
+	_ "v.io/x/ref/runtime/factories/roaming"
 
 	"fortune"
 )

@@ -10,7 +10,7 @@ import (
 	"fmt"
 
 	"v.io/x/lib/vlog"
-	_ "v.io/x/ref/runtime/factories/generic"
+	_ "v.io/x/ref/runtime/factories/roaming"
 	"v.io/x/ref/test"
 
 	"pingpong"

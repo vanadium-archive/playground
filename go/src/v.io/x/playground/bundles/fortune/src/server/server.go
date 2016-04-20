@@ -17,7 +17,7 @@ import (
 	"v.io/x/lib/vlog"
 	"v.io/x/ref/lib/security/securityflag"
 	"v.io/x/ref/lib/signals"
-	_ "v.io/x/ref/runtime/factories/generic"
+	_ "v.io/x/ref/runtime/factories/roaming"
 
 	"fortune"
 )
@@ -61,6 +61,20 @@ func main() {
 	// Initialize Vanadium.
 	ctx, shutdown := v23.Init()
 	defer shutdown()
+
+	// TODO(ivanpi): The playground executor should somehow force the
+	// ListenSpec to be this way.
+	// When a ListenSpec is not explicitly specified, the "roaming" runtime
+	// factory sets it up to be the public IP address of the virtual
+	// machine running on Google Compute Engine or Amazon Web Services.
+	// Normally, the playground should execute code inside a docker image,
+	// but in tests it is run on the host machine and having this test
+	// service exported on a public IP (when running on GCE) is not an
+	// intent.  Furthermore, the test may fail if the firewall rules block
+	// access to the selected port on the public IP.
+	ctx = v23.WithListenSpec(ctx, rpc.ListenSpec{
+		Addrs: rpc.ListenAddrs{{"tcp", "127.0.0.1:0"}},
+	})
 
 	// Create the fortune server stub.
 	fortuneServer := fortune.FortuneServer(newFortuned())
